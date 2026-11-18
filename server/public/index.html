@@ -19,6 +19,8 @@
 <symbol id="i-linux" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m7 9 3 3-3 3M12 15h5"/></symbol>
 <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol>
 <symbol id="i-web" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+<symbol id="i-gh" viewBox="0 0 24 24"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></symbol>
+<symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
 <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
 <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
 </defs></svg>
@@ -89,6 +91,20 @@
  </div>
 </div></section>
 
+<section id="selfhost"><div class="wrap split rev">
+ <div class="txt"><div class="kicker" data-t="shK">Open source</div><h2 data-t="shT">Hébergez votre propre Folio</h2>
+  <p class="sub" data-t="shP">Le code est libre (licence MIT). Installez le serveur chez vous — un Raspberry Pi suffit — et gardez vos livres et vos notes sur votre propre machine.</p>
+  <ul class="checks"><li><svg class="i"><use href="#i-check"/></svg><span data-t="sh1">Installation en une commande avec Docker</span></li>
+   <li><svg class="i"><use href="#i-check"/></svg><span data-t="sh2">Site, lecteur et applis Windows, macOS et Linux inclus</span></li>
+   <li><svg class="i"><use href="#i-check"/></svg><span data-t="sh3">Vos données ne quittent jamais votre serveur</span></li></ul>
+  <p style="margin-top:26px"><a class="btn pri" href="https://github.com/AsuCracotte/Folio-selfhosted" target="_blank" rel="noopener"><svg class="i"><use href="#i-gh"/></svg><span data-t="shBtn">Voir le code sur GitHub</span></a></p></div>
+ <div class="frame shbox"><div class="shhead"><svg class="i"><use href="#i-server"/></svg><span>Terminal</span><button class="shcopy" id="shCopy" data-t="copy">Copier</button></div>
+<pre id="shCmd"><b>$</b> git clone https://github.com/AsuCracotte/Folio-selfhosted.git
+<b>$</b> cd Folio-selfhosted/server
+<b>$</b> cp .env.example .env
+<b>$</b> docker compose up -d --build</pre></div>
+</div></section>
+
 <section><div class="wrap"><div class="cta">
  <h2 data-t="ctaT">Votre prochaine lecture vous attend</h2>
  <p data-t="ctaP">Glissez un fichier EPUB dans Folio et commencez tout de suite.</p>
@@ -96,6 +112,6 @@
 </div></div></section>
 
 <footer><div class="wrap"><a class="logo" href="/" style="font-size:17px;margin:0"><img src="icon.svg" alt="" style="width:24px;height:24px">Folio</a><span class="sp"></span>
- <a href="/app/" data-t="navOpen">Ouvrir Folio</a><a href="/download" data-t="navDownload">Télécharger</a><span>© 2026 Folio</span></div></footer>
+ <a href="/app/" data-t="navOpen">Ouvrir Folio</a><a href="/download" data-t="navDownload">Télécharger</a><a href="https://github.com/AsuCracotte/Folio-selfhosted" target="_blank" rel="noopener" data-t="selfLink">Auto-hébergement</a><span>© 2026 Folio</span></div></footer>
 <script src="site.js"></script>
 </body></html>

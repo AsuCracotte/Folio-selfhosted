@@ -1,0 +1,18 @@
+# secrets and data — never commit
+.env
+server/data/
+server/downloads/*
+!server/downloads/.gitkeep
+# dependencies and builds
+node_modules/
+desktop/dist/
+desktop/.tmp/
+desktop/config.json
+linux/build/
+*.deb
+# editors / OS
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+.DS_Store

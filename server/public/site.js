@@ -28,6 +28,11 @@
       pK: "Sur tous vos appareils", pT: "Un compte, toutes vos plateformes",
       pS: "Installez l’appli sur votre ordinateur, ajoutez Folio à l’écran d’accueil de votre téléphone, ou lisez directement dans le navigateur.",
       pWin: "10 et 11", pMac: "Apple Silicon et Intel", pLin: "Debian, Ubuntu…", pPhoneT: "Téléphone", pWebT: "Navigateur", pWeb: "Rien à installer",
+      shK: "Open source", shT: "Hébergez votre propre Folio",
+      shP: "Le code est libre (licence MIT). Installez le serveur chez vous — un Raspberry Pi suffit — et gardez vos livres et vos notes sur votre propre machine.",
+      sh1: "Installation en une commande avec Docker", sh2: "Site, lecteur et applis Windows, macOS et Linux inclus", sh3: "Vos données ne quittent jamais votre serveur",
+      copy: "Copier", copied: "Copié !",
+      shBtn: "Voir le code sur GitHub", selfLink: "Auto-hébergement", selfNote: "Vous préférez votre propre serveur ?", selfNoteLink: "Folio est open source et auto-hébergeable",
       ctaT: "Votre prochaine lecture vous attend", ctaP: "Glissez un fichier EPUB dans Folio et commencez tout de suite.",
       // téléchargements
       dlK: "Téléchargement", dlT: "Folio sur votre appareil",
@@ -73,6 +78,11 @@
       pK: "On all your devices", pT: "One account, all your platforms",
       pS: "Install the app on your computer, add Folio to your phone’s home screen, or read right in the browser.",
       pWin: "10 and 11", pMac: "Apple Silicon and Intel", pLin: "Debian, Ubuntu…", pPhoneT: "Phone", pWebT: "Browser", pWeb: "Nothing to install",
+      shK: "Open source", shT: "Host your own Folio",
+      shP: "The code is free (MIT licence). Run the server at home — a Raspberry Pi is enough — and keep your books and notes on your own machine.",
+      sh1: "One-command install with Docker", sh2: "Website, reader and Windows, macOS and Linux apps included", sh3: "Your data never leaves your server",
+      copy: "Copy", copied: "Copied!",
+      shBtn: "View the code on GitHub", selfLink: "Self-hosting", selfNote: "Prefer your own server?", selfNoteLink: "Folio is open source and self-hostable",
       ctaT: "Your next read is waiting", ctaP: "Drop an EPUB file into Folio and start right away.",
       dlK: "Download", dlT: "Folio on your device",
       dlS: "The apps use the same account as the website: sign in to get your books, notes and collections.",
@@ -109,6 +119,11 @@
     b.classList.toggle("on", b.dataset.l === LANG);
     b.onclick = () => { try { localStorage.folioLang = b.dataset.l; } catch (e) {} location.reload(); };
   });
+  const cp = document.getElementById("shCopy");
+  if (cp) cp.onclick = () => {
+    const txt = document.getElementById("shCmd").textContent.replace(/^\$ /gm, "");
+    navigator.clipboard.writeText(txt).then(() => { cp.textContent = t("copied"); setTimeout(() => (cp.textContent = t("copy")), 1600); }, () => {});
+  };
   const host = document.getElementById("host"); if (host) host.textContent = location.host;
   const nav = document.querySelector(".nav");
   addEventListener("scroll", () => nav.classList.toggle("scrolled", scrollY > 8), { passive: true });
