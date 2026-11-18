@@ -112,8 +112,9 @@
   const t = (k, v = {}) => String(TX[LANG][k] ?? TX.fr[k] ?? k).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "");
   document.documentElement.lang = LANG;
   if (LANG === "en") document.title = document.title.replace("Télécharger Folio", "Download Folio").replace("liseuse EPUB synchronisée", "the EPUB reader that syncs");
-  document.querySelectorAll("[data-t]").forEach((e) => { e.textContent = t(e.dataset.t); });
-  document.querySelectorAll("[data-th]").forEach((e) => { e.innerHTML = t(e.dataset.th); });
+  const has = (k) => TX[LANG][k] != null || TX.fr[k] != null;
+  document.querySelectorAll("[data-t]").forEach((e) => { if (has(e.dataset.t)) e.textContent = t(e.dataset.t); });
+  document.querySelectorAll("[data-th]").forEach((e) => { if (has(e.dataset.th)) e.innerHTML = t(e.dataset.th); });
   document.querySelectorAll("[data-shot]").forEach((e) => { e.src = `img/${LANG}-${e.dataset.shot}.webp`; });
   document.querySelectorAll(".lang button").forEach((b) => {
     b.classList.toggle("on", b.dataset.l === LANG);
