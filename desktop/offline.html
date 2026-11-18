@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>Folio</title>
+<style>
+  :root { --bg:#fbfbfa; --fg:#222; --muted:#777; --ac:#6d5bd0; --acfg:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1e1f24; --fg:#d6d6d6; --muted:#8b8c92; --ac:#a798ff; --acfg:#15122a; } }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--fg);
+    font:15px/1.5 "Segoe UI", -apple-system, system-ui, sans-serif; }
+  main { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; }
+  .logo { width:72px; height:72px; border-radius:20px; background:linear-gradient(135deg,#6d5bd0,#3b2a8f); margin-bottom:22px; }
+  h1 { font-size:22px; margin:0 0 8px; } p { color:var(--muted); margin:0 0 24px; max-width:380px; }
+  button { font:inherit; font-weight:600; border:0; border-radius:99px; padding:11px 26px; background:var(--ac); color:var(--acfg); cursor:pointer; }
+</style></head>
+<body><main>
+  <div class="logo"></div>
+  <h1>Connexion impossible</h1>
+  <p>Folio a besoin d’Internet au premier lancement. Ensuite, vos livres restent lisibles hors ligne.</p>
+  <button id="r">Réessayer</button>
+</main>
+<script>
+  if (!/^fr/i.test(navigator.language)) {
+    document.documentElement.lang = "en";
+    document.querySelector("h1").textContent = "Can’t connect";
+    document.querySelector("p").textContent = "Folio needs the internet the first time it opens. After that, your books stay readable offline.";
+    document.getElementById("r").textContent = "Try again";
+  }
+  const retry = () => window.folioDesktop && window.folioDesktop.retry();
+  document.getElementById("r").onclick = retry;
+  addEventListener("online", retry);
+</script></body></html>

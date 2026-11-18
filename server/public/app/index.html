@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fbfbfa"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><title>Folio</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#222222;--ac:#6d5bd0;--acfg:#fff;
+ --muted:color-mix(in srgb,var(--fg) 58%,var(--bg));--line:color-mix(in srgb,var(--fg) 11%,var(--bg));
+ --soft:color-mix(in srgb,var(--fg) 6%,var(--bg));--surface:color-mix(in srgb,var(--fg) 3%,var(--bg));
+ --shadow:0 1px 2px rgba(0,0,0,.08),0 10px 28px rgba(0,0,0,.14);--r:18px}
+:root.dark{--ac:#a798ff;--acfg:#15122a;--shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px rgba(0,0,0,.5)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hidden;
+ font:15px/1.45 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;transition:background .25s,color .25s}
+button,select,input{font:inherit;color:inherit}
+::-webkit-scrollbar{width:12px;height:12px}::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--fg) 20%,transparent);border-radius:99px;border:3px solid transparent;background-clip:content-box;min-height:40px}
+::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--fg) 38%,transparent)}::-webkit-scrollbar-button{display:none}
+@supports not selector(::-webkit-scrollbar){*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--fg) 25%,transparent) transparent}}
+button{cursor:pointer}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ib{width:42px;height:42px;border:0;border-radius:50%;background:transparent;display:grid;place-items:center;transition:background .15s}
+.ib:hover{background:var(--soft)}.ib:active{transform:scale(.94)}.ib.on{color:var(--ac)}
+.btn{border:0;border-radius:999px;padding:10px 18px;background:var(--soft);font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:filter .15s,transform .1s}
+.btn:active{transform:scale(.97)}.btn.pri{background:var(--ac);color:var(--acfg)}.btn.pri:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;border:1px solid var(--line)}.btn.danger{color:#e5484d}
+/* ---------- bibliothèque ---------- */
+#lib{height:100%;overflow:auto;padding:0 0 calc(env(safe-area-inset-bottom) + 40px)}
+.head{position:sticky;top:0;z-index:10;padding:calc(env(safe-area-inset-top) + 14px) 20px 12px;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.head-row{display:flex;align-items:center;gap:6px;max-width:1180px;margin:0 auto}
+.brand{flex:1;display:flex;align-items:center;gap:10px;min-width:0}
+.brand img{width:30px;height:30px;border-radius:9px}
+.brand h1{margin:0;font-size:22px;letter-spacing:-.02em}
+.search{max-width:1180px;margin:12px auto 0;display:flex;align-items:center;gap:8px;background:var(--soft);border-radius:999px;padding:0 14px;color:var(--muted)}
+.search input{flex:1;border:0;background:transparent;padding:11px 0;outline:none;color:var(--fg)}
+main{max-width:1180px;margin:0 auto;padding:4px 20px}
+.hero{display:flex;gap:20px;align-items:center;padding:18px;margin:10px 0 26px;border-radius:24px;background:var(--surface);border:1px solid var(--line);cursor:pointer;transition:transform .15s}
+.hero:hover{transform:translateY(-2px)}
+.hero .cover{width:96px;flex:none}
+.hero .meta{min-width:0;flex:1}
+.kicker{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ac)}
+.hero h2{margin:4px 0 2px;font-size:20px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hero .by{color:var(--muted);margin-bottom:12px}
+.hero .prog{max-width:320px}
+.sect{display:flex;align-items:baseline;justify-content:space-between;margin:6px 0 14px}
+.sect h3{margin:0;font-size:17px}.sect span{color:var(--muted);font-size:13px}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:26px 20px}
+.card{cursor:pointer;position:relative;min-width:0}
+.cover{aspect-ratio:2/3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);color:#fff;display:flex;align-items:flex-end;padding:14px;font-weight:700;font-size:15px;line-height:1.25;position:relative;transition:transform .2s,box-shadow .2s}
+.cover::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 6px 0 10px -6px rgba(0,0,0,.35);pointer-events:none}
+.card:hover .cover{transform:translateY(-4px)}
+.cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.g0{background:linear-gradient(160deg,#6d5bd0,#2b1f6b)}.g1{background:linear-gradient(160deg,#3d7ea6,#16384f)}.g2{background:linear-gradient(160deg,#c06c52,#5e2618)}
+.g3{background:linear-gradient(160deg,#4f8a6a,#1d3b2b)}.g4{background:linear-gradient(160deg,#a8577e,#4a1d36)}.g5{background:linear-gradient(160deg,#8a7a4f,#3d3417)}
+.card .t{margin-top:10px;font-weight:650;font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .a{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog{display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:var(--muted)}
+.prog .tr{flex:1;height:4px;border-radius:9px;background:var(--line);overflow:hidden}.prog .tr i{display:block;height:100%;border-radius:9px;background:var(--ac)}
+.badge{position:absolute;top:8px;left:8px;z-index:2;background:rgba(0,0,0,.55);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;backdrop-filter:blur(6px)}
+.more{position:absolute;top:6px;right:6px;z-index:2;width:32px;height:32px;border-radius:50%;border:0;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center;opacity:0;transition:opacity .15s;backdrop-filter:blur(6px)}
+.more svg.i{width:16px;height:16px}.card:hover .more,.more:focus{opacity:1}
+@media (hover:none){.more{opacity:.9}}
+.empty{text-align:center;padding:70px 20px;color:var(--muted)}
+.empty>svg{width:84px;height:84px;stroke-width:1.2;color:var(--ac);opacity:.8}
+.empty h2{color:var(--fg);margin:14px 0 6px;font-size:20px}
+.drop{position:fixed;inset:12px;border:3px dashed var(--ac);border-radius:28px;background:color-mix(in srgb,var(--ac) 12%,transparent);z-index:90;display:none;place-items:center;font-weight:700;font-size:20px;color:var(--ac)}
+body.dragging .drop{display:grid}
+/* ---------- lecteur ---------- */
+#rd{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg);z-index:20}
+#rd.on{display:flex}
+#top{display:flex;align-items:center;gap:2px;padding:calc(env(safe-area-inset-top) + 6px) 8px 6px;transition:margin .25s,opacity .25s}
+#top .tt{flex:1;min-width:0;padding:0 6px}
+#ttl{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#chapTop{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rd.full #top{margin-top:-80px;opacity:0;pointer-events:none}
+#view{flex:1;position:relative;min-height:0;overflow:hidden}
+#viewer{position:absolute;inset:0;margin:0 auto;max-width:var(--mw,100%)}
+#foot{padding:6px 22px calc(env(safe-area-inset-bottom) + 10px);display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted)}
+#rd.full #foot{opacity:.35}
+#chap{max-width:40%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#viewer{will-change:transform}
+#pinch{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%) scale(.9);z-index:8;background:color-mix(in srgb,var(--fg) 88%,transparent);color:var(--bg);padding:12px 20px;border-radius:18px;font-weight:700;font-size:18px;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s}
+#pinch.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 6px);z-index:15;width:42px;height:42px;border-radius:50%;background:var(--bg);box-shadow:var(--shadow);display:grid;place-items:center;color:var(--ac);opacity:0;transform:translate(-50%,-60px);transition:transform .25s,opacity .25s;pointer-events:none}
+#ptr.busy svg{animation:spin 1s linear infinite}
+.card.press .cover{transform:scale(.96)}
+/* ---------- panneaux ---------- */
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:39;opacity:0;pointer-events:none;transition:opacity .2s}
+#scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;width:min(560px,100%);max-height:82%;overflow:auto;background:var(--bg);color:var(--fg);border-radius:26px 26px 0 0;
+ padding:10px 20px calc(env(safe-area-inset-bottom) + 22px);box-shadow:0 -10px 40px rgba(0,0,0,.28);z-index:40;transform:translate(-50%,105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);border:1px solid var(--line);border-bottom:0}
+.sheet:not(.on){visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s}
+.sheet.on{transform:translate(-50%,0)}
+.grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 12px}
+.sheet h3{margin:2px 0 14px;font-size:18px;display:flex;align-items:center;justify-content:space-between}
+.group{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:4px 16px;margin:12px 0}
+.row{display:flex;align-items:center;gap:14px;min-height:52px;justify-content:space-between}
+.row+.row{border-top:1px solid var(--line)}
+.row.stack{flex-direction:column;align-items:stretch;gap:8px;padding:12px 0}
+.row label{font-weight:550}.row output{min-width:38px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
+.row .ctl{display:flex;align-items:center;gap:10px;flex:1;justify-content:flex-end}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;max-width:220px;height:4px;border-radius:9px;background:var(--line);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--ac);border:3px solid var(--bg);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--ac);border:3px solid var(--bg);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+select{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:8px 10px;max-width:200px}
+.switch{position:relative;width:48px;height:28px;flex:none}.switch input{opacity:0;position:absolute;inset:0;margin:0;cursor:pointer;z-index:1}
+.switch span{position:absolute;inset:0;border-radius:99px;background:var(--line);transition:background .2s}
+.switch span::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.switch input:checked+span{background:var(--ac)}.switch input:checked+span::after{transform:translateX(20px)}
+.seg{display:flex;background:var(--soft);border-radius:999px;padding:3px;gap:2px}
+.seg button{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;border:0;background:transparent;border-radius:999px;padding:8px 10px;font-size:14px;font-weight:600;color:var(--muted);white-space:nowrap}
+.seg button.on{background:var(--bg);color:var(--fg);box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.themes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sub{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:18px 4px 0}
+.theme{border:2px solid var(--line);border-radius:16px;padding:12px 6px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:600}
+.theme b{font:700 20px Georgia,serif}.theme.on{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 25%,transparent)}
+.colors{display:flex;gap:10px;align-items:center}
+.colors input[type=color]{width:34px;height:34px;border:2px solid var(--line);border-radius:50%;padding:0;background:none;cursor:pointer}
+.colors input[type=color]::-webkit-color-swatch-wrapper{padding:0}.colors input[type=color]::-webkit-color-swatch{border:0;border-radius:50%}
+#list{margin-top:6px}
+.item{display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:14px;cursor:pointer}
+.item:hover{background:var(--soft)}.item .tx{flex:1;min-width:0}.item .tx small{display:block;color:var(--muted);font-size:12px}
+.item .dot{width:6px;align-self:stretch;border-radius:9px;flex:none}
+.item.cur{color:var(--ac);font-weight:650}
+.hint{color:var(--muted);text-align:center;padding:26px 10px}
+.field{display:block;margin:10px 0}.field span{display:block;font-size:13px;color:var(--muted);margin:0 0 5px 4px}
+.field input{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);outline:none}
+.field input:focus{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)}
+.who{display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--ac);color:var(--acfg);display:grid;place-items:center;font-weight:700;font-size:18px;flex:none}
+.acts{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}.acts .btn{flex:1;justify-content:center}
+.avbig{width:104px;height:104px;font-size:42px;margin:4px auto 10px;position:relative;overflow:hidden}
+.avatar img,.avbig img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.avatar{position:relative;overflow:hidden}
+#bCfg .mini{width:30px;height:30px;border-radius:50%;background:var(--ac);color:var(--acfg);display:grid;place-items:center;font-weight:700;font-size:13px;position:relative;overflow:hidden}
+#bCfg .mini img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.prof{text-align:center;margin-bottom:6px}.prof h4{margin:0;font-size:20px}.prof p{margin:2px 0 12px;color:var(--muted)}
+.lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:22px 4px 6px}
+.inl{display:flex;gap:8px;align-items:center}.inl .field{flex:1;margin:6px 0}.stat{display:flex;gap:10px}.stat div{flex:1;padding:12px;border-radius:14px;background:var(--surface);border:1px solid var(--line);text-align:center}
+.stat b{display:block;font-size:20px}.stat span{font-size:12px;color:var(--muted)}
+.link{background:none;border:0;color:var(--ac);padding:0;font-weight:600;cursor:pointer;font-size:14px}
+.note{padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--ac) 12%,var(--bg));margin:10px 0;font-size:14px;line-height:1.45}
+.mut{color:var(--muted);font-size:14px;margin:0 0 8px}.center{text-align:center}
+.codes{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;margin:12px 0}
+.codes span{padding:9px;border-radius:10px;background:var(--surface);border:1px solid var(--line);text-align:center;user-select:all}
+.qr{display:block;margin:6px auto 10px;width:220px;height:220px;border-radius:16px;background:#fff;padding:8px}
+.secret{font-family:ui-monospace,monospace;font-size:13px;word-break:break-all;text-align:center;padding:10px;border-radius:12px;background:var(--surface);border:1px dashed var(--line);user-select:all}
+.sess{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line)}.sess:last-child{border-bottom:0}
+.sess .tx{flex:1;min-width:0}.sess small{display:block;color:var(--muted);font-size:12px}
+.tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;background:color-mix(in srgb,var(--ac) 18%,var(--bg));color:var(--ac);white-space:nowrap}
+.ok{color:#2f9e5b}.warn{color:#d9822b}
+details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;padding:6px 4px}
+/* sélection + toasts */
+#sel{position:fixed;z-index:60;display:none;align-items:center;gap:10px;padding:8px 12px;background:#24252b;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+#sel button{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.85);padding:0;transition:transform .12s}#sel button:hover{transform:scale(1.15)}
+#sel .x{background:none;border-color:transparent;color:#fff;display:grid;place-items:center}
+#msg{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 76px);transform:translate(-50%,20px);background:#24252b;color:#fff;padding:11px 20px;border-radius:999px;z-index:80;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;font-weight:550;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:calc(100% - 32px);text-align:center}
+#msg.on{opacity:1;transform:translate(-50%,0)}
+.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+/* ---------- collections ---------- */
+.cols{display:flex;gap:16px;overflow-x:auto;padding:4px 4px 20px;margin:0 -4px 10px;scroll-snap-type:x proximity;scrollbar-width:none}
+.cols::-webkit-scrollbar{display:none}
+.col{flex:none;width:156px;cursor:pointer;scroll-snap-align:start;min-width:0}
+.stack{position:relative;height:132px;border-radius:18px;background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 16%,var(--bg)),var(--surface));border:1px solid var(--line);overflow:hidden;transition:transform .2s}
+.col:hover .stack{transform:translateY(-3px)}
+.stack .cover{position:absolute;left:50%;bottom:-26px;width:70px;font-size:9px;padding:7px;border-radius:7px;transform-origin:50% 100%}
+.stack .cover:nth-child(1){transform:translateX(-50%) translateX(-36px) rotate(-11deg)}
+.stack .cover:nth-child(2){transform:translateX(-50%) translateX(36px) rotate(11deg)}
+.stack .cover:nth-child(3){transform:translateX(-50%) translateY(-10px);z-index:2}
+.stack .cover:only-child{transform:translateX(-50%) translateY(-10px)}
+.col .t{margin-top:9px;font-weight:650;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.col .a{color:var(--muted);font-size:13px}
+.stack>svg.i{position:absolute;inset:0;margin:auto;width:34px;height:34px;color:var(--ac);opacity:.55}
+.col.auto .stack{background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 30%,var(--bg)),color-mix(in srgb,var(--ac) 8%,var(--bg)))}
+.col.new .stack{background:transparent;border:2px dashed var(--line);display:grid;place-items:center;color:var(--ac)}
+.col.new .stack svg.i{width:30px;height:30px}
+.sect .sh{display:flex;align-items:center;gap:6px;min-width:0}.sect .sh h3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sect .tools{display:flex;align-items:center;gap:4px;flex:none}.sect .tools .btn{padding:8px 14px;font-size:14px}
+#sect{align-items:center}
+.bhead{display:flex;gap:16px;align-items:center;margin-bottom:6px}.bhead .cover{width:78px;flex:none;font-size:11px;padding:8px}
+.bhead h4{margin:0 0 2px;font-size:18px;line-height:1.25}.bhead p{margin:0;color:var(--muted)}
+.citem{display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:12px;cursor:pointer;font-weight:550}
+.citem:hover{background:var(--soft)}.citem .ck{width:24px;height:24px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;flex:none;color:transparent;transition:background .15s}
+.citem.on .ck{background:var(--ac);border-color:var(--ac);color:var(--acfg)}.citem .ck svg.i{width:15px;height:15px;stroke-width:3}
+.citem small{margin-left:auto;color:var(--muted);font-weight:500}
+.citem .mc{width:34px;flex:none}.citem .mc .cover{font-size:6px;padding:3px;border-radius:5px;box-shadow:none}
+.citem .tx{flex:1;min-width:0}.citem .tx b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.citem .tx span{display:block;color:var(--muted);font-size:12px;font-weight:500}
+#mobileFab{position:fixed;right:22px;bottom:calc(env(safe-area-inset-bottom) + 22px);z-index:5;display:flex;align-items:center;gap:9px;border:1px solid var(--line);
+ background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:999px;padding:10px 18px 10px 14px;
+ font-weight:600;font-size:14px;color:var(--fg);box-shadow:var(--shadow);transition:transform .15s}
+#mobileFab:hover{transform:translateY(-2px)}#mobileFab svg.i{color:var(--ac)}
+@media (max-width:700px){#mobileFab{display:none}}html.phone #mobileFab{display:none}
+#imgm{position:fixed;z-index:65;display:none;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:6px;min-width:220px}
+#imgm button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:10px 12px;border-radius:10px;font-weight:600;text-align:left}
+#imgm button:hover{background:var(--soft)}
+.badge.c{left:auto;right:8px;top:auto;bottom:8px;display:grid;place-items:center;padding:4px}.badge.c svg.i{width:13px;height:13px}
+@media (max-width:560px){.col{width:132px}.stack{height:116px}.stack .cover{width:60px}.head{padding-left:14px;padding-right:10px}main{padding:4px 16px}#grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:22px 14px}
+ .hero{padding:14px;gap:14px}.hero .cover{width:76px}.hero h2{font-size:17px}#addLbl{display:none}.sect .tools .btn span{display:none}.themes{gap:8px}}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-sync" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.5 6.2M3 12A9 9 0 0 1 18.5 5.8"/><path d="M18.5 2v3.8h-3.8M5.5 22v-3.8h3.8"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+<symbol id="i-bm" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></symbol>
+<symbol id="i-bmf" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z" fill="currentColor"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></symbol>
+<symbol id="i-aa" viewBox="0 0 24 24"><path d="m3 18 5-12 5 12M4.8 14h6.4M15 18v-5.5a3 3 0 0 1 6 0V18M15 15h6"/></symbol>
+<symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v15H6.5A2.5 2.5 0 0 0 4 20.5 2.5 2.5 0 0 0 6.5 23H20"/><path d="M9 7h7M9 11h5"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
+<symbol id="i-stack" viewBox="0 0 24 24"><path d="M4 7h16M6 4h12M3 10h18v10H3z"/></symbol>
+<symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7M5 10v10h14V10"/></symbol>
+</defs></svg>
+<div id="lib">
+ <header class="head"><div class="head-row">
+  <div class="brand"><img src="icon.svg" alt=""><h1>Folio</h1></div>
+  <button class="ib" id="bSync" data-tt="sync"><svg class="i"><use href="#i-sync"/></svg></button>
+  <button class="ib" id="bCfg" data-tt="myAccount"><svg class="i"><use href="#i-user"/></svg></button>
+  <label class="btn pri" data-tt="addBooks"><svg class="i"><use href="#i-plus"/></svg><span id="addLbl" data-t="add"></span><input id="file" type="file" accept=".epub,application/epub+zip" multiple hidden></label>
+ </div>
+ <div class="search" id="sbox"><svg class="i"><use href="#i-search"/></svg><input id="q" type="search" data-tp="searchPh" autocomplete="off"></div></header>
+ <button id="mobileFab"><svg class="i"><use href="#i-phone"/></svg><span data-t="onMobile"></span></button>
+ <main><div id="hero"></div><div id="colsWrap"></div><div class="sect" id="sect"></div><div id="grid"></div></main>
+</div>
+<div class="drop" data-t="dropHere"></div>
+<div id="rd"><div id="top">
+  <button class="ib" id="bBack" data-tt="library"><svg class="i"><use href="#i-back"/></svg></button>
+  <div class="tt"><div id="ttl"></div><div id="chapTop"></div></div>
+  <button class="ib" id="bBm" data-tt="bookmark"><svg class="i"><use href="#i-bm"/></svg></button>
+  <button class="ib" id="bToc" data-tt="tocNotes"><svg class="i"><use href="#i-list"/></svg></button>
+  <button class="ib" id="bSet" data-tt="appearance"><svg class="i"><use href="#i-aa"/></svg></button></div>
+ <div id="view"><div id="viewer"></div><div id="ribbon" class="fn-ribbon"></div><div id="pinch"></div></div>
+ <div id="foot"><span id="chap"></span><div id="track"></div><span id="pct"></span></div></div>
+<div id="ptr"><svg class="i"><use href="#i-sync"/></svg></div>
+<div id="scrim"></div>
+<div class="sheet" id="shSet"><div class="grab"></div><h3 data-t="appearance"></h3>
+ <div class="themes" id="themes"></div>
+ <div class="group">
+  <div class="row"><label data-t="customColors"></label><div class="colors"><input type="color" id="cBg" data-tt="background"><input type="color" id="cFg" data-tt="text"></div></div>
+  <div class="row"><label data-t="font"></label><select id="font"><option value="" data-t="bookFont"></option><option>Georgia</option><option>Palatino Linotype</option><option>Times New Roman</option><option>Literata</option><option>Merriweather</option><option>Lora</option><option>Source Serif 4</option><option>Atkinson Hyperlegible</option><option>Arial</option><option>Verdana</option><option>Courier New</option></select></div>
+ </div>
+ <div class="group">
+  <div class="row"><label for="size" data-t="size"></label><div class="ctl"><input type="range" id="size" min="12" max="40"><output id="oSize"></output></div></div>
+  <div class="row"><label for="line" data-t="lineHeight"></label><div class="ctl"><input type="range" id="line" min="10" max="26"><output id="oLine"></output></div></div>
+  <div class="row"><label for="margin" data-t="margins"></label><div class="ctl"><input type="range" id="margin" min="0" max="160" step="4"><output id="oMargin"></output></div></div>
+  <div class="row"><label for="justify" data-t="justify"></label><span class="switch"><input type="checkbox" id="justify"><span></span></span></div>
+ </div>
+ <div class="seg" id="flowSeg"><button data-f="paginated" data-t="pages"></button><button data-f="scrolled" data-t="scroll"></button></div>
+ <div class="sub" data-t="typography"></div>
+ <div class="group">
+  <div class="row"><label for="para" data-t="paraSpace"></label><div class="ctl"><input type="range" id="para" min="0" max="20"><output id="oPara"></output></div></div>
+  <div class="row"><label for="weight" data-t="weight"></label><div class="ctl"><input type="range" id="weight" min="300" max="700" step="100"><output id="oWeight"></output></div></div>
+  <div class="row"><label for="letter" data-t="letterSpace"></label><div class="ctl"><input type="range" id="letter" min="0" max="10"><output id="oLetter"></output></div></div>
+  <div class="row stack"><label data-t="indent"></label><div class="seg" id="indSeg"><button data-i="-1" data-t="indBook"></button><button data-i="0" data-t="indNone"></button><button data-i="1.5" data-t="indNormal"></button><button data-i="3" data-t="indWide"></button></div></div>
+ </div>
+ <div style="text-align:center;margin-top:14px"><button class="btn ghost" id="resetS" data-t="resetLook"></button></div>
+</div>
+<div class="sheet" id="shToc"><div class="grab"></div><div id="list"></div></div>
+<div class="sheet" id="shBook"><div class="grab"></div>
+ <div class="bhead"><div id="bkCover"></div><div style="min-width:0"><h4 id="bkTitle"></h4><p id="bkAuthor"></p></div></div>
+ <div class="lbl" data-t="collections"></div>
+ <div id="bkCols"></div>
+ <div class="lbl" data-t="readStatus"></div>
+ <div class="acts" style="margin-top:4px"><button class="btn" id="bkDone"><svg class="i"><use href="#i-check"/></svg><span data-t="markDone"></span></button><button class="btn" id="bkUnread"><svg class="i"><use href="#i-book"/></svg><span data-t="markUnread"></span></button></div>
+ <div class="lbl" data-t="cover"></div>
+ <div class="acts" style="margin-top:4px"><label class="btn"><svg class="i"><use href="#i-image"/></svg><span data-t="chooseImage"></span><input type="file" id="bkCoverFile" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label><button class="btn ghost" id="bkCoverReset" data-t="origCover"></button></div>
+ <p class="mut" style="margin-top:10px;font-size:13px" data-t="coverTip"></p>
+ <div class="acts"><button class="btn ghost danger" id="bkDel"><svg class="i"><use href="#i-trash"/></svg><span data-t="removeBook"></span></button></div>
+</div>
+<div class="sheet" id="shPick"><div class="grab"></div><h3 id="pickTitle"></h3><div id="pickList"></div>
+ <div class="acts"><button class="btn pri" id="pickDone" data-t="done"></button></div></div>
+<div class="sheet" id="shCol"><div class="grab"></div><h3 id="colMenuTitle"></h3>
+ <div class="acts" style="flex-direction:column"><button class="btn" id="colAdd"><svg class="i"><use href="#i-plus"/></svg><span data-t="addToCol"></span></button><button class="btn" id="colRename"><svg class="i"><use href="#i-pen"/></svg><span data-t="rename"></span></button><button class="btn ghost danger" id="colDelete"><svg class="i"><use href="#i-trash"/></svg><span data-t="deleteCol"></span></button></div>
+ <p class="mut center" style="margin-top:12px;font-size:13px" data-t="deleteColTip"></p></div>
+<div class="sheet" id="shAsk"><div class="grab"></div><h3 id="askTitle"></h3>
+ <label class="field"><input type="text" id="askIn" maxlength="80"></label>
+ <div class="acts"><button class="btn pri" id="askOk" data-t="ok"></button><button class="btn ghost" id="askNo" data-t="cancel"></button></div></div>
+<div class="sheet" id="shMobile"><div class="grab"></div><h3 data-t="mobileT"></h3>
+ <p class="mut" data-t="mobileTxt"></p>
+ <img class="qr" src="qr.svg" alt="QR code" width="220" height="220">
+ <p class="mut center" style="margin-top:-2px" id="mobileUrl"></p>
+ <div class="group" style="padding:6px 16px"><p style="margin:8px 0" data-th="mobileAndroid"></p><p style="margin:8px 0" data-th="mobileIos"></p></div>
+ <p class="mut" style="font-size:13px" data-t="mobileSync"></p>
+ <div class="acts"><button class="btn pri" id="mobileOk" data-t="ok"></button></div></div>
+<div class="sheet" id="shCfg"><div class="grab"></div><h3 id="accTitle"></h3>
+ <div id="accIn">
+  <div class="prof"><div class="avatar avbig" id="av"></div><h4 id="pName"></h4><p id="aInfo"></p>
+   <div class="acts" style="justify-content:center;margin-top:0"><label class="btn pri" style="flex:none"><span data-t="changePhoto"></span><input type="file" id="avFile" accept="image/png,image/jpeg,image/webp" hidden></label><button class="btn ghost" id="avDel" style="flex:none" data-t="remove"></button></div></div>
+  <div class="stat"><div><b id="stBooks">—</b><span data-t="syncedBooks"></span></div><div><b id="stSince">—</b><span data-t="memberSince"></span></div></div>
+  <div class="lbl" data-t="profile"></div>
+  <div class="inl"><label class="field"><span data-t="pseudo"></span><input type="text" id="pseudo" maxlength="40" data-tp="pseudoPh"></label><button class="btn pri" id="pSave" style="margin-top:18px" data-t="save"></button></div>
+  <div class="lbl" data-t="security"></div>
+  <div class="who"><div style="flex:1;min-width:0"><b data-t="mfa"></b><div class="mut" style="margin:2px 0 0" id="mfaState">—</div></div><button class="btn pri" id="mfaOn" style="flex:none" data-t="enable"></button></div>
+  <div class="acts" id="mfaActs"><button class="btn ghost" id="mfaCodes" data-t="newCodes"></button><button class="btn ghost danger" id="mfaOff" data-t="disable"></button></div>
+  <details><summary data-t="changePw"></summary>
+   <label class="field"><span data-t="curPw"></span><input type="password" id="pwCur" autocomplete="current-password"></label>
+   <label class="field"><span data-t="newPw"></span><input type="password" id="pwNew" autocomplete="new-password" data-tp="pwMin"></label>
+   <label class="field"><span data-t="confirm"></span><input type="password" id="pwConf" autocomplete="new-password"></label>
+   <label class="field mfaF"><span data-t="mfaCode"></span><input id="pwCode" inputmode="numeric" autocomplete="one-time-code" maxlength="11"></label>
+   <div class="acts" style="margin-top:6px"><button class="btn" id="pwSave" data-t="changePw"></button></div></details>
+  <div class="lbl" data-t="devices"></div>
+  <div id="sessList" class="group" style="padding:0 14px"></div>
+  <div class="acts" style="margin-top:4px"><button class="btn ghost" id="logOthers" data-t="logOthers"></button></div>
+  <div class="acts"><button class="btn pri" id="aSyncNow"><svg class="i"><use href="#i-sync"/></svg><span data-t="sync"></span></button><button class="btn ghost" id="aOut" data-t="logout"></button></div>
+  <div class="lbl" data-t="danger"></div>
+  <details><summary style="color:#e5484d" data-t="delAccount"></summary><p class="mut" data-t="delAccountTxt"></p>
+   <label class="field"><span data-t="password"></span><input type="password" id="delPw" autocomplete="current-password"></label>
+   <label class="field mfaF"><span data-t="mfaCode"></span><input id="delCode" inputmode="numeric" autocomplete="one-time-code" maxlength="11"></label>
+   <div class="acts"><button class="btn danger ghost" id="delAcc" data-t="delForever"></button></div></details>
+ </div>
+ <div id="accOut">
+  <div id="vLogin"><p class="mut" data-t="loginIntro"></p>
+   <label class="field"><span data-t="email"></span><input type="email" id="aMail" autocomplete="username" maxlength="254"></label>
+   <label class="field"><span data-t="password"></span><input type="password" id="aPass" autocomplete="current-password" maxlength="256"></label>
+   <details><summary data-t="customServer"></summary><label class="field"><span data-t="serverAddr"></span><input type="url" id="aSrv" placeholder="https://…"></label></details>
+   <div class="acts"><button class="btn pri" id="aLogin" data-t="login"></button><button class="btn ghost" id="aReg" data-t="register"></button></div>
+   <p class="center" style="margin:14px 0 0"><button class="link" id="lnkForgot" data-t="forgot"></button></p>
+   <div class="note" id="unver" hidden><span data-t="unverified"></span><br><button class="link" id="resend" data-t="resend"></button></div></div>
+  <div id="vMfa" hidden><p class="mut" data-t="mfaIntro"></p>
+   <label class="field"><span data-t="code"></span><input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="11"></label>
+   <div class="acts"><button class="btn pri" id="mfaGo" data-t="validate"></button><button class="btn ghost back" data-t="cancel"></button></div></div>
+  <div id="vForgot" hidden><p class="mut" data-t="forgotIntro"></p>
+   <label class="field"><span data-t="email"></span><input type="email" id="fMail" autocomplete="username"></label>
+   <div class="acts"><button class="btn pri" id="fGo" data-t="sendLink"></button><button class="btn ghost back" data-t="back"></button></div></div>
+  <div id="vReset" hidden><p class="mut" data-t="resetIntro"></p>
+   <label class="field"><span data-t="newPw"></span><input type="password" id="rNew" autocomplete="new-password"></label>
+   <label class="field"><span data-t="confirm"></span><input type="password" id="rConf" autocomplete="new-password"></label>
+   <label class="field" id="rCodeF" hidden><span data-t="mfaOrRecovery"></span><input id="rCode" inputmode="numeric" autocomplete="one-time-code" maxlength="11"></label>
+   <div class="acts"><button class="btn pri" id="rGo" data-t="save"></button></div></div>
+  <div id="vInfo" hidden><div class="note" id="infoTxt"></div><div class="acts"><button class="btn ghost back" data-t="backToLogin"></button></div></div>
+ </div>
+ <div class="lbl" data-t="language"></div>
+ <div class="seg" id="langSeg"><button data-l="" data-t="langAuto"></button><button data-l="fr">Français</button><button data-l="en">English</button></div>
+</div>
+<div class="sheet" id="shMfa"><div class="grab"></div><h3 data-t="mfa"></h3>
+ <div id="mfa1"><p class="mut" data-t="mfaStep1"></p>
+  <img class="qr" id="qr" alt="QR code"><p class="mut center" data-t="orKey"></p><div class="secret" id="secret"></div>
+  <p class="mut" style="margin-top:14px" data-t="mfaStep2"></p>
+  <label class="field"><span data-t="code"></span><input id="mfaSetCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></label>
+  <div class="acts"><button class="btn pri" id="mfaEnable" data-t="enable"></button><button class="btn ghost" id="mfaCancel" data-t="cancel"></button></div></div>
+ <div id="mfa2" hidden><div class="note"><b data-t="recoveryCodes"></b><br><span data-t="recoveryTxt"></span></div>
+  <div class="codes" id="codes"></div>
+  <div class="acts"><button class="btn" id="cCopy" data-t="copy"></button><button class="btn" id="cSave" data-t="download"></button></div>
+  <div class="acts"><button class="btn pri" id="cDone" data-t="codesSaved"></button></div></div>
+</div>
+<div class="sheet" id="shAuth"><div class="grab"></div><h3 id="authTitle"></h3><p class="mut" id="authTxt"></p>
+ <label class="field" id="authPwF"><span data-t="password"></span><input type="password" id="authPw" autocomplete="current-password"></label>
+ <label class="field" id="authCodeF"><span data-t="mfaOrRecovery"></span><input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="11"></label>
+ <div class="acts"><button class="btn pri" id="authOk" data-t="confirm"></button><button class="btn ghost" id="authNo" data-t="cancel"></button></div></div>
+<div id="sel"></div><div id="imgm"><button id="imgCover"><svg class="i"><use href="#i-image"/></svg><span data-t="useAsCover"></span></button></div><div id="msg"></div>
+<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="app.js"></script>
+</body></html>

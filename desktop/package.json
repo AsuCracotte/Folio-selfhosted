@@ -1,0 +1,84 @@
+{
+  "name": "folio-desktop",
+  "productName": "Folio",
+  "version": "1.7.0",
+  "description": "Folio \u2014 desktop app (Windows, macOS) for a self-hosted Folio server",
+  "author": "Folio contributors",
+  "license": "MIT",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build": "node build.js all",
+    "build:win": "node build.js win",
+    "build:mac": "node build.js mac"
+  },
+  "devDependencies": {
+    "electron": "45.3.4",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "org.folio.desktop",
+    "productName": "Folio",
+    "copyright": "Folio",
+    "files": [
+      "main.js",
+      "preload.js",
+      "offline.html",
+      "config.json",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "fileAssociations": [
+      {
+        "ext": "epub",
+        "name": "EPUB book",
+        "description": "EPUB book",
+        "mimeType": "application/epub+zip",
+        "role": "Viewer"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Folio-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Folio",
+      "multiLanguageInstaller": true,
+      "installerLanguages": [
+        "en_US",
+        "fr_FR"
+      ]
+    },
+    "mac": {
+      "icon": "build/icon-mac.png",
+      "category": "public.app-category.books",
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "identity": null,
+      "artifactName": "Folio-${version}-mac-${arch}.${ext}"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "folio-server",
+  "version": "1.7.1",
+  "description": "Folio \u2014 self-hosted sync server and web reader for EPUB books",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "author": "Folio contributors",
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/static": "^7.0.4",
+    "@prisma/adapter-better-sqlite3": "^6.19.3",
+    "@prisma/client": "^6.19.3",
+    "better-sqlite3": "^13.2.0",
+    "fastify": "^4.29.1",
+    "nodemailer": "^6.10.1",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3"
+  },
+  "private": true
+}

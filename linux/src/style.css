@@ -1,0 +1,122 @@
+/* Folio — même langage visuel que le site : surfaces douces, pilules, couvertures ombrées.
+   Les couleurs @folio_* et accent_* sont définies dynamiquement selon le thème de lecture (app.py). */
+
+/* ---- en-têtes ---- */
+.lib-head, .reader-head { box-shadow: none; min-height: 58px; }
+.brand { font-size: 22px; font-weight: 800; letter-spacing: -0.4px; }
+.brand-logo { border-radius: 9px; }
+.pill-small { border-radius: 99px; padding: 0 18px 0 13px; min-height: 38px; font-weight: 600; }
+.circ { border-radius: 99px; min-width: 40px; min-height: 40px; padding: 0; background: none; box-shadow: none; }
+.circ:hover { background: @folio_soft; }
+.circ:checked { background: alpha(@accent_bg_color, .16); color: @accent_color; }
+.avatar-btn { padding: 3px; min-width: 0; min-height: 0; border-radius: 99px; }
+@keyframes spin { to { -gtk-icon-transform: rotate(1turn); } }
+.spinning image { animation: spin 900ms linear infinite; }
+.muted { color: @folio_muted; }
+.accent-btn { color: @accent_color; }
+
+/* ---- recherche ---- */
+.lib-search { border-radius: 99px; min-height: 38px; padding: 0 14px; background: @folio_soft; box-shadow: none; outline: none;
+  border: 1px solid transparent; transition: background 150ms ease, border-color 150ms ease; }
+.lib-search:hover { background: mix(@folio_soft, @folio_line, .5); }
+.lib-search:focus-within { background: @window_bg_color; border-color: alpha(@accent_color, .6); }
+.lib-search:focus-within { box-shadow: 0 0 0 3px alpha(@accent_color, .25); }
+.lib-search > image { color: @folio_muted; }
+
+/* ---- accueil ---- */
+.greet { font-size: 30px; font-weight: 800; letter-spacing: -0.8px; }
+
+/* ---- « Reprendre la lecture » ---- */
+.hero { padding: 22px 26px 22px 22px; border-radius: 26px; margin: 10px 0 8px;
+  background: linear-gradient(120deg, alpha(@accent_bg_color, .16), alpha(@accent_bg_color, .04) 60%, @folio_surface);
+  border: 1px solid alpha(@accent_bg_color, .18); transition: background 200ms ease, box-shadow 200ms ease; }
+.hero:hover { box-shadow: 0 10px 30px alpha(@accent_bg_color, .16); border-color: alpha(@accent_bg_color, .32); }
+.hero .pill { padding: 10px 26px; font-weight: 700; }
+.kicker { color: @accent_color; font-weight: 800; font-size: 12px; letter-spacing: 1px; }
+.hero-title { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+.section-title { font-size: 18px; font-weight: 750; }
+
+/* ---- étagères ---- */
+.chip { border-radius: 99px; min-height: 30px; padding: 0 14px; font-weight: 600; font-size: 13px;
+  background: @folio_soft; box-shadow: none; border: 1px solid transparent; }
+.chip:hover { background: mix(@folio_soft, @folio_line, .6); }
+.chip:checked { background: @window_fg_color; color: @window_bg_color; }
+
+/* ---- tuile « Ajouter » ---- */
+.add-tile { border-radius: 12px; border: 2px dashed @folio_line; color: @folio_muted; padding: 12px;
+  transition: border-color 150ms ease, color 150ms ease, background 150ms ease; }
+.add-tile .add-ic { background: @folio_soft; border-radius: 99px; padding: 12px; }
+flowboxchild:hover .add-tile { border-color: @accent_color; color: @accent_color; background: alpha(@accent_bg_color, .05); }
+flowboxchild:hover .add-tile .add-ic { background: alpha(@accent_bg_color, .14); }
+
+/* ---- notifications ---- */
+toast { border-radius: 99px; background: alpha(@window_fg_color, .94); color: @window_bg_color;
+  box-shadow: 0 8px 28px alpha(black, .25); padding: 4px 6px 4px 18px; margin-bottom: 18px; font-weight: 600; }
+toast button { color: @window_bg_color; }
+
+/* ---- grille ---- */
+flowbox > flowboxchild { padding: 0; border-radius: 14px; background: none; outline-offset: 6px; }
+flowbox > flowboxchild:hover, flowbox > flowboxchild:active { background: none; }
+.book-card { padding: 0; }
+.cover { border-radius: 12px; transition: transform 220ms cubic-bezier(.2,.8,.2,1), box-shadow 220ms ease; }
+flowboxchild:hover .cover { transform: translateY(-5px); }
+flowboxchild:focus-visible .cover { outline: 3px solid alpha(@accent_color, .6); outline-offset: 3px; }
+.card-title { font-weight: 700; font-size: 14px; }
+.card-author { font-size: 13px; color: @folio_muted; }
+.badge { background: alpha(black, .55); color: white; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
+.card-menu { opacity: 0; background: alpha(black, .45); color: white; min-width: 32px; min-height: 32px; transition: opacity 150ms ease; }
+.card-menu > button { background: none; color: white; min-width: 32px; min-height: 32px; padding: 0; }
+.book-card:hover .card-menu, .card-menu:checked { opacity: 1; }
+progressbar.thin, progressbar.thin trough, progressbar.thin progress { min-width: 0; }
+progressbar.thin trough { min-height: 4px; border-radius: 99px; background: @folio_line; }
+progressbar.thin progress { min-height: 4px; border-radius: 99px; background: @accent_bg_color; }
+.ph-title { color: white; font-weight: 700; font-size: 15px; }
+.ph-title.ph-small { font-size: 11px; }
+.aa-label { font-family: Georgia, serif; font-weight: 700; font-size: 17px; }
+.g0 { background: linear-gradient(160deg, #6d5bd0, #2b1f6b); }
+.g1 { background: linear-gradient(160deg, #3d7ea6, #16384f); }
+.g2 { background: linear-gradient(160deg, #c06c52, #5e2618); }
+.g3 { background: linear-gradient(160deg, #4f8a6a, #1d3b2b); }
+.g4 { background: linear-gradient(160deg, #a8577e, #4a1d36); }
+.g5 { background: linear-gradient(160deg, #8a7a4f, #3d3417); }
+.empty-lib > scrolledwindow > viewport > clamp > box > image { color: @accent_color; opacity: .8; }
+
+/* ---- lecteur ---- */
+.r-title { font-weight: 650; }
+.r-sub { font-size: 12px; color: @folio_muted; }
+
+/* ---- réglages d'apparence ---- */
+popover > contents { border-radius: 22px; padding: 4px; }
+.theme-dot { min-width: 44px; min-height: 44px; padding: 0; border-radius: 99px;
+  border: 1px solid alpha(currentColor, .22); box-shadow: none; transition: box-shadow 150ms ease, transform 150ms ease; }
+.theme-dot:hover { transform: translateY(-2px); box-shadow: 0 4px 12px alpha(black, .18); }
+.theme-dot.active { box-shadow: 0 0 0 2px @popover_bg_color, 0 0 0 4px @accent_color; }
+.theme-aa { font-family: Georgia, serif; font-size: 16px; font-weight: 700; }
+.theme-name { font-size: 11px; color: @folio_muted; }
+.theme-clair  { background: #fbfbfa; color: #222222; }
+.theme-sepia  { background: #f4ecd8; color: #5b4636; }
+.theme-sombre { background: #1e1f24; color: #d6d6d6; }
+.theme-noir   { background: #000000; color: #b8b8b8; }
+.theme-gris   { background: #e8e8e6; color: #2b2b2b; }
+.theme-nuit   { background: #141a24; color: #c9d1dc; }
+.theme-foret  { background: #1c2420; color: #cdd8c4; }
+popover .boxed-list { border-radius: 18px; background: @folio_surface; border: 1px solid @folio_line; box-shadow: none; }
+popover .boxed-list > row { background: none; }
+.seg { background: @folio_soft; border-radius: 99px; padding: 3px; }
+.seg > button { border-radius: 99px; padding: 0 14px; background: none; box-shadow: none; min-height: 28px; font-weight: 600; color: @folio_muted; }
+.seg > button:hover { color: @window_fg_color; }
+.seg > button:checked { background: @window_bg_color; color: @window_fg_color; box-shadow: 0 1px 3px alpha(black, .18); }
+scale trough { min-height: 4px; border-radius: 99px; background: @folio_line; }
+scale highlight { background: @accent_bg_color; border-radius: 99px; }
+scale slider { min-width: 20px; min-height: 20px; background: @accent_bg_color; border: 3px solid @window_bg_color; box-shadow: 0 1px 4px alpha(black, .35); }
+.sub-head { font-size: 12px; font-weight: 700; letter-spacing: 1px; color: @folio_muted; }
+
+/* ---- compte ---- */
+.tag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: alpha(@accent_bg_color, .18); color: @accent_color; }
+.code-chip { padding: 6px 12px; border-radius: 10px; background: alpha(currentColor, .06); font-size: 15px; }
+.qr { background: white; border-radius: 14px; padding: 8px; }
+/* collections */
+.coll-title { font-size: 13px; font-weight: 700; color: @folio_muted; letter-spacing: .3px; }
+.chip .chip-count { font-size: 11px; font-weight: 700; padding: 0 7px; border-radius: 99px; background: alpha(currentColor, .12); }
+.chip-new { background: transparent; border: 1.5px dashed @folio_line; color: @accent_color; }
+.chip-new:hover { background: @folio_soft; }

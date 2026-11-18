@@ -1,0 +1,86 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["queryCompiler", "driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String      @id @default(cuid())
+  email     String      @unique
+  emailKey  String?     @unique   // forme canonique : empêche les doublons via alias
+  salt      String
+  hash      String
+  createdAt DateTime    @default(now())
+  settings        String @default("{}")
+  settingsUpdated Float  @default(0)
+  name            String @default("")
+  avatarUpdated   Float  @default(0)
+  // sécurité
+  emailVerified   Boolean @default(false)
+  mfaSecret       String  @default("")   // secret TOTP chiffré (AES-256-GCM), vide = pas de 2FA
+  mfaEnabled      Boolean @default(false)
+  mfaLastStep     Int     @default(0)    // anti-rejeu : dernier pas TOTP accepté
+  pwChanged       Float   @default(0)
+  collections     String  @default("[]")   // [{id,name,books:[hash],created,updated,deleted}]
+  lang            String  @default("")     // langue des mails (fr / en)
+  sessions  Session[]
+  books     BookState[]
+  recovery  RecoveryCode[]
+  tokens    EmailToken[]
+}
+
+// Jetons de session : seul le SHA-256 est stocké
+model Session {
+  id        String @id @default(cuid())
+  tokenHash String @unique
+  userId    String
+  createdAt Float
+  lastSeen  Float
+  expiresAt Float
+  ip        String @default("")
+  device    String @default("")
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Codes de secours 2FA (usage unique, hachés)
+model RecoveryCode {
+  id     String @id @default(cuid())
+  userId String
+  hash   String
+  usedAt Float?
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Liens envoyés par mail : confirmation d'adresse / réinitialisation du mot de passe
+model EmailToken {
+  id        String @id @default(cuid())
+  userId    String
+  kind      String
+  hash      String @unique
+  expiresAt Float
+  usedAt    Float?
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BookState {
+  userId     String
+  hash       String
+  title      String   @default("")
+  author     String   @default("")
+  cfi        String   @default("")
+  progress   Float    @default(0)
+  posUpdated Float    @default(0)
+  removed    Float?
+  bookmarks  String   @default("[]")
+  highlights String   @default("[]")
+  coverUpdated Float  @default(0)        // couverture choisie par l'utilisateur (le plus récent gagne)
+  coverCustom  Boolean @default(false)
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, hash])
+}

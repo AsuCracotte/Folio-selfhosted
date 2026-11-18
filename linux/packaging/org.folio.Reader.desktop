@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=Folio
+GenericName=EPUB Reader
+GenericName[fr]=Liseuse EPUB
+Comment=Read and organise your EPUB books
+Comment[fr]=Lisez et organisez vos livres EPUB
+Exec=folio %U
+Icon=org.folio.Reader
+Terminal=false
+Categories=Office;Viewer;Literature;GTK;
+MimeType=application/epub+zip;
+Keywords=epub;book;reading;ebook;reader;
+Keywords[fr]=epub;livre;lecture;ebook;liseuse;
+StartupWMClass=org.folio.Reader

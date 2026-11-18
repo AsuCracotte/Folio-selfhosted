@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Télécharger Folio</title>
+<meta name="description" content="Téléchargez Folio pour Windows, macOS et Linux, ou installez-le sur votre téléphone.">
+<meta name="theme-color" content="#6d5bd0"><link rel="icon" href="icon.svg"><link rel="stylesheet" href="site.css">
+</head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-win" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+<symbol id="i-mac" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="11" rx="2"/><path d="M2 19h20l-2-4H4z"/></symbol>
+<symbol id="i-linux" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m7 9 3 3-3 3M12 15h5"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol>
+<symbol id="i-web" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+<symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+</defs></svg>
+<header class="nav"><div class="wrap">
+ <a class="logo" href="/"><img src="icon.svg" alt="">Folio</a>
+ <a class="lk" href="/#features" data-t="navFeatures">Fonctionnalités</a>
+ <div class="lang"><button data-l="fr">FR</button><button data-l="en">EN</button></div>
+ <a class="btn pri sm" href="/app/"><svg class="i"><use href="#i-arrow"/></svg><span data-t="navOpen">Ouvrir Folio</span></a>
+</div></header>
+
+<div class="wrap">
+ <div class="dl-hero">
+  <div class="kicker" data-t="dlK">Téléchargement</div>
+  <h1 data-t="dlT">Folio sur votre appareil</h1>
+  <p class="lead" data-t="dlS">Les applis utilisent le même compte que le site : connectez-vous et retrouvez vos livres, vos notes et vos collections.</p>
+  <div class="rec" id="rec" hidden><div class="big"><svg class="i"><use id="recIc" href="#i-win"/></svg></div>
+   <div style="flex:1;min-width:0"><h3 id="recT"></h3><p id="recP"></p><a class="btn pri" id="recBtn" href="#"><svg class="i"><use href="#i-dl"/></svg><span id="recL"></span></a><div class="meta" id="recM"></div></div></div>
+ </div>
+
+ <div class="grid">
+  <div class="dl" id="windows" data-os="win"><div class="hd"><div class="ic"><svg class="i"><use href="#i-win"/></svg></div><div><h3>Windows</h3><span data-t="winReq">Windows 10 et 11, 64 bits</span></div></div>
+   <div class="acts" data-files="win"></div>
+   <details><summary data-t="howInstall">Comment installer</summary><ol>
+    <li data-t="win1">Lancez le fichier téléchargé.</li>
+    <li data-th="win2">Si Windows affiche « Windows a protégé votre ordinateur », cliquez sur <b>Informations complémentaires</b> puis <b>Exécuter quand même</b> (l’appli n’est pas encore signée).</li>
+    <li data-t="win3">Choisissez le dossier d’installation, puis ouvrez Folio depuis le menu Démarrer.</li></ol></details></div>
+
+  <div class="dl" id="mac" data-os="mac"><div class="hd"><div class="ic"><svg class="i"><use href="#i-mac"/></svg></div><div><h3>macOS</h3><span data-t="macReq">macOS 13 Ventura ou plus récent</span></div></div>
+   <div class="acts" data-files="mac"></div>
+   <details><summary data-t="howInstall">Comment installer</summary><ol>
+    <li data-th="mac0">Choisissez <b>Apple Silicon</b> pour un Mac M1, M2, M3 ou plus récent, <b>Intel</b> pour un Mac plus ancien (menu Pomme › À propos de ce Mac).</li>
+    <li data-th="mac1">Ouvrez le fichier .zip et glissez <b>Folio</b> dans le dossier <b>Applications</b>.</li>
+    <li data-t="mac2">L’appli n’est pas encore signée par Apple : avant la première ouverture, collez ces deux commandes dans le Terminal.</li></ol>
+    <pre>xattr -cr /Applications/Folio.app
+codesign --force --deep --sign - /Applications/Folio.app</pre></details></div>
+
+  <div class="dl" id="linux" data-os="linux"><div class="hd"><div class="ic"><svg class="i"><use href="#i-linux"/></svg></div><div><h3>Linux</h3><span data-t="linReq">Debian, Ubuntu, Mint, Kali… (paquet .deb, GTK 4)</span></div></div>
+   <div class="acts" data-files="linux"></div>
+   <details><summary data-t="howInstall">Comment installer</summary><ol>
+    <li data-t="lin1">Installez le paquet téléchargé avec apt (les dépendances sont ajoutées automatiquement) :</li></ol>
+    <pre id="aptCmd">sudo apt install ./Folio-linux.deb</pre>
+    <ol start="2"><li data-t="lin2">Ouvrez Folio depuis le menu des applications.</li></ol></details></div>
+
+  <div class="dl" id="phone" data-os="phone"><div class="hd"><div class="ic"><svg class="i"><use href="#i-phone"/></svg></div><div><h3 data-t="phT">Android et iPhone</h3><span data-t="phReq">Depuis le navigateur, sans store</span></div></div>
+   <div class="acts"><a class="btn pri" href="/app/"><svg class="i"><use href="#i-arrow"/></svg><span data-t="navOpen">Ouvrir Folio</span></a></div>
+   <details open><summary data-t="howInstall">Comment installer</summary><ol>
+    <li data-th="ph1"><b>Android (Chrome)</b> : ouvrez Folio, menu ⋮ › <b>Installer l’application</b> (ou « Ajouter à l’écran d’accueil »).</li>
+    <li data-th="ph2"><b>iPhone / iPad (Safari)</b> : ouvrez Folio, bouton Partager › <b>Sur l’écran d’accueil</b>.</li>
+    <li data-t="ph3">Folio s’ouvre alors en plein écran, comme une appli, et fonctionne hors ligne.</li></ol></details></div>
+ </div>
+ <p class="note" id="vers"></p>
+ <p class="note" data-t="srcNote">Pas envie d’installer quoi que ce soit ? Folio fonctionne aussi directement dans le navigateur.</p>
+</div>
+<footer><div class="wrap"><a class="logo" href="/" style="font-size:17px;margin:0"><img src="icon.svg" alt="" style="width:24px;height:24px">Folio</a><span class="sp"></span>
+ <a href="/app/" data-t="navOpen">Ouvrir Folio</a><a href="/" data-t="home">Accueil</a><span>© 2026 Folio</span></div></footer>
+<script src="site.js"></script>
+</body></html>

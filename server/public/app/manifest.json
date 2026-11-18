@@ -1,0 +1,1 @@
+{"name":"Folio","short_name":"Folio","description":"Read your EPUB books everywhere","id":"/app/","start_url":"/app/","scope":"/app/","display":"standalone","background_color":"#fbfbfa","theme_color":"#fbfbfa","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}

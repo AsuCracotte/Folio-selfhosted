@@ -1,0 +1,25 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Folio
+
+Files: *
+Copyright: 2026 Folio contributors
+License: MIT
+
+Files: usr/share/folio/reader/epub.min.js
+Copyright: Futurepress, LLC (epub.js)
+License: BSD-2-clause
+
+Files: usr/share/folio/reader/jszip.min.js
+Copyright: Stuart Knightley and contributors (JSZip)
+License: MIT
+
+License: MIT
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ software and associated documentation files, to deal in the Software without restriction,
+ provided the above copyright notice and this permission notice are included.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+
+License: BSD-2-clause
+ Redistribution and use in source and binary forms, with or without modification, are
+ permitted provided that the copyright notice and this list of conditions are retained.
+ THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.

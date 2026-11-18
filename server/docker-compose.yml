@@ -1,0 +1,37 @@
+# Folio — self-hosted server. Settings live in .env (copy .env.example).
+#   docker compose up -d --build                      → server on http://127.0.0.1:8787
+#   docker compose --profile tunnel up -d --build     → same, published through a Cloudflare Tunnel
+services:
+  folio:
+    build: .
+    restart: unless-stopped
+    ports: ["127.0.0.1:${PORT:-8787}:8787"]   # local only: put a reverse proxy or the tunnel in front
+    volumes:
+      - ./data:/data                 # database, books, photos, secret key: back this up
+      - ./downloads:/downloads:ro    # optional: app installers offered on /download
+    env_file: [.env]
+    environment:
+      DOWNLOADS_DIR: /downloads
+    # hardening
+    user: "1000:1000"
+    read_only: true
+    tmpfs: ["/tmp:size=64m"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 768m
+    pids_limit: 200
+
+  # Optional: expose Folio on the internet without opening a port (needs TUNNEL_TOKEN in .env)
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles: [tunnel]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    user: "1000:1000"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 128m
+    depends_on: [folio]
