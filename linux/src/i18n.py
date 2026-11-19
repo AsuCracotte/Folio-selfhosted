@@ -139,6 +139,15 @@ EN = {
     "Livre": "Book", "Espace entre paragraphes": "Paragraph spacing", "Retrait de 1re ligne": "First-line indent", "Graisse du texte": "Text weight",
     "Espacement des lettres": "Letter spacing", "TYPOGRAPHIE": "TYPOGRAPHY", "Réinitialiser l’apparence": "Reset appearance",
     "Apparence réinitialisée": "Appearance reset",
+    "Étagère": "Bookshelf", "Tout voir": "See all", "Livre papier": "Paper book", "Ajouter un livre papier": "Add a paper book",
+    "Replier": "Collapse", "Déplier": "Expand", "Auteur": "Author", "Titre": "Title", "Récents": "Recent",
+    "Livre numérique": "Ebook", "Importer la photo de la tranche": "Import a photo of the spine", "Photo de la tranche": "Spine photo",
+    "Faire pivoter": "Rotate", "Retirer la photo": "Remove photo", "Ouvrir le livre": "Open the book", "Enregistrer": "Save",
+    "Retirer de l’étagère": "Remove from the shelf", "Tranche mise à jour": "Spine updated", "Photo retirée": "Photo removed",
+    "Indiquez au moins le titre": "Enter at least the title", "« {t} » rangé sur l’étagère": "“{t}” added to the shelf",
+    "Livre retiré de l’étagère": "Book removed from the shelf", "Sans titre": "Untitled",
+    "Astuce : livre debout, tranche bien droite et cadrée serrée. Une photo prise à plat est redressée.": "Tip: stand the book up, keep the spine straight and frame it tightly. A photo taken flat is straightened.",
+    "Importez la photo de la tranche de vos livres, numériques ou papier : votre étagère se compose et vous suit sur tous vos appareils. Depuis votre téléphone, vous pouvez la photographier directement.": "Import a photo of the spine of your books, digital or paper: your bookshelf builds itself and follows you on all your devices. From your phone, you can photograph it directly.",
 }
 
 

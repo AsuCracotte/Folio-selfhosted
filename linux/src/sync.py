@@ -84,6 +84,65 @@ class Sync:
         (self.dir / "covers" / f"{h}.jpg").write_bytes(data)
         return True
 
+    # ---- étagère (shelf.json + spines/ dans le dossier ; /api/shelf + /api/spines avec un compte) ----
+    def _shelf_exchange(self):
+        f = self.dir / "shelf.json"
+        try:
+            remote = json.loads(f.read_text())
+        except (OSError, ValueError):
+            remote = []
+        changed = self.lib.merge_shelf(remote)
+        mine = self.lib.shelf_public()
+        if json.dumps(sorted(mine, key=lambda x: x["id"]), sort_keys=True) != json.dumps(sorted(remote, key=lambda x: x.get("id", "")), sort_keys=True):
+            tmp = f.with_suffix(".tmp"); tmp.write_text(json.dumps(mine, ensure_ascii=False)); tmp.replace(f)
+        return changed
+
+    def _spine_file(self, x):
+        return self.dir / "spines" / f"{x['id']}-{round((x['spine'] or 0) * 1000)}.jpg"
+
+    def _sent(self, x):
+        return self._spine_file(x).exists()
+
+    def _get_spine(self, x):
+        try:
+            return self._spine_file(x).read_bytes()
+        except OSError:
+            return None
+
+    def _put_spine(self, x, data):
+        d = self.dir / "spines"; d.mkdir(exist_ok=True)
+        for old in d.glob(f"{x['id']}-*.jpg"):                 # versions précédentes
+            old.unlink(missing_ok=True)
+        tmp = d / f".{x['id']}.tmp"; tmp.write_bytes(data); tmp.replace(self._spine_file(x))
+        return True
+
+    def _drop_spine(self, x):
+        for old in (self.dir / "spines").glob(f"{x['id']}-*.jpg"):
+            old.unlink(missing_ok=True)
+
+    def shelf(self):
+        """Échange l'étagère puis les photos de tranches. Retourne True si quelque chose a changé ici."""
+        changed = self._shelf_exchange()
+        for x in self.lib.shelf_items(with_deleted=True):
+            sid, p = x["id"], self.lib.spine_path(x["id"])
+            if x["deleted"] or not x["spine"]:
+                if x["spine_at"] or p.exists():
+                    p.unlink(missing_ok=True); self.lib.mark_spine(sid, at=0); changed = True
+                self._drop_spine(x)
+                continue
+            if x["spine_at"] == x["spine"] and p.exists():           # notre photo : à envoyer si pas encore fait
+                if not self._sent(x):
+                    try:
+                        if self._put_spine(x, p.read_bytes()):
+                            self.lib.mark_spine(sid, sent=x["spine"])
+                    except OSError:
+                        pass
+            else:                                                     # photo plus récente ailleurs : on la récupère
+                data = self._get_spine(x)
+                if data:
+                    p.write_bytes(data); self.lib.mark_spine(sid, at=x["spine"], sent=x["spine"]); changed = True
+        return changed
+
     def collections(self):
         """Échange les collections avec le dossier (collections.json). Retourne True si la base locale a changé."""
         f = self.dir / "collections.json"
@@ -235,6 +294,27 @@ class ApiSync(Sync):
         mine = self.lib.collections(with_deleted=True)
         merged = json.load(self._req("PUT", "/api/collections", json.dumps({"collections": mine}).encode()))
         return self.lib.merge_collections(merged)
+
+    def _shelf_exchange(self):
+        merged = json.load(self._req("PUT", "/api/shelf", json.dumps({"items": self.lib.shelf_public()}).encode()))
+        return self.lib.merge_shelf(merged)
+
+    def _sent(self, x):
+        return x["spine_sent"] == x["spine"]
+
+    def _drop_spine(self, x):
+        pass                                  # le serveur efface la photo de lui-même
+
+    def _get_spine(self, x):
+        try:
+            return self._req("GET", f"/api/spines/{x['id']}").read()
+        except OSError:
+            return None
+
+    def _put_spine(self, x, data):
+        ctype = "image/png" if data[:4] == b"\x89PNG" else "image/jpeg"
+        self._req("PUT", f"/api/spines/{x['id']}", data, ctype)
+        return True
 
     def set_lang(self, lang):
         return self._json("PATCH", "/api/me", {"lang": lang})

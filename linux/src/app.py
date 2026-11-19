@@ -4,15 +4,20 @@ import json
 import os
 import queue
 import sys
+import tempfile
 import threading
 import time
+from pathlib import Path
 
 import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("WebKit", "6.0")
-from gi.repository import Adw, Gdk, GdkPixbuf, Gio, GLib, Graphene, Gsk, Gtk, WebKit  # noqa: E402
+gi.require_version("PangoCairo", "1.0")
+from gi.repository import Adw, Gdk, GdkPixbuf, Gio, GLib, Graphene, Gsk, Gtk, Pango, PangoCairo, WebKit  # noqa: E402
+import cairo  # noqa: E402
+import math  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from library import COVERS, DATA, SYNC_KEYS, Library  # noqa: E402
@@ -136,6 +141,96 @@ class SyncWorker:
                 GLib.idle_add(lambda r=r: done(r) and False)
 
 
+SPINE_COLORS = [("#3d4a63", "#f4efe8"), ("#6b3a2c", "#f4efe8"), ("#4d5b3d", "#f4efe8"), ("#e8dcc2", "#3a2a12"),
+                ("#5e3c55", "#f4efe8"), ("#2f5757", "#f4efe8"), ("#8a6a3c", "#f4efe8")]
+
+
+def hn(s):
+    """Petit hachage stable (même résultat que le site) : couleur et hauteur de la tranche."""
+    a = 7
+    for ch in str(s):
+        a = (a * 31 + ord(ch)) & 0xFFFFFFFF
+    return a
+
+
+def spine_words(title):
+    w = ""
+    for p in (title or T("Sans titre")).split():
+        if len((w + " " + p).strip()) > 24 and w:
+            break
+        w = (w + " " + p).strip()
+    return w
+
+
+def spine_jpeg(path=None, data=None, turn=None):
+    """Photo de tranche : redressée (une tranche est haute), réduite et compressée en JPEG."""
+    if data is not None:
+        ld = GdkPixbuf.PixbufLoader(); ld.write(data); ld.close(); pb = ld.get_pixbuf()
+    else:
+        pb = GdkPixbuf.Pixbuf.new_from_file(path); pb = pb.apply_embedded_orientation() or pb
+    if (pb.get_width() > pb.get_height()) if turn is None else turn:
+        pb = pb.rotate_simple(GdkPixbuf.PixbufRotation.CLOCKWISE)
+    w, h = pb.get_width(), pb.get_height(); k = min(1, 1400 / h, 360 / w)
+    if k < 1:
+        pb = pb.scale_simple(max(1, round(w * k)), max(1, round(h * k)), GdkPixbuf.InterpType.HYPER)
+    ok, buf = pb.save_to_bufferv("jpeg", ["quality"], ["86"])
+    return bytes(buf)
+
+
+class Spine(Gtk.DrawingArea):
+    """Tranche d'un livre debout : la photo si elle existe, sinon les premiers mots du titre, à la verticale."""
+
+    def __init__(self, item, big=False, on_click=None):
+        super().__init__()
+        self.item, self.pb, self.scaled = item, None, None
+        n = hn(item["id"])
+        self.bg, self.fg = SPINE_COLORS[n % 7]
+        h = 236 if big else 150 + n % 44
+        w = round(min(48, 24 + len(item.get("title") or "") * .45 + n % 6) * (1.4 if big else 1))
+        path = item.get("photo") or (Library.spine_path(item["id"]) if item.get("spine") else None)
+        if path and os.path.exists(path):
+            try:
+                self.pb = GdkPixbuf.Pixbuf.new_from_file(str(path))
+                w = round(max(16, min(150 if big else 110, h * self.pb.get_width() / self.pb.get_height())))
+            except GLib.Error:
+                self.pb = None
+        self.set_content_width(w); self.set_content_height(h)
+        self.set_valign(Gtk.Align.END)
+        self.add_css_class("spine")
+        self.set_tooltip_text((item.get("title") or "") + (" — " + item["author"] if item.get("author") else ""))
+        self.set_draw_func(self.draw)
+        if on_click:
+            self.set_cursor(Gdk.Cursor.new_from_name("pointer"))
+            c = Gtk.GestureClick(); c.connect("released", lambda *_: on_click(item)); self.add_controller(c)
+
+    def draw(self, _area, cr, w, h):
+        r = 3
+        cr.new_sub_path(); cr.arc(w - r, r, r, -math.pi / 2, 0); cr.line_to(w, h); cr.line_to(0, h)
+        cr.arc(r, r, r, math.pi, 3 * math.pi / 2); cr.close_path(); cr.clip()
+        if self.pb:
+            if not self.scaled or self.scaled.get_width() != w or self.scaled.get_height() != h:
+                self.scaled = self.pb.scale_simple(max(1, w), max(1, h), GdkPixbuf.InterpType.BILINEAR)
+            Gdk.cairo_set_source_pixbuf(cr, self.scaled, 0, 0); cr.paint()
+        else:
+            bg, fg = Gdk.RGBA(), Gdk.RGBA(); bg.parse(self.bg); fg.parse(self.fg)
+            Gdk.cairo_set_source_rgba(cr, bg); cr.paint()
+            cr.set_source_rgba(fg.red, fg.green, fg.blue, .35); cr.set_line_width(1)
+            for y in (8.5, h - 8.5):
+                cr.move_to(4, y); cr.line_to(w - 4, y); cr.stroke()
+            lay = PangoCairo.create_layout(cr)
+            lay.set_font_description(Pango.FontDescription.from_string("Fraunces Medium 10"))
+            lay.set_text(spine_words(self.item.get("title")), -1)
+            lay.set_width(int((h - 28) * Pango.SCALE)); lay.set_ellipsize(Pango.EllipsizeMode.END)
+            tw, th = lay.get_pixel_size()
+            cr.save(); cr.set_source_rgba(fg.red, fg.green, fg.blue, 1)
+            cr.translate(w / 2 + th / 2, 14 + max(0, (h - 28 - tw) / 2)); cr.rotate(math.pi / 2)
+            PangoCairo.show_layout(cr, lay); cr.restore()
+        g = cairo.LinearGradient(0, 0, w, 0)                   # relief : dos arrondi
+        g.add_color_stop_rgba(0, 1, 1, 1, .14); g.add_color_stop_rgba(.12, 1, 1, 1, 0)
+        g.add_color_stop_rgba(.8, 0, 0, 0, 0); g.add_color_stop_rgba(1, 0, 0, 0, .3)
+        cr.set_source(g); cr.paint()
+
+
 class FolioWindow(Adw.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app, title="Folio", default_width=1180, default_height=800)
@@ -165,6 +260,7 @@ class FolioWindow(Adw.ApplicationWindow):
         self.toasts.set_child(self.stack)
         self.stack.add_named(self.build_library_page(), "library")
         self.stack.add_named(self.build_reader_page(), "reader")
+        self.stack.add_named(self.build_rack_page(), "rack")
         self.build_actions()
         self.apply_theme()
         self.refresh_library()
@@ -236,10 +332,25 @@ class FolioWindow(Adw.ApplicationWindow):
         welcome.append(self.greet); welcome.append(self.stats)
         self.hero = Gtk.Box()
 
+        # étagère : les livres debout (numériques et papier), photo de tranche facultative
+        rack_head = Gtk.Box(spacing=8, margin_top=10)
+        rt = Gtk.Label(label=T("Étagère"), xalign=0, margin_end=10); rt.add_css_class("section-title")
+        self.rack_count = Gtk.Label(hexpand=True, xalign=1); self.rack_count.add_css_class("muted"); self.rack_count.add_css_class("caption")
+        allb = Gtk.Button(label=T("Tout voir"), valign=Gtk.Align.CENTER); allb.add_css_class("chip")
+        allb.connect("clicked", lambda *_: self.open_rack())
+        paper = Gtk.Button(child=Adw.ButtonContent(icon_name="list-add-symbolic", label=T("Livre papier")), valign=Gtk.Align.CENTER)
+        paper.add_css_class("chip"); paper.add_css_class("chip-new"); paper.connect("clicked", lambda *_: self.spine_dialog(None))
+        for w in (self.fold_button("rack"), rt, self.rack_count, allb, paper):
+            rack_head.append(w)
+        self.rack_row = Gtk.Box(spacing=3, valign=Gtk.Align.END, margin_start=4, margin_end=4)
+        self.rack_scroll = Gtk.ScrolledWindow(child=self.rack_row, vscrollbar_policy=Gtk.PolicyType.NEVER,
+                                              hscrollbar_policy=Gtk.PolicyType.AUTOMATIC, propagate_natural_height=True)
+        self.rack_scroll.add_css_class("plank")
+
         # étagères : Tous / En cours / À lire / Terminés
         sect = Gtk.Box(spacing=8, margin_top=10, margin_bottom=4)
         st = Gtk.Label(label=T("Bibliothèque"), xalign=0, margin_end=10); st.add_css_class("section-title")
-        sect.append(st)
+        sect.append(self.fold_button("lib")); sect.append(st)
         self.chips, first = {}, None
         for key, label in (("all", T("Tous")), ("reading", T("En cours")), ("unread", T("À lire")), ("done", T("Terminés"))):
             c = Gtk.ToggleButton(label=label, group=first, active=key == "all", valign=Gtk.Align.CENTER)
@@ -257,7 +368,8 @@ class FolioWindow(Adw.ApplicationWindow):
         self.nomatch.add_css_class("muted")
         page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, margin_top=2, margin_bottom=40,
                        margin_start=28, margin_end=28)
-        page.append(welcome); page.append(self.hero); page.append(sect); page.append(self.coll_scroll)
+        page.append(welcome); page.append(self.hero); page.append(rack_head); page.append(self.rack_scroll)
+        page.append(sect); page.append(self.coll_scroll)
         page.append(self.flow); page.append(self.nomatch)
         clamp = Adw.Clamp(maximum_size=1240, tightening_threshold=1000, child=page)
         scroller = Gtk.ScrolledWindow(vexpand=True, child=clamp, hscrollbar_policy=Gtk.PolicyType.NEVER)
@@ -381,6 +493,7 @@ class FolioWindow(Adw.ApplicationWindow):
         self.coll_names = {c["id"]: c["name"] for c in colls}
         if self.shelf.startswith("c:") and self.shelf[2:] not in self.coll_map:
             self.shelf = "all"; self.chips["all"].set_active(True)
+        row.append(self.fold_button("cols"))
         lbl = Gtk.Label(label=T("Collections"), xalign=0, margin_end=6); lbl.add_css_class("coll-title"); row.append(lbl)
         for c in colls:
             n = len(self.coll_map[c["id"]] & have)
@@ -406,6 +519,7 @@ class FolioWindow(Adw.ApplicationWindow):
         self.coll_menu.set_popover(Gtk.Popover())
         self.coll_menu.set_create_popup_func(self.collection_popover)
         row.append(self.coll_menu)
+        self.apply_folds()
 
     def collections_changed(self, select=None):
         if select:
@@ -675,9 +789,273 @@ class FolioWindow(Adw.ApplicationWindow):
                 self.hero.append(self.make_hero(last))
             self.total = len(books)
             self.update_welcome(books)
-            self.lib_stack.set_visible_child_name("books" if books else "empty")
+            self.lib_stack.set_visible_child_name("books" if books or any(x["kind"] == "paper" for x in self.lib.shelf_items()) else "empty")
         self.fill_collections(books)
+        self.fill_rack(books)
         self.apply_filter()
+
+    # ------------------------------------------------------------------ sections repliables (propre à cet appareil)
+    def fold_button(self, key):
+        b = Gtk.Button(icon_name="pan-down-symbolic", valign=Gtk.Align.CENTER)
+        b.add_css_class("flat"); b.add_css_class("circ"); b.add_css_class("fold")
+        b.fold_key = key
+        b.connect("clicked", lambda *_: self.toggle_fold(key))
+        self.fold_btns = [x for x in getattr(self, "fold_btns", []) if x.get_root()] + [b]
+        return b
+
+    def folded(self, key):
+        return bool((self.settings.get("fold") or {}).get(key))
+
+    def toggle_fold(self, key):
+        f = dict(self.settings.get("fold") or {}); f[key] = not f.get(key)
+        self.settings["fold"] = f; self.lib.save_settings(self.settings)
+        self.apply_folds(); self.apply_filter()
+
+    def apply_folds(self):
+        for b in getattr(self, "fold_btns", []):
+            f = self.folded(b.fold_key)
+            b.set_icon_name("pan-end-symbolic" if f else "pan-down-symbolic"); b.set_tooltip_text(T("Déplier") if f else T("Replier"))
+        if hasattr(self, "rack_scroll"):
+            self.rack_scroll.set_visible(not self.folded("rack"))
+            self.flow.set_visible(not self.folded("lib")); self.coll_scroll.set_visible(not self.folded("lib"))
+            c, i = self.coll_row.get_first_child(), 0
+            while c:                                       # collections repliées : on garde le bouton et le titre
+                if i >= 2 and c is not getattr(self, "coll_menu", None):
+                    c.set_visible(not self.folded("cols"))
+                c, i = c.get_next_sibling(), i + 1
+
+    # ------------------------------------------------------------------ étagère
+    def rack_items(self, books=None):
+        books = self.lib.books() if books is None else books
+        sh = {x["id"]: x for x in self.lib.shelf_items()}
+        out = [{"id": b["hash"], "kind": "book", "bid": b["id"], "title": b["title"] or "", "author": b["author"] or "",
+                "at": b["added"] or 0, "spine": (sh.get(b["hash"]) or {}).get("spine", 0)} for b in books]
+        out += [{"id": x["id"], "kind": "paper", "title": x["title"] or "", "author": x["author"] or "",
+                 "at": x["created"] or 0, "spine": x["spine"]} for x in sh.values() if x["kind"] == "paper"]
+        k = self.settings.get("rack_sort", "author")
+        last = lambda a: (a or "").split()[-1].casefold() if (a or "").split() else ""
+        if k == "recent":
+            out.sort(key=lambda x: -x["at"])
+        elif k == "title":
+            out.sort(key=lambda x: x["title"].casefold())
+        else:
+            out.sort(key=lambda x: (last(x["author"]), x["title"].casefold()))
+        return out
+
+    def spine_add_tile(self):
+        b = Gtk.Button(icon_name="list-add-symbolic", tooltip_text=T("Ajouter un livre papier"), valign=Gtk.Align.END,
+                       width_request=34, height_request=150)
+        b.add_css_class("spine-add"); b.connect("clicked", lambda *_: self.spine_dialog(None))
+        return b
+
+    def fill_rack(self, books=None):
+        items = self.rack_items(books)
+        c = self.rack_row.get_first_child()
+        while c:
+            nxt = c.get_next_sibling(); self.rack_row.remove(c); c = nxt
+        for x in items[:60]:
+            self.rack_row.append(Spine(x, on_click=self.spine_dialog))
+        self.rack_row.append(self.spine_add_tile())
+        self.rack_count.set_label(T("{n} livres" if len(items) > 1 else "{n} livre", n=len(items)))
+        if self.stack.get_visible_child_name() == "rack":
+            self.layout_case(force=True)
+
+    def build_rack_page(self):
+        view = Adw.ToolbarView()
+        header = Adw.HeaderBar(show_title=False); header.add_css_class("lib-head")
+        back = Gtk.Button(icon_name="go-previous-symbolic", tooltip_text=T("Bibliothèque")); back.add_css_class("flat")
+        back.connect("clicked", lambda *_: self.close_rack())
+        title = Gtk.Label(label=T("Étagère")); title.add_css_class("section-title")
+        self.case_count = Gtk.Label(); self.case_count.add_css_class("muted"); self.case_count.add_css_class("caption")
+        tb = Gtk.Box(spacing=10); tb.append(title); tb.append(self.case_count)
+        header.pack_start(back); header.pack_start(tb)
+        add = Gtk.Button(child=Adw.ButtonContent(icon_name="list-add-symbolic", label=T("Livre papier")), valign=Gtk.Align.CENTER)
+        add.add_css_class("suggested-action"); add.add_css_class("pill-small"); add.connect("clicked", lambda *_: self.spine_dialog(None))
+        seg, first = Gtk.Box(valign=Gtk.Align.CENTER), None
+        seg.add_css_class("seg")
+        for key, label in (("author", T("Auteur")), ("title", T("Titre")), ("recent", T("Récents"))):
+            b = Gtk.ToggleButton(label=label, group=first, active=self.settings.get("rack_sort", "author") == key)
+            first = first or b
+            b.connect("toggled", lambda w, k=key: w.get_active() and self.set_rack_sort(k)); seg.append(b)
+        header.pack_end(add); header.pack_end(seg)
+        view.add_top_bar(header)
+        self.case = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, margin_top=16)
+        tip = Gtk.Label(label=T("Importez la photo de la tranche de vos livres, numériques ou papier : votre étagère se compose et vous suit sur tous vos appareils. Depuis votre téléphone, vous pouvez la photographier directement."),
+                        wrap=True, xalign=0, margin_top=18); tip.add_css_class("muted")
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, margin_start=28, margin_end=28, margin_bottom=40)
+        box.append(self.case); box.append(tip)
+        self.case_w = 0
+        self.case.add_tick_callback(lambda *_: (self.layout_case() if self.stack.get_visible_child_name() == "rack" else None) or True)
+        view.set_content(Gtk.ScrolledWindow(vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER,
+                                            child=Adw.Clamp(maximum_size=1240, child=box)))
+        return view
+
+    def layout_case(self, force=False):
+        """Range les tranches en rangées selon la largeur disponible (refait quand la fenêtre change de taille)."""
+        w = self.case.get_width()
+        if not w or (not force and abs(w - self.case_w) < 8):
+            return
+        self.case_w = w
+        c = self.case.get_first_child()
+        while c:
+            nxt = c.get_next_sibling(); self.case.remove(c); c = nxt
+        items = self.rack_items()
+        self.case_count.set_label(T("{n} livres" if len(items) > 1 else "{n} livre", n=len(items)))
+        row, used = None, 0
+        for wid in [Spine(x, on_click=self.spine_dialog) for x in items] + [self.spine_add_tile()]:
+            ww = wid.get_content_width() if isinstance(wid, Spine) else 34
+            if row is None or (used and used + ww + 3 > w - 8):
+                row, used = Gtk.Box(spacing=3, height_request=200, margin_bottom=26), 0
+                row.add_css_class("shelf-row"); self.case.append(row)
+            row.append(wid); used += ww + 3
+
+    def set_rack_sort(self, k):
+        self.settings["rack_sort"] = k; self.lib.save_settings(self.settings)
+        self.layout_case(force=True); self.fill_rack()
+
+    def open_rack(self):
+        self.stack.set_visible_child_name("rack"); self.case_w = 0
+
+    def close_rack(self):
+        self.stack.set_visible_child_name("library"); self.refresh_library()
+
+    def rack_changed(self):
+        if self.stack.get_visible_child_name() in ("library", "rack"):
+            self.refresh_library()
+            self.layout_case(force=True)
+        self.push_shelf_soon()
+
+    def push_shelf_soon(self):
+        if not self.sync:
+            return
+        if getattr(self, "shelf_push_id", 0):
+            GLib.source_remove(self.shelf_push_id)
+
+        def go():
+            self.shelf_push_id = 0
+            self.worker.submit(self.sync_cfg, lambda s: s.shelf(),
+                               lambda ch: ch and self.stack.get_visible_child_name() in ("library", "rack") and (self.refresh_library(), self.layout_case(force=True)),
+                               lambda e: None)
+            return False
+        self.shelf_push_id = GLib.timeout_add(1500, go)
+
+    def spine_dialog(self, item):
+        """Fiche d'un livre de l'étagère ; item None = nouveau livre papier."""
+        new = item is None
+        st = {"photo": None}                       # photo choisie avant d'enregistrer un nouveau livre
+        d = Adw.Dialog(title=T("Ajouter un livre papier") if new else (item["title"] or T("Sans titre")), content_width=480)
+        tv = Adw.ToolbarView(); tv.add_top_bar(Adw.HeaderBar())
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14, margin_start=22, margin_end=22, margin_bottom=22)
+        top = Gtk.Box(spacing=20)
+        holder = Gtk.Box(valign=Gtk.Align.END); holder.add_css_class("spine-prev")
+        fields = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, hexpand=True, valign=Gtk.Align.END)
+        is_book = bool(item and item["kind"] == "book")
+        kind = Gtk.Label(label=T("Livre numérique") if is_book else T("Livre papier"), xalign=0); kind.add_css_class("kicker")
+        lb = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE); lb.add_css_class("boxed-list")
+        te, ae = Adw.EntryRow(title=T("Titre")), Adw.EntryRow(title=T("Auteur"))
+        if item:
+            te.set_text(item["title"] or ""); ae.set_text(item.get("author") or "")
+        te.set_sensitive(not is_book); ae.set_sensitive(not is_book)
+        lb.append(te); lb.append(ae)
+        fields.append(kind); fields.append(lb)
+        top.append(holder); top.append(fields)
+        base = lambda: ({"kind": "book", "title": item["title"], "author": item.get("author") or ""} if is_book
+                        else {"kind": "paper", "title": te.get_text().strip()[:300], "author": ae.get_text().strip()[:200]})
+        ph_row = Gtk.Box(spacing=10, homogeneous=True)
+
+        def current():
+            if new:
+                return {"id": "nouveau", "kind": "paper", "title": te.get_text(), "photo": st["photo"]}
+            x = self.lib.shelf_item(item["id"])
+            return {**item, "spine": x["spine"] if x and not x["deleted"] else 0}
+
+        def repaint():
+            c = holder.get_first_child()
+            if c:
+                holder.remove(c)
+            it = current(); holder.append(Spine(it, big=True))
+            ph_row.set_visible(bool(it.get("photo") or (it.get("spine") and Library.spine_path(it["id"]).exists())))
+
+        def store(data):
+            if new:
+                f = Path(tempfile.gettempdir()) / f"folio-spine-new-{os.getpid()}.jpg"
+                if data:
+                    f.write_bytes(data)
+                st["photo"] = str(f) if data else None
+            else:
+                self.lib.set_spine(item["id"], data, **base())
+                self.toast(T("Tranche mise à jour") if data else T("Photo retirée")); self.rack_changed()
+            repaint()
+
+        def pick(*_):
+            flt = Gtk.FileFilter(name=T("Images"))
+            for m in ("image/png", "image/jpeg", "image/webp"):
+                flt.add_mime_type(m)
+            fl = Gio.ListStore.new(Gtk.FileFilter); fl.append(flt)
+
+            def picked(dlg, res):
+                try:
+                    f = dlg.open_finish(res)
+                except GLib.Error:
+                    return
+                try:
+                    store(spine_jpeg(path=f.get_path()))
+                except GLib.Error as e:
+                    self.toast(T("Image illisible : {e}", e=e.message))
+            Gtk.FileDialog(title=T("Photo de la tranche"), filters=fl).open(self, None, picked)
+
+        def rotate(*_):
+            p = st["photo"] if new else str(Library.spine_path(item["id"]))
+            if p and os.path.exists(p):
+                store(spine_jpeg(data=Path(p).read_bytes(), turn=True))
+
+        imp = Gtk.Button(child=Adw.ButtonContent(icon_name="image-x-generic-symbolic", label=T("Importer la photo de la tranche")))
+        imp.add_css_class("pill"); imp.add_css_class("suggested-action"); imp.connect("clicked", pick)
+        rot = Gtk.Button(child=Adw.ButtonContent(icon_name="object-rotate-right-symbolic", label=T("Faire pivoter"))); rot.add_css_class("pill")
+        rot.connect("clicked", rotate)
+        rm = Gtk.Button(label=T("Retirer la photo")); rm.add_css_class("pill"); rm.connect("clicked", lambda *_: store(None))
+        ph_row.append(rot); ph_row.append(rm)
+        acts = Gtk.Box(spacing=10, homogeneous=True)
+        if is_book:
+            ob = Gtk.Button(child=Adw.ButtonContent(icon_name="accessories-dictionary-symbolic", label=T("Ouvrir le livre"))); ob.add_css_class("pill")
+            ob.connect("clicked", lambda *_: (d.close(), self.open_book(item["bid"]))); acts.append(ob)
+        if new:
+            sv = Gtk.Button(label=T("Enregistrer")); sv.add_css_class("pill"); sv.add_css_class("suggested-action")
+
+            def save(*_):
+                b = base()
+                if not b["title"]:
+                    return self.toast(T("Indiquez au moins le titre"))
+                sid = self.lib.new_paper(b["title"], b["author"])
+                if st["photo"]:
+                    self.lib.set_spine(sid, Path(st["photo"]).read_bytes(), **b); Path(st["photo"]).unlink(missing_ok=True)
+                d.close(); self.toast(T("« {t} » rangé sur l’étagère", t=b["title"])); self.rack_changed()
+            sv.connect("clicked", save); acts.append(sv)
+        elif not is_book:
+            dl = Gtk.Button(child=Adw.ButtonContent(icon_name="user-trash-symbolic", label=T("Retirer de l’étagère")))
+            dl.add_css_class("pill"); dl.add_css_class("destructive-action")
+
+            def remove(*_):
+                self.lib.set_spine(item["id"], None); self.lib.shelf_put(item["id"], deleted=1)
+                d.close(); self.toast(T("Livre retiré de l’étagère")); self.rack_changed()
+            dl.connect("clicked", remove); acts.append(dl)
+
+        def closed(*_):                           # titre ou auteur d'un livre papier modifiés
+            if not new and not is_book:
+                b, x = base(), self.lib.shelf_item(item["id"])
+                if x and not x["deleted"] and b["title"] and (b["title"] != x["title"] or b["author"] != x["author"]):
+                    self.lib.shelf_put(item["id"], title=b["title"], author=b["author"]); self.rack_changed()
+            if new and st["photo"]:
+                Path(st["photo"]).unlink(missing_ok=True)
+        d.connect("closed", closed)
+        tip = Gtk.Label(label=T("Astuce : livre debout, tranche bien droite et cadrée serrée. Une photo prise à plat est redressée."), wrap=True, xalign=0)
+        tip.add_css_class("muted"); tip.add_css_class("caption")
+        for w in (top, imp, ph_row, acts, tip):
+            box.append(w)
+        repaint()
+        tv.set_content(box); d.set_child(tv); d.present(self)
+        if new:
+            te.grab_focus()
 
     def apply_filter(self):
         self.query = self.search.get_text().strip().lower()
@@ -692,7 +1070,7 @@ class FolioWindow(Adw.ApplicationWindow):
         coll = T("Cette collection est vide : ajoutez-y des livres depuis leur menu ⋯")
         self.nomatch.set_label(T("Aucun livre ne correspond à cette recherche.") if self.query
                                else coll if self.shelf.startswith("c:") else empty.get(self.shelf, ""))
-        self.nomatch.set_visible(not shown and (bool(self.query) or self.shelf != "all"))
+        self.nomatch.set_visible(not shown and (bool(self.query) or self.shelf != "all") and not self.folded("lib"))
         self.count.set_label(("" if shown == n else f"{shown} / ") + T("{n} livres" if n > 1 else "{n} livre", n=n))
 
     def pick_files(self):
@@ -1176,6 +1554,10 @@ class FolioWindow(Adw.ApplicationWindow):
                 colls = s.collections()
             except (OSError, ValueError):
                 colls = False
+            try:
+                colls = s.shelf() or colls
+            except (OSError, ValueError):
+                pass
             prof = self.fetch_profile(s, known_av) if want_profile else None
             return changed, set(s.moved), remote, prof, colls
 
@@ -1609,6 +1991,8 @@ class FolioWindow(Adw.ApplicationWindow):
 
     def escape(self):
         """Échap : ferme le panneau, puis réaffiche les barres, puis revient à la bibliothèque."""
+        if self.stack.get_visible_child_name() == "rack":
+            return self.close_rack()
         if self.stack.get_visible_child_name() != "reader":
             if self.search.get_text():
                 self.search.set_text("")

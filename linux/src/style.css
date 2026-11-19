@@ -124,3 +124,14 @@ scale slider { min-width: 18px; min-height: 18px; background: @window_bg_color; 
 .chip .chip-count { font-size: 11px; font-weight: 700; padding: 0 7px; border-radius: 99px; background: alpha(currentColor, .12); }
 .chip-new { background: transparent; border: 1.5px dashed @folio_line; color: @accent_color; }
 .chip-new:hover { background: @folio_soft; }
+
+/* ---- étagère ---- */
+.plank { border-bottom: 12px solid mix(@window_bg_color, @window_fg_color, .11); padding-top: 18px; }
+.plank > viewport > box { padding: 0 4px; }
+.shelf-row { border-bottom: 12px solid mix(@window_bg_color, @window_fg_color, .11); }
+.spine { transition: transform 220ms cubic-bezier(.2,.8,.2,1); }
+.spine:hover { transform: translateY(-8px); }
+.spine-add { border-radius: 3px; border: 1.5px dashed @folio_line; background: none; box-shadow: none; color: @folio_muted; min-width: 0; padding: 0; }
+.spine-add:hover { border-color: @accent_color; color: @accent_color; }
+.spine-prev { border-bottom: 10px solid mix(@window_bg_color, @window_fg_color, .11); min-width: 60px; }
+.fold { min-width: 30px; min-height: 30px; margin-right: -4px; color: @folio_muted; }

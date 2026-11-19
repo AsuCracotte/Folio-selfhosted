@@ -12,7 +12,7 @@ from urllib.parse import unquote
 from xml.etree import ElementTree as ET
 
 DATA = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "folio"
-BOOKS, COVERS = DATA / "books", DATA / "covers"
+BOOKS, COVERS, SPINES = DATA / "books", DATA / "covers", DATA / "spines"
 NS = {
     "c": "urn:oasis:names:tc:opendocument:xmlns:container",
     "o": "http://www.idpf.org/2007/opf",
@@ -42,6 +42,10 @@ CREATE TABLE IF NOT EXISTS highlights(
   UNIQUE(book_id, cfi));
 CREATE TABLE IF NOT EXISTS collections(
   id TEXT PRIMARY KEY, name TEXT, books TEXT DEFAULT '[]', created REAL, updated REAL, deleted INTEGER DEFAULT 0);
+CREATE TABLE IF NOT EXISTS shelf(
+  id TEXT PRIMARY KEY, kind TEXT DEFAULT 'book', title TEXT DEFAULT '', author TEXT DEFAULT '', spine REAL DEFAULT 0,
+  created REAL, updated REAL, deleted INTEGER DEFAULT 0,
+  spine_at REAL DEFAULT 0, spine_sent REAL DEFAULT 0);
 """
 
 
@@ -80,7 +84,7 @@ def parse_epub(path):
 
 class Library:
     def __init__(self):
-        for d in (DATA, BOOKS, COVERS):
+        for d in (DATA, BOOKS, COVERS, SPINES):
             d.mkdir(parents=True, exist_ok=True)
         # une connexion par thread (l'interface et le thread de synchro) ; WAL = lectures sans blocage
         self.db = sqlite3.connect(DATA / "folio.db", timeout=15)
@@ -156,7 +160,8 @@ class Library:
 
     def reset_sync_marks(self):
         """Après un changement de compte : tout renvoyer au prochain passage."""
-        self.db.execute("UPDATE books SET synced=NULL, uploaded=0"); self.db.commit()
+        self.db.execute("UPDATE books SET synced=NULL, uploaded=0")
+        self.db.execute("UPDATE shelf SET spine_sent=0"); self.db.commit()
 
     def touch(self, bid):
         self.db.execute("UPDATE books SET last_read=? WHERE id=?", (time.time(), bid))
@@ -292,6 +297,83 @@ class Library:
                             "ON CONFLICT(id) DO UPDATE SET name=excluded.name, books=excluded.books, updated=excluded.updated, deleted=excluded.deleted",
                             (c["id"], str(c.get("name", ""))[:80], json.dumps(c.get("books") or []), c.get("created") or 0,
                              c.get("updated") or 0, 1 if c.get("deleted") else 0))
+            changed = True
+        self.db.commit()
+        return changed
+
+    # ---- étagère : livres numériques (id = empreinte) et papier, photo de tranche facultative -------------
+    # spine = date de la photo en vigueur (0 = aucune) ; spine_at = celle présente ici ; spine_sent = celle envoyée
+    SHELF_KEYS = ("id", "kind", "title", "author", "spine", "created", "updated", "deleted")
+
+    def shelf_items(self, with_deleted=False):
+        q = "SELECT * FROM shelf" + ("" if with_deleted else " WHERE COALESCE(deleted,0)=0")
+        return [dict(r) for r in self.db.execute(q)]
+
+    def shelf_item(self, sid):
+        r = self.db.execute("SELECT * FROM shelf WHERE id=?", (sid,)).fetchone()
+        return dict(r) if r else None
+
+    def shelf_public(self):
+        """Ce qui part vers le serveur (format commun avec le site)."""
+        return [{k: x[k] for k in self.SHELF_KEYS} for x in self.shelf_items(with_deleted=True)]
+
+    @staticmethod
+    def spine_path(sid):
+        return SPINES / f"{sid}.jpg"
+
+    def shelf_put(self, sid, **kw):
+        """Crée ou modifie un livre de l'étagère (horodaté : le plus récent gagne à la synchro)."""
+        now = time.time()
+        cur = self.shelf_item(sid) or {"id": sid, "kind": "book", "title": "", "author": "", "spine": 0, "created": now, "deleted": 0}
+        cur.update(kw); cur["updated"] = now
+        self.db.execute("INSERT INTO shelf(id,kind,title,author,spine,created,updated,deleted) VALUES(?,?,?,?,?,?,?,?) "
+                        "ON CONFLICT(id) DO UPDATE SET kind=excluded.kind, title=excluded.title, author=excluded.author, "
+                        "spine=excluded.spine, updated=excluded.updated, deleted=excluded.deleted",
+                        (sid, cur["kind"], str(cur["title"])[:300], str(cur["author"])[:200], cur["spine"] or 0,
+                         cur["created"] or now, now, 1 if cur["deleted"] else 0))
+        self.db.commit()
+        return cur
+
+    def set_spine(self, sid, data, **base):
+        """Pose (data = JPEG) ou retire (data = None) la photo de tranche."""
+        p = self.spine_path(sid)
+        if data:
+            p.write_bytes(data); t = time.time()
+            self.shelf_put(sid, spine=t, deleted=0, **base)
+            self.mark_spine(sid, at=t)
+        else:
+            p.unlink(missing_ok=True)
+            self.shelf_put(sid, spine=0, **base)
+            self.mark_spine(sid, at=0)
+
+    def mark_spine(self, sid, at=None, sent=None):
+        if at is not None:
+            self.db.execute("UPDATE shelf SET spine_at=? WHERE id=?", (at, sid))
+        if sent is not None:
+            self.db.execute("UPDATE shelf SET spine_sent=? WHERE id=?", (sent, sid))
+        self.db.commit()
+
+    def new_paper(self, title, author=""):
+        import secrets, string
+        sid = "".join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(10))
+        self.shelf_put(sid, kind="paper", title=title.strip(), author=author.strip())
+        return sid
+
+    def merge_shelf(self, remote):
+        """Fusionne une liste reçue (la plus récente gagne, par livre). Retourne True si quelque chose a changé."""
+        changed = False
+        for x in remote or []:
+            if not isinstance(x, dict) or not x.get("id"):
+                continue
+            cur = self.shelf_item(x["id"])
+            if cur and (cur["updated"] or 0) >= (x.get("updated") or 0):
+                continue
+            self.db.execute("INSERT INTO shelf(id,kind,title,author,spine,created,updated,deleted) VALUES(?,?,?,?,?,?,?,?) "
+                            "ON CONFLICT(id) DO UPDATE SET kind=excluded.kind, title=excluded.title, author=excluded.author, "
+                            "spine=excluded.spine, updated=excluded.updated, deleted=excluded.deleted",
+                            (x["id"], "paper" if x.get("kind") == "paper" else "book", str(x.get("title", ""))[:300],
+                             str(x.get("author", ""))[:200], x.get("spine") or 0, x.get("created") or 0, x.get("updated") or 0,
+                             1 if x.get("deleted") else 0))
             changed = True
         self.db.commit()
         return changed

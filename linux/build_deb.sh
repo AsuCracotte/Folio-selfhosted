@@ -25,7 +25,7 @@ Version: $VERSION
 Section: text
 Priority: optional
 Architecture: all
-Depends: python3, python3-gi, gir1.2-gtk-4.0, gir1.2-adw-1 (>= 1.5), gir1.2-webkit-6.0
+Depends: python3, python3-gi, python3-gi-cairo, gir1.2-gtk-4.0, gir1.2-adw-1 (>= 1.5), gir1.2-webkit-6.0, gir1.2-pango-1.0
 Maintainer: Folio contributors <folio@example.org>
 Description: Modern EPUB reader with a synced library / liseuse EPUB
  Folio opens your EPUB books in a clean GTK4 interface: library with
