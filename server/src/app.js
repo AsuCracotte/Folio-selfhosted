@@ -52,6 +52,14 @@ function mergeCollections(cur, inc) {
   for (const c of inc) { const l = m.get(c.id); if (!l || (l.updated || 0) < (c.updated || 0)) m.set(c.id, c); }
   return [...m.values()];
 }
+// Étagère : livres numériques (id = empreinte du fichier) et livres papier (id aléatoire) ;
+// « spine » = date de la photo de tranche en vigueur (0 = pas de photo). Fusion par livre : le plus récent gagne.
+const SID = /^(?:[0-9a-f]{40}|[a-z0-9]{6,32})$/;
+const txt = (s, n) => String(s ?? "").normalize("NFKC").replace(CTRL, "").trim().slice(0, n);
+const cleanShelf = (a) => (Array.isArray(a) ? a : []).filter((x) => x && SID.test(String(x.id))).slice(0, 10000)
+  .map((x) => ({ id: x.id, kind: x.kind === "paper" ? "paper" : "book", title: txt(x.title, 300), author: txt(x.author, 200),
+    spine: num(x.spine), created: num(x.created), updated: num(x.updated), deleted: x.deleted ? 1 : 0 }))
+  .filter((x) => x.kind === "paper" || HASH.test(x.id));
 function dirSize(d) {
   try { return fs.readdirSync(d).reduce((n, f) => n + fs.statSync(path.join(d, f)).size, 0); } catch { return 0; }
 }
@@ -421,7 +429,7 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
       await db.user.delete({ where: { id: u.id } });   // sessions, livres, codes : suppression en cascade
       fs.rmSync(path.join(dataDir, "files", u.id), { recursive: true, force: true });
       fs.rmSync(avatarFile(u.id), { force: true });
-      fs.rmSync(path.join(dataDir, "covers", u.id), { recursive: true, force: true });
+      fs.rmSync(path.join(dataDir, "covers", u.id), { recursive: true, force: true }); fs.rmSync(path.join(dataDir, "spines", u.id), { recursive: true, force: true });
       mail(req, u, "del");
       return { ok: true };
     });
@@ -501,6 +509,38 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
       await db.user.update({ where: { id: req.userId }, data: { collections: json } });
       return merged;
     });
+    // ---------- étagère et photos de tranches ----------
+    const spineFile = (uid, id) => path.join(dataDir, "spines", uid, id);
+    const SP = { schema: { params: { type: "object", properties: { id: { type: "string", pattern: SID.source } } } } };
+    const shelfOf = async (id) => JSON.parse((await db.user.findUnique({ where: { id } })).shelf || "[]");
+    api.get("/api/shelf", async (req) => shelfOf(req.userId));
+    api.put("/api/shelf", async (req, reply) => {
+      const inc = (req.body || {}).items;
+      if (!Array.isArray(inc)) return fail(reply, 400, "bad_shelf");
+      const merged = mergeCollections(await shelfOf(req.userId), cleanShelf(inc));
+      const json = JSON.stringify(merged);
+      if (json.length > 3 * 1048576) return fail(reply, 413, "too_big");
+      await db.user.update({ where: { id: req.userId }, data: { shelf: json } });
+      for (const x of merged) if (x.deleted || !x.spine) fs.rmSync(spineFile(req.userId, x.id), { force: true });
+      return merged;
+    });
+    api.get("/api/spines/:id", SP, async (req, reply) => {
+      const f = spineFile(req.userId, req.params.id);
+      if (!fs.existsSync(f)) return fail(reply, 404, "no_spine");
+      const b = fs.readFileSync(f);
+      return reply.type(imgType(b) || "application/octet-stream").header("Content-Disposition", "inline; filename=spine").send(b);
+    });
+    api.put("/api/spines/:id", SP, async (req, reply) => {
+      if (RL.hit(`spine:${req.userId}`, 300, 3600)) return tooMany(reply);
+      if (!Buffer.isBuffer(req.body) || !imgType(req.body)) return fail(reply, 400, "image_expected");
+      const it = (await shelfOf(req.userId)).find((x) => x.id === req.params.id);
+      if (!it || it.deleted || !it.spine) return fail(reply, 404, "no_spine");      // l'étagère est envoyée d'abord
+      const dir = path.dirname(spineFile(req.userId, req.params.id));
+      if (dirSize(dir) + req.body.length > 200 * 1048576) return fail(reply, 413, "quota", {}, { n: 200 });
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(spineFile(req.userId, req.params.id), req.body);
+      return { ok: true };
+    });
     api.head("/api/files/:hash", P, async (req, reply) => reply.code(fs.existsSync(file(req)) ? 200 : 404).send());
     api.get("/api/files/:hash", P, async (req, reply) =>
       fs.existsSync(file(req)) ? reply.type("application/epub+zip").header("Content-Disposition", "attachment").send(fs.createReadStream(file(req))) : reply.code(404).send());
@@ -524,7 +564,7 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
       for (const u of stale) {
         await db.user.delete({ where: { id: u.id } });
         fs.rmSync(path.join(dataDir, "files", u.id), { recursive: true, force: true }); fs.rmSync(path.join(dataDir, "avatars", u.id), { force: true });
-        fs.rmSync(path.join(dataDir, "covers", u.id), { recursive: true, force: true });
+        fs.rmSync(path.join(dataDir, "covers", u.id), { recursive: true, force: true }); fs.rmSync(path.join(dataDir, "spines", u.id), { recursive: true, force: true });
       }
       await db.session.deleteMany({ where: { expiresAt: { lt: n } } });
       await db.emailToken.deleteMany({ where: { OR: [{ expiresAt: { lt: n } }, { usedAt: { not: null } }] } });

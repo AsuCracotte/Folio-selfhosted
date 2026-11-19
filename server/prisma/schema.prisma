@@ -27,6 +27,7 @@ model User {
   pwChanged       Float   @default(0)
   collections     String  @default("[]")   // [{id,name,books:[hash],created,updated,deleted}]
   lang            String  @default("")     // langue des mails (fr / en)
+  shelf           String  @default("[]")   // étagère : [{id,kind,title,author,spine,created,updated,deleted}]
   sessions  Session[]
   books     BookState[]
   recovery  RecoveryCode[]

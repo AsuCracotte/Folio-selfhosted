@@ -245,6 +245,48 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  .hero{padding:20px;gap:18px;border-radius:22px;margin-bottom:32px}.hero .cover{width:84px}.hero h2{font-size:22px}.hero .by{font-size:15px;margin-bottom:12px}
  #addLbl{display:none}.sect .tools .btn span{display:none}.themes{gap:8px}.sect h3{font-size:21px}#top #bBack{margin-right:0}#top .tt{text-align:left}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}
+
+[hidden]{display:none!important}
+/* ---------- sections repliables ---------- */
+.fold{width:30px;height:30px;border:0;background:none;color:var(--muted);border-radius:50%;display:grid;place-items:center;flex:none;margin:0 -8px 0 -6px;align-self:center;transition:transform .25s var(--ease),background .15s}
+.fold:hover{background:var(--soft);color:var(--fg)}.fold svg.i{width:18px;height:18px}
+.sect.folded .fold{transform:rotate(-90deg)}
+.sect h3.fh{cursor:pointer;user-select:none}
+.sect.folded{margin-bottom:30px}
+/* ---------- étagère ---------- */
+.plank{display:flex;align-items:flex-end;gap:3px;overflow-x:auto;padding:22px 24px 0;margin:0 -24px 40px;scrollbar-width:none;
+ border-bottom:12px solid color-mix(in srgb,var(--fg) 11%,var(--bg))}
+.plank::-webkit-scrollbar{display:none}
+.spine{flex:none;position:relative;width:var(--w,34px);height:var(--h,170px);border:0;border-radius:3px 3px 1px 1px;padding:14px 0;cursor:pointer;color:#f4efe8;
+ display:flex;align-items:center;justify-content:center;overflow:hidden;background-size:cover;background-position:center;
+ box-shadow:inset 2px 0 3px rgba(255,255,255,.14),inset -3px 0 6px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.18);transition:transform .25s var(--ease)}
+.spine:hover{transform:translateY(-8px)}
+.spine span{writing-mode:vertical-rl;text-orientation:sideways;font:500 13px/1.15 var(--serif);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:100%}
+.spine::before,.spine::after{content:"";position:absolute;left:4px;right:4px;height:1px;background:currentColor;opacity:.35}.spine::before{top:8px}.spine::after{bottom:8px}
+.spine.photo{background-color:#000}.spine.photo span,.spine.photo::before,.spine.photo::after{display:none}
+.sp0{background-color:#3d4a63}.sp1{background-color:#6b3a2c}.sp2{background-color:#4d5b3d}.sp3{background-color:#e8dcc2;color:#3a2a12}
+.sp4{background-color:#5e3c55}.sp5{background-color:#2f5757}.sp6{background-color:#8a6a3c}
+.spine.add{--w:34px;--h:150px;background:transparent;color:var(--muted);box-shadow:none;outline:1.5px dashed var(--line);outline-offset:-1.5px}
+.spine.add:hover{color:var(--ac);outline-color:var(--ac)}
+.spine.add::before,.spine.add::after{display:none}
+#rack{position:fixed;inset:0;z-index:15;background:var(--bg);overflow:auto;padding-bottom:calc(env(safe-area-inset-bottom) + 40px);animation:rdIn .35s var(--ease)}
+.rk-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:calc(env(safe-area-inset-top) + 12px) 28px 12px;
+ background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.rk-head h2{margin:0;font-size:30px;font-weight:450}
+#rkCount{color:var(--muted);font-size:13px;flex:1}
+.rk-head .seg{min-width:260px}
+/* planches : chaque rangée fait 240 px, la planche est dessinée en fond à la même hauteur */
+.case{max-width:1180px;margin:14px auto 0;padding:0 28px;display:flex;flex-wrap:wrap;gap:0 3px;
+ background:linear-gradient(transparent 214px,color-mix(in srgb,var(--fg) 11%,var(--bg)) 214px,color-mix(in srgb,var(--fg) 11%,var(--bg)) 226px,rgba(0,0,0,.1) 226px,transparent 234px) 0 0/100% 240px repeat-y}
+.case .slot{height:240px;padding-bottom:26px;display:flex;align-items:flex-end}
+.rk-tip{max-width:1180px;margin:24px auto 0;padding:0 28px}
+.sp-top{display:flex;gap:22px;align-items:flex-end;margin-bottom:6px}
+#spPrev{flex:none;display:flex;align-items:flex-end;min-width:60px;border-bottom:10px solid color-mix(in srgb,var(--fg) 11%,var(--bg))}
+#spPrev .spine{cursor:default;transform:none}
+.sp-f{flex:1;min-width:0}.sp-f .kicker{margin:0 2px 4px}
+.field input:disabled{opacity:.75;background:var(--surface)}
+@media (max-width:560px){.plank{padding-left:16px;padding-right:16px;margin-left:-16px;margin-right:-16px}.rk-head{padding-left:14px;padding-right:14px}.case,.rk-tip{padding:0 14px}
+ .rk-head .seg{order:5;flex-basis:100%;min-width:0}#rkAdd span{display:none}.sp-top{flex-direction:column;align-items:stretch}#spPrev{justify-content:center}}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
@@ -265,6 +307,9 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 <symbol id="i-stack" viewBox="0 0 24 24"><path d="M4 7h16M6 4h12M3 10h18v10H3z"/></symbol>
 <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></symbol>
 <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+<symbol id="i-rot" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></symbol>
 <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7M5 10v10h14V10"/></symbol>
 </defs></svg>
 <div id="lib">
@@ -276,9 +321,13 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  </div>
  <div class="search" id="sbox"><svg class="i"><use href="#i-search"/></svg><input id="q" type="search" data-tp="searchPh" autocomplete="off"></div></header>
  <button id="mobileFab"><svg class="i"><use href="#i-phone"/></svg><span data-t="onMobile"></span></button>
- <main><div id="hero"></div><div id="colsWrap"></div><div class="sect" id="sect"></div><div id="grid"></div></main>
+ <main><div id="hero"></div><div id="colsWrap"></div><div id="rackWrap"></div><div class="sect" id="sect"></div><div id="grid"></div></main>
 </div>
 <div class="drop" data-t="dropHere"></div>
+<div id="rack" hidden><header class="rk-head"><button class="ib" id="rkBack" data-tt="library"><svg class="i"><use href="#i-back"/></svg></button><h2 data-t="rack"></h2><span id="rkCount"></span>
+ <div class="seg" id="rkSort"><button data-s="author" data-t="sortAuthor"></button><button data-s="title" data-t="sortTitle"></button><button data-s="recent" data-t="sortRecent"></button></div>
+ <button class="btn pri" id="rkAdd" data-tt="addPaperT"><svg class="i"><use href="#i-plus"/></svg><span data-t="addPaper"></span></button></header>
+ <div class="case" id="rkCase"></div><p class="mut rk-tip" data-t="rackTip"></p></div>
 <div id="rd"><div id="top">
   <button class="ib" id="bBack" data-tt="library"><svg class="i"><use href="#i-back"/></svg></button>
   <div class="tt"><div id="ttl"></div><div id="chapTop"></div></div>
@@ -326,6 +375,16 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <p class="mut" style="margin-top:10px;font-size:13px" data-t="coverTip"></p>
  <div class="acts"><button class="btn ghost danger" id="bkDel"><svg class="i"><use href="#i-trash"/></svg><span data-t="removeBook"></span></button></div>
 </div>
+<div class="sheet" id="shSpine"><div class="grab"></div><h3 id="spT"></h3>
+ <div class="sp-top"><div id="spPrev"></div><div class="sp-f"><p class="kicker" id="spKind"></p>
+  <label class="field"><span data-t="titleF"></span><input id="spTitle" maxlength="300" autocomplete="off"></label>
+  <label class="field"><span data-t="authorF"></span><input id="spAuthor" maxlength="200" autocomplete="off"></label></div></div>
+ <div class="acts"><label class="btn pri"><svg class="i"><use href="#i-cam"/></svg><span data-t="takePhoto"></span><input type="file" id="spCam" accept="image/*" capture="environment" hidden></label>
+  <label class="btn"><svg class="i"><use href="#i-image"/></svg><span data-t="importImg"></span><input type="file" id="spFile" accept="image/png,image/jpeg,image/webp" hidden></label></div>
+ <div class="acts" id="spPh"><button class="btn ghost" id="spRot"><svg class="i"><use href="#i-rot"/></svg><span data-t="rotate"></span></button><button class="btn ghost" id="spDelPh" data-t="removePhoto"></button></div>
+ <div class="acts"><button class="btn" id="spOpen"><svg class="i"><use href="#i-book"/></svg><span data-t="openBook"></span></button><button class="btn pri" id="spSave" data-t="save"></button>
+  <button class="btn ghost danger" id="spDel"><svg class="i"><use href="#i-trash"/></svg><span data-t="removePaper"></span></button></div>
+ <p class="mut" style="margin-top:12px;font-size:13px" data-t="spineTip"></p></div>
 <div class="sheet" id="shPick"><div class="grab"></div><h3 id="pickTitle"></h3><div id="pickList"></div>
  <div class="acts"><button class="btn pri" id="pickDone" data-t="done"></button></div></div>
 <div class="sheet" id="shCol"><div class="grab"></div><h3 id="colMenuTitle"></h3>
@@ -407,5 +466,5 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <label class="field" id="authCodeF"><span data-t="mfaOrRecovery"></span><input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="11"></label>
  <div class="acts"><button class="btn pri" id="authOk" data-t="confirm"></button><button class="btn ghost" id="authNo" data-t="cancel"></button></div></div>
 <div id="sel"></div><div id="imgm"><button id="imgCover"><svg class="i"><use href="#i-image"/></svg><span data-t="useAsCover"></span></button></div><div id="msg"></div>
-<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="app.js?v=1.8.0"></script>
+<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="app.js?v=1.9.0"></script>
 </body></html>
