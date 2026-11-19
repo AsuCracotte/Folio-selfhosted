@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#6d5bd0"><link rel="icon" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&family=Literata:opsz,wght@7..72,400&family=Atkinson+Hyperlegible&display=swap">
-<link rel="stylesheet" href="site.css?v=1.8.0"><link rel="stylesheet" href="home.css?v=1.8.0">
+<link rel="stylesheet" href="site.css?v=1.8.1"><link rel="stylesheet" href="home.css?v=1.8.1">
 <script>document.documentElement.classList.add("js")</script>
 <meta property="og:title" content="Folio"><meta property="og:description" content="Vos livres, partout. Liseuse EPUB synchronisée, sans publicité."><meta property="og:image" content="img/fr-library.webp">
 </head><body class="home">
@@ -28,13 +28,12 @@
 <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
 <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
 </defs></svg>
-<div class="ribbon" aria-hidden="true"></div>
+<div class="ribbon-w" aria-hidden="true"><div class="ribbon"></div></div>
 <div class="folio-no" aria-hidden="true">— <span id="pageNo">1</span> —</div>
 
 <header class="nav"><div class="wrap">
  <a class="logo" href="/"><img src="icon.svg" alt="">Folio</a>
- <span class="runhead" id="runhead" aria-hidden="true"></span>
- <a class="lk" href="#sommaire" data-t="navToc">Sommaire</a>
+ <a class="lk" href="#sommaire" data-t="navToc">Fonctionnalités</a>
  <a class="lk" href="/download" data-t="navDownload">Télécharger</a>
  <div class="lang"><button data-l="fr">FR</button><button data-l="en">EN</button></div>
  <a class="btn pri sm" href="/app/"><svg class="i"><use href="#i-arrow"/></svg><span data-t="navOpen">Ouvrir Folio</span></a>
@@ -42,7 +41,7 @@
 
 <main>
 <!-- couverture : le titre s'encre, le livre s'ouvre au défilement -->
-<section class="hero2" data-run="">
+<section class="hero2">
  <div class="wrap">
   <p class="eyebrow" data-t="eyebrow">Liseuse EPUB · sans publicité</p>
   <h1 class="ink" id="inkTitle"><span class="ln" data-t="h1a">Vos livres.</span><span class="ln" data-t="h1b">Partout.</span><em class="ln" data-t="h1c">Magnifiquement.</em></h1>
@@ -62,27 +61,22 @@
  </div>
 </section>
 
-<!-- I. synchronisation : les mots se lisent, les appareils suivent -->
-<section class="scene" id="sync" style="--h:280vh" data-run="I · Synchronisation" data-run-en="I · Sync">
+<!-- I. synchronisation : les mots se lisent au fil du défilement -->
+<section class="scene" id="sync" style="--h:220vh">
  <div class="pin"><div class="wrap">
-  <div class="chap-h"><span class="num">I</span><span class="kick" data-t="c1k">Synchronisation</span></div>
-  <h2 class="t" data-th="c1t">Reprenez <em>exactement</em> où vous étiez.</h2>
+  <p class="label" data-t="c1k">Synchronisation</p>
+  <h2 class="t" data-t="c1t">Reprenez où vous étiez.</h2>
   <p class="read" id="readText" data-t="c1text">L’année 1866 fut marquée par un événement bizarre, un phénomène inexpliqué et inexplicable que personne n’a sans doute oublié. Sans parler des rumeurs qui agitaient les populations des ports, les gens de mer furent particulièrement émus.</p>
-  <div class="devs" id="devs">
-   <div class="dev"><div class="top"><svg class="i"><use href="#i-win"/></svg><span data-t="dPc">Ordinateur</span><em class="pc">0 %</em></div><div class="bar"><i></i></div><div class="st"></div></div>
-   <div class="dev"><div class="top"><svg class="i"><use href="#i-phone"/></svg><span data-t="pPhoneT">Téléphone</span><em class="pc">0 %</em></div><div class="bar"><i></i></div><div class="st"></div></div>
-   <div class="dev"><div class="top"><svg class="i"><use href="#i-web"/></svg><span data-t="pWebT">Navigateur</span><em class="pc">0 %</em></div><div class="bar"><i></i></div><div class="st"></div></div>
-  </div>
-  <p class="cap" id="syncCap"></p>
+  <div class="track" id="track"><span data-t="dPc">Ordinateur</span><span data-t="pPhoneT">Téléphone</span><span data-t="pWebT">Navigateur</span><i class="rule"><b></b></i><em id="pct">0 %</em></div>
  </div></div>
 </section>
 
 <!-- II. mise en page : la page se recompose sous vos yeux -->
-<section class="scene" id="layout" style="--h:360vh" data-run="II · Mise en page" data-run-en="II · Layout">
+<section class="scene" id="layout" style="--h:360vh">
  <div class="pin"><div class="wrap two">
   <div class="txt">
-   <div class="chap-h"><span class="num">II</span><span class="kick" data-t="c2k">Mise en page</span></div>
-   <h2 class="t" data-th="c2t">Une page <em>à votre mesure.</em></h2>
+   <p class="label" data-t="c2k">Mise en page</p>
+   <h2 class="t" data-t="c2t">Une page à votre mesure.</h2>
    <p class="sub2" data-t="c2p">Sept thèmes, des polices pensées pour la lecture, la taille, l’interligne, les marges, pages ou défilement continu.</p>
    <dl class="spec" id="spec">
     <dt data-t="spTheme">Thème</dt><dd data-k="theme"></dd>
@@ -91,7 +85,7 @@
     <dt data-t="spLine">Interligne</dt><dd data-k="line"></dd>
     <dt data-t="spMargin">Marges</dt><dd data-k="margin"></dd>
    </dl>
-   <div class="newnote"><span class="mini" id="mini"></span><p data-th="newNote"><b>Nouveau</b> · Chaque appareil choisit ce qu’il synchronise : des marges larges sur l’ordinateur, serrées sur le téléphone.</p></div>
+   <div class="newnote"><span class="mini on" id="mini"></span><p data-th="newNote"><b>Nouveau</b> · Chaque appareil choisit ce qu’il synchronise : des marges larges sur l’ordinateur, serrées sur le téléphone.</p></div>
   </div>
   <div class="paper" id="paper">
    <div class="rh" data-t="sampleRh">Du côté de chez Swann</div>
@@ -101,37 +95,36 @@
  </div></div>
 </section>
 
-<!-- III. sommaire : les fonctionnalités comme la table d'un livre -->
-<section id="sommaire" class="chap" data-run="III · Sommaire" data-run-en="III · Contents">
+<!-- III. fonctionnalités -->
+<section id="sommaire" class="chap">
  <div class="wrap">
-  <div class="chap-h"><span class="num">III</span><span class="kick" data-t="c3k">Sommaire</span></div>
-  <h2 class="t" data-th="c3t">Tout pour bien lire, <em>rien pour distraire.</em></h2>
-  <ol class="toc" id="toc">
-   <li data-img="library" tabindex="0"><div class="row"><span class="n">i.</span><span class="tt" data-t="f1t">Reprenez où vous étiez</span><span class="dots"></span><span class="pg">7</span></div><div class="ds"><div><p data-t="f1p"></p></div></div></li>
-   <li data-img="library" tabindex="0"><div class="row"><span class="n">ii.</span><span class="tt" data-t="f2t">Collections</span><span class="dots"></span><span class="pg">19</span></div><div class="ds"><div><p data-t="f2p"></p></div></div></li>
-   <li data-img="notes" tabindex="0"><div class="row"><span class="n">iii.</span><span class="tt" data-t="f3t">Surlignages et notes</span><span class="dots"></span><span class="pg">42</span></div><div class="ds"><div><p data-t="f3p"></p></div></div></li>
-   <li data-img="reader" tabindex="0"><div class="row"><span class="n">iv.</span><span class="tt" data-t="f4t">Votre mise en page</span><span class="dots"></span><span class="pg">63</span></div><div class="ds"><div><p data-t="f4p"></p></div></div></li>
-   <li data-img="phone-reader" tabindex="0"><div class="row"><span class="n">v.</span><span class="tt"><span data-t="f7t">Chaque appareil à sa façon</span> <i class="badge" data-t="pillNew">Nouveau</i></span><span class="dots"></span><span class="pg">88</span></div><div class="ds"><div><p data-t="f7p"></p></div></div></li>
-   <li data-img="phone-library" tabindex="0"><div class="row"><span class="n">vi.</span><span class="tt" data-t="f5t">Même hors ligne</span><span class="dots"></span><span class="pg">104</span></div><div class="ds"><div><p data-t="f5p"></p></div></div></li>
-   <li data-img="reader" tabindex="0"><div class="row"><span class="n">vii.</span><span class="tt" data-t="f6t">Privé et sécurisé</span><span class="dots"></span><span class="pg">131</span></div><div class="ds"><div><p data-t="f6p"></p></div></div></li>
-  </ol>
+  <p class="label" data-t="c3k">Fonctionnalités</p>
+  <h2 class="t" data-t="c3t">Tout pour lire, rien de plus.</h2>
+  <dl class="feats2">
+   <div><dt data-t="f1t"></dt><dd data-t="f1p"></dd></div>
+   <div><dt data-t="f2t"></dt><dd data-t="f2p"></dd></div>
+   <div><dt data-t="f3t"></dt><dd data-t="f3p"></dd></div>
+   <div><dt data-t="f4t"></dt><dd data-t="f4p"></dd></div>
+   <div><dt data-t="f7t"></dt><dd data-t="f7p"></dd></div>
+   <div><dt data-t="f5t"></dt><dd data-t="f5p"></dd></div>
+   <div><dt data-t="f6t"></dt><dd data-t="f6p"></dd></div>
+  </dl>
  </div>
- <div class="peek" id="peek" aria-hidden="true"><img alt=""></div>
 </section>
 
 <!-- IV. notes : le surligneur passe -->
-<section id="notes" class="chap" data-run="IV · Notes">
+<section id="notes" class="chap">
  <div class="wrap">
-  <div class="chap-h"><span class="num">IV</span><span class="kick" data-t="c4k">Notes</span></div>
+  <p class="label" data-t="c4k">Notes</p>
   <p class="marks" data-rv data-th="c4p">Un bon livre se lit <mark class="hl y">deux fois</mark> : la première pour l’histoire, la seconde pour <mark class="hl g">tout ce qu’on avait souligné</mark>. Folio garde chaque passage, <mark class="hl b">classé par chapitre</mark>, prêt à être copié ou <mark class="hl p">exporté en Markdown</mark>.</p>
   <div class="frame tilt" data-rv><img data-shot="notes" src="img/fr-notes.webp" width="1280" height="800" alt="" loading="lazy"></div>
  </div>
 </section>
 
 <!-- V. partout -->
-<section id="platforms" class="chap" data-run="V · Partout" data-run-en="V · Everywhere">
+<section id="platforms" class="chap">
  <div class="wrap center">
-  <div class="chap-h"><span class="num">V</span><span class="kick" data-t="c5k">Partout</span></div>
+  <p class="label" data-t="c5k">Partout</p>
   <p class="roll-line"><span data-t="c5a">Lisez sur</span> <span class="roll" id="roll"><span><b>Windows</b><b>macOS</b><b>Linux</b><b>Android</b><b>iPhone</b><b data-t="c5web">le navigateur</b></span></span></p>
   <p class="sub2 c" data-t="c5p">Un seul compte : votre page, vos notes et vos collections vous suivent d’un appareil à l’autre.</p>
   <nav class="plats2">
@@ -145,10 +138,10 @@
 </section>
 
 <!-- VI. auto-hébergement -->
-<section id="selfhost" class="chap" data-run="VI · Open source">
+<section id="selfhost" class="chap">
  <div class="wrap split rev">
-  <div class="txt"><div class="chap-h"><span class="num">VI</span><span class="kick" data-t="shK">Open source</span></div>
-   <h2 class="t" data-th="shT2">Hébergez <em>votre propre</em> Folio.</h2>
+  <div class="txt"><p class="label" data-t="shK">Open source</p>
+   <h2 class="t" data-t="shT2">Hébergez votre propre Folio.</h2>
    <p class="sub2" data-t="shP">Le code est libre (licence MIT). Installez le serveur chez vous — un Raspberry Pi suffit — et gardez vos livres et vos notes sur votre propre machine.</p>
    <ul class="checks"><li><svg class="i"><use href="#i-check"/></svg><span data-t="sh1">Installation en une commande avec Docker</span></li>
     <li><svg class="i"><use href="#i-check"/></svg><span data-t="sh2">Site, lecteur et applis Windows, macOS et Linux inclus</span></li>
@@ -163,7 +156,7 @@
 </section>
 
 <!-- fin -->
-<section class="fin" data-run="">
+<section class="fin">
  <div class="wrap">
   <p class="ink fin-w" id="finWord" data-t="finW">Fin.</p>
   <p class="fin-p" data-rv data-t="finP">…ou plutôt le début de votre prochaine lecture.</p>
@@ -175,6 +168,6 @@
 <footer><div class="wrap"><a class="logo" href="/" style="font-size:17px;margin:0"><img src="icon.svg" alt="" style="width:24px;height:24px">Folio</a><span class="sp"></span>
  <a href="/app/" data-t="navOpen">Ouvrir Folio</a><a href="/download" data-t="navDownload">Télécharger</a><a href="https://github.com/AsuCracotte/Folio-selfhosted" target="_blank" rel="noopener" data-t="selfLink">Auto-hébergement</a><span>© 2026 Folio</span></div>
  <div class="wrap"><p class="colophon" data-t="colophon">Composé en Fraunces et Literata. Imprimé nulle part, lisible partout.</p></div></footer>
-<script src="site.js?v=1.8.0"></script>
-<script src="home.js?v=1.8.0"></script>
+<script src="site.js?v=1.8.1"></script>
+<script src="home.js?v=1.8.1"></script>
 </body></html>
