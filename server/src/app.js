@@ -433,9 +433,10 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
       const { settings, updated } = req.body || {};
       if (!settings || typeof settings !== "object" || Array.isArray(settings) || typeof updated !== "number" || !isFinite(updated))
         return fail(reply, 400, "bad_settings");
-      const json = JSON.stringify(settings);
-      if (json.length > 8192) return fail(reply, 413, "settings_big");
       const u = await db.user.findUnique({ where: { id: req.userId } });
+      // fusion : un appareil peut garder certains réglages pour lui et ne pas les envoyer
+      const json = JSON.stringify({ ...JSON.parse(u.settings || "{}"), ...settings });
+      if (json.length > 8192) return fail(reply, 413, "settings_big");
       if (updated > (u.settingsUpdated || 0) || u.settings === "{}")
         return settingsOf(await db.user.update({ where: { id: req.userId }, data: { settings: json, settingsUpdated: updated } }));
       return settingsOf(u);

@@ -257,6 +257,9 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
   <div class="row"><label for="letter" data-t="letterSpace"></label><div class="ctl"><input type="range" id="letter" min="0" max="10"><output id="oLetter"></output></div></div>
   <div class="row stack"><label data-t="indent"></label><div class="seg" id="indSeg"><button data-i="-1" data-t="indBook"></button><button data-i="0" data-t="indNone"></button><button data-i="1.5" data-t="indNormal"></button><button data-i="3" data-t="indWide"></button></div></div>
  </div>
+ <div class="sub" data-t="syncLook"></div>
+ <p class="mut" style="margin:6px 4px 0" data-t="syncLookTxt"></p>
+ <div class="group" id="syncGroups"></div>
  <div style="text-align:center;margin-top:14px"><button class="btn ghost" id="resetS" data-t="resetLook"></button></div>
 </div>
 <div class="sheet" id="shToc"><div class="grab"></div><div id="list"></div></div>
@@ -352,5 +355,5 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <label class="field" id="authCodeF"><span data-t="mfaOrRecovery"></span><input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="11"></label>
  <div class="acts"><button class="btn pri" id="authOk" data-t="confirm"></button><button class="btn ghost" id="authNo" data-t="cancel"></button></div></div>
 <div id="sel"></div><div id="imgm"><button id="imgCover"><svg class="i"><use href="#i-image"/></svg><span data-t="useAsCover"></span></button></div><div id="msg"></div>
-<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="app.js"></script>
+<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="app.js?v=1.7.3"></script>
 </body></html>

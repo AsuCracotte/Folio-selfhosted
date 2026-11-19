@@ -6,7 +6,7 @@ const TX={
 fr:{siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
  library:"Bibliothèque",bookmark:"Marque-page",tocNotes:"Sommaire et notes",appearance:"Apparence",customColors:"Couleurs perso",background:"Fond",text:"Texte",font:"Police",bookFont:"Police du livre",
  size:"Taille",lineHeight:"Interligne",margins:"Marges",justify:"Texte justifié",pages:"Pages",scroll:"Défilement",typography:"Typographie",paraSpace:"Espace entre paragraphes",weight:"Graisse",
- letterSpace:"Espacement des lettres",indent:"Retrait de première ligne",indBook:"Livre",indNone:"Aucun",indNormal:"Normal",indWide:"Large",resetLook:"Réinitialiser l’apparence",
+ letterSpace:"Espacement des lettres",indent:"Retrait de première ligne",indBook:"Livre",indNone:"Aucun",indNormal:"Normal",indWide:"Large",resetLook:"Réinitialiser l’apparence",syncLook:"Synchronisation entre appareils",syncLookTxt:"Décochez ce que cet appareil doit garder pour lui : il ne l’enverra plus et ne recevra plus celui des autres.",sg_colors:"Thème et couleurs",sg_font:"Police",sg_size:"Taille du texte",sg_spacing:"Interligne et typographie",sg_margin:"Marges",sg_layout:"Justification, pages ou défilement",
  th_clair:"Clair",th_sepia:"Sépia",th_sombre:"Sombre",th_noir:"Noir",th_gris:"Gris",th_nuit:"Nuit",th_foret:"Forêt",
  w300:"Fine",w400:"Normale",w500:"Moyenne",w600:"Demi-grasse",w700:"Grasse",bookPara:"Livre",normal:"Normal",
  untitled:"Sans titre",finished:"Terminé",books1:"{n} livre",booksN:"{n} livres",emptyLib:"Votre bibliothèque est vide",emptyLibTxt:"Ajoutez des fichiers EPUB ou glissez-les ici.<br>Connectez-vous pour retrouver ceux de vos autres appareils.",
@@ -51,7 +51,7 @@ fr:{siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks
 en:{siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
  library:"Library",bookmark:"Bookmark",tocNotes:"Contents and notes",appearance:"Appearance",customColors:"Custom colours",background:"Background",text:"Text",font:"Font",bookFont:"Book’s font",
  size:"Size",lineHeight:"Line spacing",margins:"Margins",justify:"Justified text",pages:"Pages",scroll:"Scrolling",typography:"Typography",paraSpace:"Paragraph spacing",weight:"Weight",
- letterSpace:"Letter spacing",indent:"First-line indent",indBook:"Book",indNone:"None",indNormal:"Normal",indWide:"Wide",resetLook:"Reset appearance",
+ letterSpace:"Letter spacing",indent:"First-line indent",indBook:"Book",indNone:"None",indNormal:"Normal",indWide:"Wide",resetLook:"Reset appearance",syncLook:"Sync across devices",syncLookTxt:"Untick what this device should keep to itself: it will no longer send it, nor receive the one from your other devices.",sg_colors:"Theme and colours",sg_font:"Font",sg_size:"Text size",sg_spacing:"Line height and typography",sg_margin:"Margins",sg_layout:"Justification, pages or scrolling",
  th_clair:"Light",th_sepia:"Sepia",th_sombre:"Dark",th_noir:"Black",th_gris:"Grey",th_nuit:"Night",th_foret:"Forest",
  w300:"Light",w400:"Regular",w500:"Medium",w600:"Semibold",w700:"Bold",bookPara:"Book",normal:"Normal",
  untitled:"Untitled",finished:"Finished",books1:"{n} book",booksN:"{n} books",emptyLib:"Your library is empty",emptyLibTxt:"Add EPUB files or drop them here.<br>Sign in to get the books from your other devices.",
@@ -104,6 +104,9 @@ const $=id=>document.getElementById(id),THEMES={clair:["#fbfbfa","#222222"],sepi
 const WEBFONTS=["Literata","Merriweather","Lora","Source Serif 4","Atkinson Hyperlegible"];
 const COLORS={yellow:"#f6d55c",green:"#7bd88f",blue:"#6cb6ff",pink:"#ff8fb1"},ico=n=>`<svg class="i"><use href="#i-${n}"/></svg>`;
 const SYNC_KEYS=["theme","bg","fg","font","size","line","margin","justify","flow","spread","para","indent","weight","letter"];
+// Groupes de réglages qu'on peut choisir de garder sur cet appareil (S.nosync = liste locale, jamais envoyée)
+const SYNC_GROUPS={colors:["theme","bg","fg"],font:["font"],size:["size"],spacing:["line","para","indent","weight","letter"],margin:["margin"],layout:["justify","flow","spread"]};
+const synced=()=>SYNC_KEYS.filter(k=>!Object.entries(SYNC_GROUPS).some(([g,ks])=>(S.nosync||[]).includes(g)&&ks.includes(k)));
 const DEFAULTS={theme:"clair",bg:"#fbfbfa",fg:"#222222",font:"",size:19,line:1.6,margin:28,justify:false,flow:"paginated",spread:false,para:0,indent:-1,weight:400,letter:0};
 let db,S=Object.assign({...DEFAULTS,updated:0},JSON.parse(localStorage.folioS||"{}")),
  cur=null,book,rend,loc,toc=[],pct=null,chapter="",pending=null,tab="toc",timer;
@@ -265,6 +268,10 @@ const ctl=()=>{$("size").value=S.size;$("line").value=Math.round(S.line*10);$("m
 $("justify").onchange=e=>{S.justify=e.target.checked;setS()};
 $("para").oninput=e=>{S.para=e.target.value/10;ctl();setS()};$("weight").oninput=e=>{S.weight=+e.target.value;ctl();setS()};$("letter").oninput=e=>{S.letter=e.target.value/100;ctl();setS()};
 document.querySelectorAll("#indSeg button").forEach(b=>b.onclick=()=>{S.indent=+b.dataset.i;ctl();setS()});
+function syncUI(){$("syncGroups").innerHTML=Object.keys(SYNC_GROUPS).map(g=>`<div class="row"><label for="sg_${g}">${t("sg_"+g)}</label><span class="switch"><input type="checkbox" id="sg_${g}" data-g="${g}"${(S.nosync||[]).includes(g)?"":" checked"}><span></span></span></div>`).join("");
+ $("syncGroups").querySelectorAll("input").forEach(i=>i.onchange=()=>{const g=i.dataset.g;S.nosync=(S.nosync||[]).filter(x=>x!==g);if(!i.checked)S.nosync.push(g);save();
+  if(i.checked)dav?.pullKeys(SYNC_GROUPS[g]).catch(()=>{})})}
+syncUI();
 $("resetS").onclick=()=>{Object.assign(S,DEFAULTS);ctl();setS();msg(t("lookReset"))};$("font").onchange=e=>{S.font=e.target.value;setS()};
 document.querySelectorAll("#flowSeg button").forEach(b=>b.onclick=()=>{S.flow=b.dataset.f;ctl();setS()});
 let old={},setT;function setS(remote){if(!remote){S.updated=now();clearTimeout(setT);setT=setTimeout(()=>dav?.settings().catch(()=>{}),2000)}save();outer();if(!rend)return;const lay=["size","line","margin","font","flow","justify","para","indent","weight","letter"].some(k=>old[k]!==S[k]);old={...S};
@@ -413,10 +420,11 @@ function Api(c){const base=(c.server||"").replace(/\/$/,""),h={Authorization:"Be
     if(r.ok){b.coverSent=true;const x=await getB(hash);if(x&&x.coverUpdated===b.coverUpdated){x.coverSent=true;await putB(x)}}}
    await this.apply(hash,m);if((await f(`/api/files/${hash}`,{method:"HEAD"})).status===404)await f(`/api/files/${hash}`,{method:"PUT",headers:{"Content-Type":"application/epub+zip"},body:await rq(tx("files").get(hash))})},
   // réglages : le serveur l'emporte s'il est plus récent, ou à égalité (jamais modifiés : horodatage 0)
-  async settings(){const mine={};SYNC_KEYS.forEach(k=>mine[k]=S[k]);
+  async settings(){const keys=synced(),mine={};keys.forEach(k=>mine[k]=S[k]);
    const r=await jf("/api/settings",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({settings:mine,updated:S.updated||0})});
-   const diff=SYNC_KEYS.some(k=>k in r.settings&&r.settings[k]!==S[k]);
-   if((r.updated||0)>=(S.updated||0)&&diff){SYNC_KEYS.forEach(k=>{if(k in r.settings)S[k]=r.settings[k]});S.updated=r.updated||0;ctl();setS(true);return true}return false},
+   const diff=keys.some(k=>k in r.settings&&r.settings[k]!==S[k]);
+   if((r.updated||0)>=(S.updated||0)&&diff){keys.forEach(k=>{if(k in r.settings)S[k]=r.settings[k]});S.updated=r.updated||0;ctl();setS(true);return true}return false},
+  async pullKeys(keys){const r=await jf("/api/settings");let ch=false;keys.forEach(k=>{if(k in r.settings&&r.settings[k]!==S[k]){S[k]=r.settings[k];ch=true}});if(ch){ctl();setS(true)}},
   // collections : envoi des nôtres, le serveur renvoie la fusion
   async collections(){const r=await P("/api/collections",{collections:COLS},"PUT");const before=JSON.stringify(COLS);COLS=r;localStorage.folioCols=JSON.stringify(COLS);return JSON.stringify(r)!==before},
   me:()=>jf("/api/me"),
