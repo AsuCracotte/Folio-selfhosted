@@ -1,10 +1,14 @@
-/* Folio — même langage visuel que le site : surfaces douces, pilules, couvertures ombrées.
+/* Folio — même langage visuel que le site : encre, papier, un signet rouge ; titres en Fraunces (livrée avec l'appli).
    Les couleurs @folio_* et accent_* sont définies dynamiquement selon le thème de lecture (app.py). */
 
 /* ---- en-têtes ---- */
 .lib-head, .reader-head { box-shadow: none; min-height: 58px; }
-.brand { font-size: 22px; font-weight: 800; letter-spacing: -0.4px; }
-.brand-logo { border-radius: 9px; }
+.brand { font-family: Fraunces, serif; font-style: italic; font-size: 27px; font-weight: 480; letter-spacing: -0.5px; }
+.brand-logo { border-radius: 8px; }
+/* bouton principal : à l'encre, le rouge est réservé au signet */
+button.suggested-action { background: @window_fg_color; color: @window_bg_color; }
+button.suggested-action:hover { background: mix(@window_fg_color, @window_bg_color, .15); }
+button.suggested-action:active { background: mix(@window_fg_color, @window_bg_color, .25); }
 .pill-small { border-radius: 99px; padding: 0 18px 0 13px; min-height: 38px; font-weight: 600; }
 .circ { border-radius: 99px; min-width: 40px; min-height: 40px; padding: 0; background: none; box-shadow: none; }
 .circ:hover { background: @folio_soft; }
@@ -24,17 +28,16 @@
 .lib-search > image { color: @folio_muted; }
 
 /* ---- accueil ---- */
-.greet { font-size: 30px; font-weight: 800; letter-spacing: -0.8px; }
+.greet { font-family: Fraunces, serif; font-size: 34px; font-weight: 420; letter-spacing: -0.6px; }
 
 /* ---- « Reprendre la lecture » ---- */
-.hero { padding: 22px 26px 22px 22px; border-radius: 26px; margin: 10px 0 8px;
-  background: linear-gradient(120deg, alpha(@accent_bg_color, .16), alpha(@accent_bg_color, .04) 60%, @folio_surface);
-  border: 1px solid alpha(@accent_bg_color, .18); transition: background 200ms ease, box-shadow 200ms ease; }
-.hero:hover { box-shadow: 0 10px 30px alpha(@accent_bg_color, .16); border-color: alpha(@accent_bg_color, .32); }
+.hero { padding: 26px 30px 26px 26px; border-radius: 26px; margin: 10px 0 8px;
+  background: @folio_surface; border: 1px solid @folio_line; transition: box-shadow 200ms ease, border-color 200ms ease; }
+.hero:hover { box-shadow: 0 12px 30px alpha(black, .10); border-color: mix(@folio_line, @window_fg_color, .12); }
 .hero .pill { padding: 10px 26px; font-weight: 700; }
-.kicker { color: @accent_color; font-weight: 800; font-size: 12px; letter-spacing: 1px; }
-.hero-title { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
-.section-title { font-size: 18px; font-weight: 750; }
+.kicker { color: @accent_color; font-weight: 700; font-size: 12px; letter-spacing: 1.6px; }
+.hero-title { font-family: Fraunces, serif; font-size: 30px; font-weight: 450; letter-spacing: -0.4px; }
+.section-title { font-family: Fraunces, serif; font-size: 23px; font-weight: 480; }
 
 /* ---- étagères ---- */
 .chip { border-radius: 99px; min-height: 30px; padding: 0 14px; font-weight: 600; font-size: 13px;
@@ -58,32 +61,33 @@ toast button { color: @window_bg_color; }
 flowbox > flowboxchild { padding: 0; border-radius: 14px; background: none; outline-offset: 6px; }
 flowbox > flowboxchild:hover, flowbox > flowboxchild:active { background: none; }
 .book-card { padding: 0; }
-.cover { border-radius: 12px; transition: transform 220ms cubic-bezier(.2,.8,.2,1), box-shadow 220ms ease; }
-flowboxchild:hover .cover { transform: translateY(-5px); }
+.cover { border-radius: 3px 7px 7px 3px; transition: transform 220ms cubic-bezier(.2,.8,.2,1), box-shadow 220ms ease; }
+flowboxchild:hover .cover { transform: translateY(-6px) rotate(-0.6deg); }
 flowboxchild:focus-visible .cover { outline: 3px solid alpha(@accent_color, .6); outline-offset: 3px; }
-.card-title { font-weight: 700; font-size: 14px; }
+.card-title { font-family: Fraunces, serif; font-weight: 500; font-size: 15.5px; }
 .card-author { font-size: 13px; color: @folio_muted; }
-.badge { background: alpha(black, .55); color: white; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
+.badge { background: @accent_bg_color; color: @accent_fg_color; font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 8px 7px 9px; border-radius: 0 0 4px 4px; box-shadow: 0 2px 6px alpha(black, .25); }
 .card-menu { opacity: 0; background: alpha(black, .45); color: white; min-width: 32px; min-height: 32px; transition: opacity 150ms ease; }
 .card-menu > button { background: none; color: white; min-width: 32px; min-height: 32px; padding: 0; }
 .book-card:hover .card-menu, .card-menu:checked { opacity: 1; }
 progressbar.thin, progressbar.thin trough, progressbar.thin progress { min-width: 0; }
-progressbar.thin trough { min-height: 4px; border-radius: 99px; background: @folio_line; }
-progressbar.thin progress { min-height: 4px; border-radius: 99px; background: @accent_bg_color; }
-.ph-title { color: white; font-weight: 700; font-size: 15px; }
+progressbar.thin trough { min-height: 3px; border-radius: 99px; background: @folio_line; }
+progressbar.thin progress { min-height: 3px; border-radius: 99px; background: @accent_bg_color; }
+.ph-title { color: white; font-family: Fraunces, serif; font-weight: 500; font-size: 16px; }
 .ph-title.ph-small { font-size: 11px; }
-.aa-label { font-family: Georgia, serif; font-weight: 700; font-size: 17px; }
-.g0 { background: linear-gradient(160deg, #6d5bd0, #2b1f6b); }
-.g1 { background: linear-gradient(160deg, #3d7ea6, #16384f); }
-.g2 { background: linear-gradient(160deg, #c06c52, #5e2618); }
-.g3 { background: linear-gradient(160deg, #4f8a6a, #1d3b2b); }
-.g4 { background: linear-gradient(160deg, #a8577e, #4a1d36); }
-.g5 { background: linear-gradient(160deg, #8a7a4f, #3d3417); }
-.empty-lib > scrolledwindow > viewport > clamp > box > image { color: @accent_color; opacity: .8; }
+.aa-label { font-family: Fraunces, serif; font-weight: 700; font-size: 17px; }
+.g0 { background: linear-gradient(165deg, #4a5c78, #1f2838); }
+.g1 { background: linear-gradient(165deg, #7a4b3a, #33190f); }
+.g2 { background: linear-gradient(165deg, #5b6b4a, #232c19); }
+.g3 { background: linear-gradient(165deg, #8a6a3c, #3a2a12); }
+.g4 { background: linear-gradient(165deg, #6e4a63, #2c1626); }
+.g5 { background: linear-gradient(165deg, #3f6b6b, #142d2d); }
+.empty-lib > scrolledwindow > viewport > clamp > box > image { color: @accent_color; opacity: .9; }
+.empty-lib .title { font-family: Fraunces, serif; font-style: italic; font-weight: 420; font-size: 30px; }
 
 /* ---- lecteur ---- */
-.r-title { font-weight: 650; }
-.r-sub { font-size: 12px; color: @folio_muted; }
+.r-title { font-family: Fraunces, serif; font-weight: 500; font-size: 15.5px; }
+.r-sub { font-size: 11px; letter-spacing: 1px; color: @folio_muted; }
 
 /* ---- réglages d'apparence ---- */
 popover > contents { border-radius: 22px; padding: 4px; }
@@ -91,7 +95,7 @@ popover > contents { border-radius: 22px; padding: 4px; }
   border: 1px solid alpha(currentColor, .22); box-shadow: none; transition: box-shadow 150ms ease, transform 150ms ease; }
 .theme-dot:hover { transform: translateY(-2px); box-shadow: 0 4px 12px alpha(black, .18); }
 .theme-dot.active { box-shadow: 0 0 0 2px @popover_bg_color, 0 0 0 4px @accent_color; }
-.theme-aa { font-family: Georgia, serif; font-size: 16px; font-weight: 700; }
+.theme-aa { font-family: Fraunces, serif; font-size: 16px; font-weight: 700; }
 .theme-name { font-size: 11px; color: @folio_muted; }
 .theme-clair  { background: #fbfbfa; color: #222222; }
 .theme-sepia  { background: #f4ecd8; color: #5b4636; }
@@ -106,17 +110,17 @@ popover .boxed-list > row { background: none; }
 .seg > button { border-radius: 99px; padding: 0 14px; background: none; box-shadow: none; min-height: 28px; font-weight: 600; color: @folio_muted; }
 .seg > button:hover { color: @window_fg_color; }
 .seg > button:checked { background: @window_bg_color; color: @window_fg_color; box-shadow: 0 1px 3px alpha(black, .18); }
-scale trough { min-height: 4px; border-radius: 99px; background: @folio_line; }
-scale highlight { background: @accent_bg_color; border-radius: 99px; }
-scale slider { min-width: 20px; min-height: 20px; background: @accent_bg_color; border: 3px solid @window_bg_color; box-shadow: 0 1px 4px alpha(black, .35); }
-.sub-head { font-size: 12px; font-weight: 700; letter-spacing: 1px; color: @folio_muted; }
+scale trough { min-height: 2px; border-radius: 99px; background: @folio_line; }
+scale highlight { background: @window_fg_color; border-radius: 99px; }
+scale slider { min-width: 18px; min-height: 18px; background: @window_bg_color; border: 2px solid @window_fg_color; box-shadow: none; }
+.sub-head { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; color: @folio_muted; }
 
 /* ---- compte ---- */
 .tag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: alpha(@accent_bg_color, .18); color: @accent_color; }
 .code-chip { padding: 6px 12px; border-radius: 10px; background: alpha(currentColor, .06); font-size: 15px; }
 .qr { background: white; border-radius: 14px; padding: 8px; }
 /* collections */
-.coll-title { font-size: 13px; font-weight: 700; color: @folio_muted; letter-spacing: .3px; }
+.coll-title { font-family: Fraunces, serif; font-size: 16px; font-weight: 500; color: @folio_muted; }
 .chip .chip-count { font-size: 11px; font-weight: 700; padding: 0 7px; border-radius: 99px; background: alpha(currentColor, .12); }
 .chip-new { background: transparent; border: 1.5px dashed @folio_line; color: @accent_color; }
 .chip-new:hover { background: @folio_soft; }

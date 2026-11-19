@@ -2,7 +2,7 @@
 <html lang="fr"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'unsafe-inline' file: blob: data:; img-src file: blob: data:; font-src file: blob: data:; media-src file: blob: data:; connect-src file: blob: data:; frame-src blob: data: about:">
 <style>
-  :root { --bg:#fbfbfa; --fg:#222; --ac:#6d5bd0; --acfg:#fff;
+  :root { --bg:#fbfbfa; --fg:#222; --ac:#b8432f; --acfg:#fff;
     --muted:color-mix(in srgb,var(--fg) 58%,var(--bg)); --line:color-mix(in srgb,var(--fg) 11%,var(--bg));
     --soft:color-mix(in srgb,var(--fg) 6%,var(--bg)); --surface:color-mix(in srgb,var(--fg) 3%,var(--bg)); }
   * { box-sizing:border-box; }
@@ -112,7 +112,7 @@ const Folio = (() => {
     document.documentElement.style.setProperty("--bg", S.bg);
     document.documentElement.style.setProperty("--fg", S.fg);
     const dk = lum(S.bg) < .5;
-    document.documentElement.style.setProperty("--ac", dk ? "#a798ff" : "#6d5bd0");
+    document.documentElement.style.setProperty("--ac", dk ? "#f0876a" : "#b8432f");
     document.documentElement.style.setProperty("--acfg", dk ? "#15122a" : "#fff");
   }
   const IMGPAGE = ".fn-imgpage body,.fn-imgpage body *{position:static !important;height:auto !important;min-height:0 !important;overflow:visible !important;columns:auto !important}"

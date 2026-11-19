@@ -23,6 +23,27 @@ from i18n import LANG, T, pct  # noqa: E402
 syncmod.LANG = LANG            # messages du serveur dans la langue de l'interface
 
 SHARE = os.path.dirname(os.path.abspath(__file__))
+
+
+def register_fonts():
+    """Fraunces (titres, comme sur le site) est livrée avec l'appli : ajoutée à fontconfig pour ce processus seulement."""
+    import ctypes
+    import ctypes.util
+    lib = ctypes.util.find_library("fontconfig")
+    if not lib:
+        return
+    try:
+        fc = ctypes.CDLL(lib)
+        fc.FcConfigAppFontAddFile.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+        for f in ("Fraunces.ttf", "Fraunces-Italic.ttf"):
+            p = os.path.join(SHARE, "fonts", f)
+            if os.path.exists(p):
+                fc.FcConfigAppFontAddFile(None, p.encode())
+    except (OSError, AttributeError):
+        pass                                   # sans la police, les titres prennent la serif du système
+
+
+register_fonts()
 APP_ID = "org.folio.Reader"
 THEMES = {  # nom: (fond, texte, libellé)
     "clair": ("#fbfbfa", "#222222", "Clair"),
@@ -295,7 +316,7 @@ class FolioWindow(Adw.ApplicationWindow):
         p = b["progress"] or 0
         overlay = Gtk.Overlay(child=self.cover_widget(b), halign=Gtk.Align.START)
         if p > .98:
-            badge = Gtk.Label(label=T("Terminé"), halign=Gtk.Align.START, valign=Gtk.Align.START, margin_top=8, margin_start=8)
+            badge = Gtk.Label(label=T("Terminé"), halign=Gtk.Align.START, valign=Gtk.Align.START, margin_top=0, margin_start=12)
             badge.add_css_class("badge"); overlay.add_overlay(badge)
         menu = Gtk.MenuButton(icon_name="view-more-symbolic", halign=Gtk.Align.END, valign=Gtk.Align.START,
                               margin_top=6, margin_end=6, direction=Gtk.ArrowType.NONE, tooltip_text=T("Options"))
@@ -1407,11 +1428,11 @@ class FolioWindow(Adw.ApplicationWindow):
         self.theme_key = (bg, fg)
         dark = is_dark(bg)
         Adw.StyleManager.get_default().set_color_scheme(Adw.ColorScheme.FORCE_DARK if dark else Adw.ColorScheme.FORCE_LIGHT)
-        acc = "#a798ff" if dark else "#6d5bd0"
+        acc = "#f0876a" if dark else "#b8432f"      # rouge signet, comme le site
         sh = "0.45" if dark else "0.14"
         load_css(self.theme_css, f"""
           @define-color accent_bg_color {acc}; @define-color accent_color {acc};
-          @define-color accent_fg_color {"#15122a" if dark else "#ffffff"};
+          @define-color accent_fg_color {"#1c0f0b" if dark else "#ffffff"};
           @define-color window_bg_color {bg}; @define-color window_fg_color {fg};
           @define-color view_bg_color {bg}; @define-color view_fg_color {fg};
           @define-color headerbar_bg_color {bg}; @define-color headerbar_fg_color {fg};
