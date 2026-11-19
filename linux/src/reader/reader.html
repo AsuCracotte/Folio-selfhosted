@@ -70,7 +70,7 @@ const Folio = (() => {
   const send = o => window.webkit.messageHandlers.folio.postMessage(JSON.stringify(o));
   const COLORS = { yellow:"#f6d55c", green:"#7bd88f", blue:"#6cb6ff", pink:"#ff8fb1" };
   const LAYOUT = ["size","line","margin","font","flow","spread","justify","para","indent","weight","letter"];
-  let book, rendition, S = {}, hls = [], bms = [], toc = [], loc = null, cur = "", pct = null,
+  let book, rendition, S = {}, hls = [], bms = [], toc = [], loc = null, cur = "", pct = null, anchor = null,
       chapter = "", timer, pending = null, wheelLock = 0, title = "", tab = "toc", setPct = () => {};
   const $ = id => document.getElementById(id);
   const TX = { fr: { open: "Impossible d’ouvrir ce livre : ", bm: "Marque-page", hl: "Surligner", delHl: "Retirer le surlignage", cover: "Utiliser comme couverture" },
@@ -156,6 +156,7 @@ const Folio = (() => {
 
   // ---------- rendu ----------
   function build(cfi) {
+    anchor = cfi || null;
     if (rendition) { try { rendition.destroy(); } catch (e) {} $("viewer").innerHTML = ""; }
     const scrolled = S.flow === "scrolled";
     document.body.classList.toggle("scrolled", scrolled);
@@ -163,6 +164,9 @@ const Folio = (() => {
       ? { manager:"continuous", flow:"scrolled", width:"100%", height:"100%", allowScriptedContent:true }
       : { manager:"default", flow:"paginated", width:"100%", height:"100%", allowScriptedContent:true,
           spread: S.spread ? "auto" : "none", minSpreadWidth:1000, gap: Math.round(S.margin * 2) });
+    // défilement : epub.js compte deux fois la hauteur des chapitres insérés au-dessus de la cible et atterrit trop bas
+    // (fin du chapitre ou chapitre suivant) → après chaque affichage, on recale sur le début du chapitre ou l'ancre visée
+    if (scrolled) { const disp = rendition.display.bind(rendition); rendition.display = x => disp(x).then(r => { place(x); return r; }); }
     rendition.hooks.content.register(c => {
       styleContents(c); imgMenu(c);
       c.document.addEventListener("wheel", onWheel, { passive:true });
@@ -177,6 +181,13 @@ const Folio = (() => {
     rendition.on("click", onClick);
     hls.forEach(drawHl);
     return rendition.display(cfi || undefined);
+  }
+
+  function place(x) {
+    const m = rendition && rendition.manager, sec = x && book.spine.get(x), v = sec && m && m.views.find(sec);
+    if (!v) return;
+    let top = 0; try { if (/#|^epubcfi\(/.test(x)) top = v.locationOf(x).top || 0; } catch (e) {}
+    m.container.scrollTop = Math.max(0, v.element.offsetTop + top - 4);   // 4 px : la ligne visée compte comme visible
   }
 
   async function open(p) {
@@ -237,7 +248,10 @@ const Folio = (() => {
   }
   function report() {
     if (!loc) return;
-    const cfi = loc.start.cfi;
+    // position affichée par programme (ouverture, autre appareil, nouvelle mise en page) : on garde la CFI exacte tant que
+    // la lectrice n'a pas bougé ; sinon chaque appareil la remplacerait par le début de sa propre page et elle reculerait
+    const keep = !!(anchor && inPage(anchor, loc)); if (!keep) anchor = null;
+    const cfi = keep ? anchor : loc.start.cfi; cur = cfi;
     pct = book.locations.total > 0 ? book.locations.percentageFromCfi(cfi) : null;
     chapter = chapterFor(loc.start.href);
     $("chap").textContent = chapter;
@@ -245,10 +259,10 @@ const Folio = (() => {
     setPct(pct);
     const marked = bms.some(b => inPage(b.cfi, loc));
     $("ribbon").classList.toggle("on", marked);
-    send({ t:"relocated", cfi, pct, chapter, bm: marked });
+    send({ t:"relocated", cfi, pct, chapter, bm: marked, keep });
     if ($("panel").classList.contains("on")) refreshNotes();
   }
-  function onRelocated(l) { loc = l; cur = l.start.cfi; hideBar(); report(); }
+  function onRelocated(l) { loc = l; hideBar(); report(); }
   const go = t => rendition && rendition.display(t);
   const next = () => rendition && rendition.next();
   const prev = () => rendition && rendition.prev();
@@ -369,7 +383,7 @@ const Folio = (() => {
     else { document.body.classList.toggle("full"); send({ t:"bars", full: document.body.classList.contains("full") }); }
   }
 
-  return { open, close, settings, go, next, prev, toggleBookmark, setBookmarks, setHighlights, panel,
+  return { open, close, settings, go, resume: c => { anchor = c; go(c); }, next, prev, toggleBookmark, setBookmarks, setHighlights, panel,
            debug: () => ({ book, rendition, loc }) };
 })();
 window.addEventListener("error", e => window.webkit.messageHandlers.folio.postMessage(JSON.stringify({ t:"error", msg:e.message })));

@@ -3,11 +3,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Folio — liseuse EPUB synchronisée</title>
 <meta name="description" content="Folio : lisez vos livres EPUB dans le navigateur, sur téléphone, Windows, macOS et Linux. Progression, notes et collections synchronisées. Sans publicité.">
-<meta name="theme-color" content="#6d5bd0"><link rel="icon" href="icon.svg">
+<meta name="theme-color" content="#fbfaf7"><link rel="icon" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&family=Literata:opsz,wght@7..72,400&family=Atkinson+Hyperlegible&display=swap">
-<link rel="stylesheet" href="site.css?v=1.8.1"><link rel="stylesheet" href="home.css?v=1.8.1">
-<script>document.documentElement.classList.add("js")</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<link rel="stylesheet" href="site.css?v=1.9.0"><link rel="stylesheet" href="home.css?v=1.9.0">
+<script>(function(r){r.classList.add("js");try{var l=JSON.parse(localStorage.folioSiteLook||"{}");if(l.theme)r.dataset.theme=l.theme;if(l.font)r.dataset.font=l.font;if(l.size)r.style.setProperty("--ts",l.size)}catch(e){}})(document.documentElement)</script>
 <meta property="og:title" content="Folio"><meta property="og:description" content="Vos livres, partout. Liseuse EPUB synchronisée, sans publicité."><meta property="og:image" content="img/fr-library.webp">
 </head><body class="home">
 <svg width="0" height="0" style="position:absolute"><defs>
@@ -41,7 +41,7 @@
 
 <main>
 <!-- couverture : le titre s'encre, le livre s'ouvre au défilement -->
-<section class="hero2">
+<section class="hero2" id="top">
  <div class="wrap">
   <p class="eyebrow" data-t="eyebrow">Liseuse EPUB · sans publicité</p>
   <h1 class="ink" id="inkTitle"><span class="ln" data-t="h1a">Vos livres.</span><span class="ln" data-t="h1b">Partout.</span><em class="ln" data-t="h1c">Magnifiquement.</em></h1>
@@ -71,28 +71,17 @@
  </div></div>
 </section>
 
-<!-- II. mise en page : la page se recompose sous vos yeux -->
-<section class="scene" id="layout" style="--h:360vh">
- <div class="pin"><div class="wrap two">
+<!-- II. mise en page : les réglages du lecteur s'appliquent à tout le site -->
+<section id="layout" class="chap">
+ <div class="wrap two">
   <div class="txt">
    <p class="label" data-t="c2k">Mise en page</p>
-   <h2 class="t" data-t="c2t">Une page à votre mesure.</h2>
-   <p class="sub2" data-t="c2p">Sept thèmes, des polices pensées pour la lecture, la taille, l’interligne, les marges, pages ou défilement continu.</p>
-   <dl class="spec" id="spec">
-    <dt data-t="spTheme">Thème</dt><dd data-k="theme"></dd>
-    <dt data-t="spFont">Police</dt><dd data-k="font"></dd>
-    <dt data-t="spSize">Taille</dt><dd data-k="size"></dd>
-    <dt data-t="spLine">Interligne</dt><dd data-k="line"></dd>
-    <dt data-t="spMargin">Marges</dt><dd data-k="margin"></dd>
-   </dl>
-   <div class="newnote"><span class="mini on" id="mini"></span><p data-th="newNote"><b>Nouveau</b> · Chaque appareil choisit ce qu’il synchronise : des marges larges sur l’ordinateur, serrées sur le téléphone.</p></div>
+   <h2 class="t" data-t="c2t">Cette page se règle comme un livre.</h2>
+   <p class="sub2" data-t="c2p">Changez le thème, la police ou la taille : c’est tout le site qui se recompose, comme vos livres dans Folio.</p>
+   <div class="newnote"><span class="mini on"></span><p data-th="newNote"><b>Nouveau</b> · Chaque appareil choisit ce qu’il synchronise : des marges larges sur l’ordinateur, serrées sur le téléphone.</p></div>
   </div>
-  <div class="paper" id="paper">
-   <div class="rh" data-t="sampleRh">Du côté de chez Swann</div>
-   <div class="body" id="paperBody"><p data-t="sample">Longtemps, je me suis couché de bonne heure. Parfois, à peine ma bougie éteinte, mes yeux se fermaient si vite que je n’avais pas le temps de me dire : « Je m’endors. » Et, une demi-heure après, la pensée qu’il était temps de chercher le sommeil m’éveillait ; je voulais poser le volume que je croyais avoir encore dans les mains et souffler ma lumière ; je n’avais pas cessé en dormant de faire des réflexions sur ce que je venais de lire, mais ces réflexions avaient pris un tour un peu particulier ; il me semblait que j’étais moi-même ce dont parlait l’ouvrage.</p></div>
-   <div class="pg">— 3 —</div>
-  </div>
- </div></div>
+  <div class="tset" id="tset" data-rv></div>
+ </div>
 </section>
 
 <!-- III. fonctionnalités -->
@@ -117,6 +106,7 @@
  <div class="wrap">
   <p class="label" data-t="c4k">Notes</p>
   <p class="marks" data-rv data-th="c4p">Un bon livre se lit <mark class="hl y">deux fois</mark> : la première pour l’histoire, la seconde pour <mark class="hl g">tout ce qu’on avait souligné</mark>. Folio garde chaque passage, <mark class="hl b">classé par chapitre</mark>, prêt à être copié ou <mark class="hl p">exporté en Markdown</mark>.</p>
+  <p class="try" data-rv data-th="c4try">Essayez : <b>sélectionnez</b> n’importe quelle phrase de cette page.</p>
   <div class="frame tilt" data-rv><img data-shot="notes" src="img/fr-notes.webp" width="1280" height="800" alt="" loading="lazy"></div>
  </div>
 </section>
@@ -156,7 +146,7 @@
 </section>
 
 <!-- fin -->
-<section class="fin">
+<section class="fin" id="fin">
  <div class="wrap">
   <p class="ink fin-w" id="finWord" data-t="finW">Fin.</p>
   <p class="fin-p" data-rv data-t="finP">…ou plutôt le début de votre prochaine lecture.</p>
@@ -168,6 +158,6 @@
 <footer><div class="wrap"><a class="logo" href="/" style="font-size:17px;margin:0"><img src="icon.svg" alt="" style="width:24px;height:24px">Folio</a><span class="sp"></span>
  <a href="/app/" data-t="navOpen">Ouvrir Folio</a><a href="/download" data-t="navDownload">Télécharger</a><a href="https://github.com/AsuCracotte/Folio-selfhosted" target="_blank" rel="noopener" data-t="selfLink">Auto-hébergement</a><span>© 2026 Folio</span></div>
  <div class="wrap"><p class="colophon" data-t="colophon">Composé en Fraunces et Literata. Imprimé nulle part, lisible partout.</p></div></footer>
-<script src="site.js?v=1.8.1"></script>
-<script src="home.js?v=1.8.1"></script>
+<script src="site.js?v=1.9.0"></script>
+<script src="home.js?v=1.9.0"></script>
 </body></html>

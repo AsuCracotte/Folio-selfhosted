@@ -263,7 +263,8 @@ const ctl=()=>{$("size").value=S.size;$("line").value=Math.round(S.line*10);$("m
  $("oSize").textContent=S.size+" px";$("oLine").textContent=(+S.line).toFixed(1);$("oMargin").textContent=S.margin;$("cBg").value=S.bg;$("cFg").value=S.fg;
  document.querySelectorAll(".theme").forEach(x=>x.classList.toggle("on",x.dataset.k===S.theme||(THEMES[x.dataset.k][0]===S.bg&&THEMES[x.dataset.k][1]===S.fg)));
  document.querySelectorAll("#flowSeg button").forEach(b=>b.classList.toggle("on",b.dataset.f===S.flow));
- const fs=$("font");if(S.font&&![...fs.options].some(o=>o.value===S.font))fs.add(new Option(S.font,S.font));fs.value=S.font};ctl();
+ const fs=$("font");if(S.font&&![...fs.options].some(o=>o.value===S.font))fs.add(new Option(S.font,S.font));fs.value=S.font;
+ document.querySelectorAll("#shSet input[type=range]").forEach(r=>r.style.setProperty("--v",(r.value-r.min)/(r.max-r.min)*100+"%"))};ctl();
 ["size","margin"].forEach(k=>$(k).oninput=e=>{S[k]=+e.target.value;ctl();setS()});$("line").oninput=e=>{S.line=e.target.value/10;ctl();setS()};
 $("justify").onchange=e=>{S.justify=e.target.checked;setS()};
 $("para").oninput=e=>{S.para=e.target.value/10;ctl();setS()};$("weight").oninput=e=>{S.weight=+e.target.value;ctl();setS()};$("letter").oninput=e=>{S.letter=e.target.value/100;ctl();setS()};
@@ -276,7 +277,7 @@ $("resetS").onclick=()=>{Object.assign(S,DEFAULTS);ctl();setS();msg(t("lookReset
 document.querySelectorAll("#flowSeg button").forEach(b=>b.onclick=()=>{S.flow=b.dataset.f;ctl();setS()});
 let old={},setT;function setS(remote){if(!remote){S.updated=now();clearTimeout(setT);setT=setTimeout(()=>dav?.settings().catch(()=>{}),2000)}save();outer();if(!rend)return;const lay=["size","line","margin","font","flow","justify","para","indent","weight","letter"].some(k=>old[k]!==S[k]);old={...S};
  if(lay){clearTimeout(timer);timer=setTimeout(()=>build(cur_cfi()),300)}else rend.getContents().forEach(styleC)}
-const cur_cfi=()=>loc?loc.start.cfi:cur.cfi;
+const cur_cfi=()=>cur.cfi; // = début de la page lue, ou la position exacte reçue tant qu’on n’a pas bougé
 // langue de l'interface (rechargement : tous les textes sont posés au démarrage)
 (()=>{let l="";try{l=localStorage.folioLang||""}catch(e){}document.querySelectorAll("#langSeg button").forEach(b=>{b.classList.toggle("on",b.dataset.l===l);
  b.onclick=()=>{try{b.dataset.l?localStorage.folioLang=b.dataset.l:localStorage.removeItem("folioLang")}catch(e){}if(dav)dav.setLang(b.dataset.l||LANG).catch(()=>{});location.reload()}})})();
@@ -289,13 +290,18 @@ async function openBook(hash){try{await dav?.pullOne?.(hash)}catch(e){}cur=await
  if(touchy&&!localStorage.folioTips){localStorage.folioTips=1;setTimeout(()=>msg(t("tips")),900)}
  const bk=book;bk.ready.then(()=>setTimeout(()=>book===bk&&bk.locations.generate(1500).then(()=>{if(book!==bk)return;report();refreshTrack();if($("shToc").classList.contains("on"))list()}),1200))}
 const toggleBars=()=>$("rd").classList.toggle("full");
-function build(cfi){if(rend){try{rend.destroy()}catch(e){}$("viewer").innerHTML=""}const sc=S.flow==="scrolled";$("rd").classList.toggle("scrolled",sc);
+function build(cfi){anchor=cfi||null;if(rend){try{rend.destroy()}catch(e){}$("viewer").innerHTML=""}const sc=S.flow==="scrolled";$("rd").classList.toggle("scrolled",sc);
  rend=book.renderTo("viewer",sc?{manager:"continuous",flow:"scrolled",width:"100%",height:"100%",allowScriptedContent:true}:{manager:"default",flow:"paginated",width:"100%",height:"100%",allowScriptedContent:true,spread:"none",gap:Math.round(S.margin*2)});
+ // défilement : epub.js compte deux fois la hauteur des chapitres insérés au-dessus de la cible et atterrit trop bas
+ // (fin du chapitre ou chapitre suivant) → après chaque affichage, on recale sur le début du chapitre ou l'ancre visée
+ if(sc){const disp=rend.display.bind(rend);rend.display=x=>disp(x).then(r=>{place(x);return r})}
  rend.hooks.content.register(c=>{styleC(c);gestures(c);imgMenu(c)});
  rend.on("relocated",l=>{loc=l;hideSel();hideImg();report()});rend.on("selected",onSel);
  rend.on("click",e=>{if(sel.style.display==="flex"){hideSel();return}if($("imgm").style.display==="block"){hideImg();return}if(Date.now()-G.at<450)return;const w=e.view;if(String(w?.getSelection?.()||"")||e.target.closest?.("a"))return;
   const x=(w.frameElement.getBoundingClientRect().left+e.clientX)/innerWidth;if(S.flow!=="scrolled"&&x<.25)turn(-1);else if(S.flow!=="scrolled"&&x>.75)turn(1);else toggleBars()});
  rend.on("keydown",keys);cur.highlights.filter(h=>!h.deleted).forEach(drawHl);return rend.display(cfi||undefined)}
+function place(x){const m=rend?.manager,sec=x&&book?.spine.get(x),v=sec&&m?.views.find(sec);if(!v)return;
+ let top=0;try{if(/#|^epubcfi\(/.test(x))top=v.locationOf(x).top||0}catch(e){}m.container.scrollTop=Math.max(0,v.element.offsetTop+top-4)} // 4 px : la ligne visée compte comme visible
 function keys(e){if(!rend||!$("rd").classList.contains("on"))return;if(e.key==="ArrowRight"||e.key==="PageDown")rend.next();if(e.key==="ArrowLeft"||e.key==="PageUp")rend.prev();if(e.key==="Escape"){if(document.querySelector(".sheet.on"))show(null);else if($("imgm").style.display==="block")hideImg();else $("bBack").click()}}
 addEventListener("keydown",keys);
 // ---------- illustration du livre → couverture (clic droit, ou appui long au doigt) ----------
@@ -340,9 +346,9 @@ function gestures(c){const d=c.document,V=$("viewer");let s=null;
 // fiches : glisser vers le bas pour fermer
 document.querySelectorAll(".sheet").forEach(sh=>{let y0=null,dy=0;
  sh.addEventListener("touchstart",e=>{y0=(sh.scrollTop<=0||e.target.closest(".grab"))&&!e.target.closest("input,select,textarea,.fn-map,.seg")?e.touches[0].clientY:null;dy=0},{passive:true});
- sh.addEventListener("touchmove",e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;if(dy<=0){sh.style.transition="";sh.style.transform="";return}
-  if(e.cancelable)e.preventDefault();sh.style.transition="none";sh.style.transform=`translate(-50%,${dy}px)`},{passive:false});
- sh.addEventListener("touchend",()=>{if(y0==null)return;y0=null;sh.style.transition="";sh.style.transform="";if(dy>90)show(null)},{passive:true})});
+ sh.addEventListener("touchmove",e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;if(dy<=0){sh.style.transition="";sh.style.removeProperty("--dy");return}
+  if(e.cancelable)e.preventDefault();sh.style.transition="none";sh.style.setProperty("--dy",dy+"px")},{passive:false});
+ sh.addEventListener("touchend",()=>{if(y0==null)return;y0=null;sh.style.transition="";sh.style.removeProperty("--dy");if(dy>90)show(null)},{passive:true})});
 // bibliothèque : tirer vers le bas pour synchroniser
 (()=>{const L=$("lib"),P=$("ptr");let y0=null,dy=0;
  L.addEventListener("touchstart",e=>{y0=L.scrollTop<=0&&dav?e.touches[0].clientY:null;dy=0},{passive:true});
@@ -352,10 +358,13 @@ document.querySelectorAll(".sheet").forEach(sh=>{let y0=null,dy=0;
   if(dy>90){P.classList.add("busy");P.style.transform="translate(-50%,16px)";navigator.vibrate?.(10);
    try{await dav.syncAll();render();msg(t("synced"))}catch(e){msg(t("syncFail"))}P.classList.remove("busy")}
   P.style.transform="";P.style.opacity=""},{passive:true})})();
+let anchor=null;
 const cmp=(a,b)=>new ePub.CFI().compare(a,b),inPage=(c,l)=>cmp(c,l.start.cfi)>=0&&cmp(c,l.end.cfi)<=0;
 function report(){if(!loc)return;pct=book.locations.total>0?book.locations.percentageFromCfi(loc.start.cfi):null;const sec=book.spine.get(loc.start.href);chapter="";toc.forEach(x=>{if(sec&&x.idx>=0&&x.idx<=sec.index)chapter=x.label});
  $("chap").textContent=chapter;$("chapTop").textContent=chapter||cur.author;$("pct").textContent=pct==null?"":pctS(pct);setPct(pct);
- cur.cfi=loc.start.cfi;if(pct!=null)cur.progress=pct;cur.posUpdated=now();
+ // position affichée par programme (ouverture, autre appareil, nouvelle mise en page) : on garde la CFI exacte tant que la lectrice
+ // n'a pas bougé ; sinon chaque appareil la remplacerait par le début de sa propre page et la position reculerait de synchro en synchro
+ if(!(anchor&&inPage(anchor,loc))){anchor=null;cur.cfi=loc.start.cfi;cur.posUpdated=now()}if(pct!=null)cur.progress=pct;
  const on=cur.bookmarks.some(b=>!b.deleted&&inPage(b.cfi,loc));$("bBm").classList.toggle("on",on);$("bBm").innerHTML=ico(on?"bmf":"bm");$("ribbon").classList.toggle("on",on);putB(cur);pushSoon();
  if($("shToc").classList.contains("on"))list()}
 let setPct=()=>{};
@@ -395,7 +404,7 @@ async function refreshCur(follow){if(!cur||!rend)return;const n=await getB(cur.h
  const moved=follow&&n.cfi&&n.cfi!==cur.cfi&&(n.posUpdated||0)>(cur.posUpdated||0);
  cur.highlights.forEach(h=>{try{rend.annotations.remove(h.cfi,"highlight")}catch(e){}});
  Object.assign(cur,{bookmarks:n.bookmarks,highlights:n.highlights,customCover:n.customCover,coverCustom:n.coverCustom,coverUpdated:n.coverUpdated,coverSent:n.coverSent});if(moved)Object.assign(cur,{cfi:n.cfi,progress:n.progress,posUpdated:n.posUpdated});
- cur.highlights.filter(h=>!h.deleted).forEach(drawHl);refreshTrack();if(moved){rend.display(n.cfi);msg(t("resumedOther"))}}
+ cur.highlights.filter(h=>!h.deleted).forEach(drawHl);refreshTrack();if(moved){anchor=n.cfi;rend.display(n.cfi);msg(t("resumedOther"))}}
 async function autoSync(){if(!dav||document.hidden)return;try{if(cur&&rend){clearTimeout(pushT);await dav.push(cur);await dav.settings();await refreshCur(true)}else{await dav.syncAll();render()}}catch(e){console.error(e)}}
 document.addEventListener("visibilitychange",autoSync);setInterval(autoSync,120000);
 const merge=(l,rem)=>{const m=new Map(l.map(x=>[x.cfi,x]));let ch=false;(rem||[]).forEach(r=>{const x=m.get(r.cfi);if(!x||(x.updated||0)<(r.updated||0)){m.set(r.cfi,{...r,deleted:+!!r.deleted});ch=true}});return[[...m.values()],ch]};

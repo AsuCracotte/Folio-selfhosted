@@ -36,7 +36,9 @@ window.FolioNotes = (() => {
   // ---------- styles (injectés une seule fois) ----------
   const CSS = `
 .fn-i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
-.fn-tabs{display:flex;background:var(--soft);border-radius:999px;padding:3px;gap:2px;margin:0 0 14px}
+.fn-tabs{display:flex;background:var(--soft);border-radius:999px;padding:3px;gap:2px;margin:0 0 14px;
+ /* onglets toujours accessibles, même en bas d'un long sommaire ; l'ombre pleine masque la liste qui passe dessous */
+ position:sticky;top:0;z-index:3;box-shadow:0 0 0 10px var(--bg)}
 .fn-tabs button{flex:1;border:0;background:transparent;border-radius:999px;padding:8px 10px;font:600 14px/1.2 inherit;color:var(--muted);cursor:pointer;white-space:nowrap}
 .fn-tabs button.on{background:var(--bg);color:var(--fg);box-shadow:0 1px 4px rgba(0,0,0,.15)}
 .fn-tabs b{font-weight:700;opacity:.6;margin-left:4px;font-size:12px}

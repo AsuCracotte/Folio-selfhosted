@@ -1192,7 +1192,7 @@ class FolioWindow(Adw.ApplicationWindow):
             self.cur = fresh
             self.send_notes()
             if self.cur["id"] in moved and self.cur["cfi"]:   # lu plus loin ailleurs : on y va
-                self.go(self.cur["cfi"]); self.toast(T("Repris à la position de l’autre appareil"))
+                self.js(f"Folio.resume({json.dumps(self.cur['cfi'])})"); self.toast(T("Repris à la position de l’autre appareil"))
         if not in_reader:
             self.refresh_library()
 
@@ -1367,7 +1367,8 @@ class FolioWindow(Adw.ApplicationWindow):
             return
         elif t == "relocated":
             self.state = m
-            self.lib.save_position(self.cur["id"], m["cfi"], m.get("pct")); self.push_soon()
+            if not m.get("keep"):   # position reçue et pas encore bougée : on ne la redate pas
+                self.lib.save_position(self.cur["id"], m["cfi"], m.get("pct")); self.push_soon()
             self.r_sub.set_label(m.get("chapter") or self.cur["author"] or "")
             self.bm_btn.set_icon_name("folio-bookmark-filled-symbolic" if m.get("bm") else "folio-bookmark-symbolic")
             (self.bm_btn.add_css_class if m.get("bm") else self.bm_btn.remove_css_class)("accent-btn")
