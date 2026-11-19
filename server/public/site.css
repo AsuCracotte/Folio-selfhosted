@@ -85,7 +85,8 @@ footer .wrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap}footer a{te
 footer .sp{flex:1}
 /* ---------- téléchargements ---------- */
 .dl-hero{padding:64px 0 24px;text-align:center}
-.dl-hero h1{font-size:clamp(36px,5vw,56px);margin:10px 0 12px}
+.dl-hero h1{font:400 clamp(40px,5.6vw,68px)/1.05 "Fraunces",Georgia,serif;letter-spacing:-.025em;font-variation-settings:"opsz" 72,"wght" 470;margin:12px auto 14px}
+.rec[hidden]{display:none}
 .rec{max-width:760px;margin:30px auto 0;background:var(--card);border:1px solid var(--line);border-radius:26px;padding:30px;box-shadow:var(--shadow);display:flex;gap:24px;align-items:center;text-align:left}
 .rec .big{width:76px;height:76px;border-radius:22px;background:var(--tint);color:var(--ac);display:grid;place-items:center;flex:none}
 .rec .big svg.i{width:40px;height:40px}

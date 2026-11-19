@@ -3,9 +3,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Folio — liseuse EPUB synchronisée</title>
 <meta name="description" content="Folio : lisez vos livres EPUB dans le navigateur, sur téléphone, Windows, macOS et Linux. Progression, notes et collections synchronisées. Sans publicité.">
-<meta name="theme-color" content="#6d5bd0"><link rel="icon" href="icon.svg"><link rel="stylesheet" href="site.css?v=1.7.2">
+<meta name="theme-color" content="#6d5bd0"><link rel="icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&family=Literata:opsz,wght@7..72,400&family=Atkinson+Hyperlegible&display=swap">
+<link rel="stylesheet" href="site.css?v=1.8.0"><link rel="stylesheet" href="home.css?v=1.8.0">
+<script>document.documentElement.classList.add("js")</script>
 <meta property="og:title" content="Folio"><meta property="og:description" content="Vos livres, partout. Liseuse EPUB synchronisée, sans publicité."><meta property="og:image" content="img/fr-library.webp">
-</head><body>
+</head><body class="home">
 <svg width="0" height="0" style="position:absolute"><defs>
 <symbol id="i-sync" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.5 6.2M3 12A9 9 0 0 1 18.5 5.8"/><path d="M18.5 2v3.8h-3.8M5.5 22v-3.8h3.8"/></symbol>
 <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></symbol>
@@ -24,94 +28,153 @@
 <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
 <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
 </defs></svg>
+<div class="ribbon" aria-hidden="true"></div>
+<div class="folio-no" aria-hidden="true">— <span id="pageNo">1</span> —</div>
+
 <header class="nav"><div class="wrap">
  <a class="logo" href="/"><img src="icon.svg" alt="">Folio</a>
- <a class="lk" href="#features" data-t="navFeatures">Fonctionnalités</a>
+ <span class="runhead" id="runhead" aria-hidden="true"></span>
+ <a class="lk" href="#sommaire" data-t="navToc">Sommaire</a>
  <a class="lk" href="/download" data-t="navDownload">Télécharger</a>
  <div class="lang"><button data-l="fr">FR</button><button data-l="en">EN</button></div>
  <a class="btn pri sm" href="/app/"><svg class="i"><use href="#i-arrow"/></svg><span data-t="navOpen">Ouvrir Folio</span></a>
 </div></header>
 
-<div class="hero"><div class="wrap">
- <a class="pill" href="/download"><b data-t="pillNew">Nouveau</b><span data-t="pill">Collections, couvertures perso et appli Windows / Mac</span></a>
- <h1 data-th="h1">Vos livres. Partout.<br><em>Magnifiquement.</em></h1>
- <p class="lead" data-t="lead">Folio est une liseuse EPUB élégante et sans publicité. Lisez dans votre navigateur, sur votre téléphone ou avec l’appli pour Windows, macOS et Linux : votre page, vos notes et vos collections vous suivent.</p>
- <div class="ctas"><a class="btn pri" href="/app/"><span data-t="ctaRead">Commencer à lire</span><svg class="i"><use href="#i-arrow"/></svg></a>
-  <a class="btn ghost" href="/download"><svg class="i"><use href="#i-dl"/></svg><span data-t="ctaDl">Télécharger l’appli</span></a></div>
- <p class="small" data-t="free">Gratuit · rien à installer pour commencer · fonctionne hors ligne</p>
-</div>
- <div class="shots">
-  <div class="browser"><div class="bar"><i></i><i></i><i></i><span id="host">folio.example.org</span></div><img data-shot="library" src="img/fr-library.webp" width="1280" height="800" alt=""></div>
-  <div class="phone"><img data-shot="phone-library" src="img/fr-phone-library.webp" width="780" height="1688" alt=""></div>
+<main>
+<!-- couverture : le titre s'encre, le livre s'ouvre au défilement -->
+<section class="hero2" data-run="">
+ <div class="wrap">
+  <p class="eyebrow" data-t="eyebrow">Liseuse EPUB · sans publicité</p>
+  <h1 class="ink" id="inkTitle"><span class="ln" data-t="h1a">Vos livres.</span><span class="ln" data-t="h1b">Partout.</span><em class="ln" data-t="h1c">Magnifiquement.</em></h1>
+  <p class="lead2" data-t="lead">Folio est une liseuse EPUB élégante et sans publicité. Lisez dans votre navigateur, sur votre téléphone ou avec l’appli pour Windows, macOS et Linux : votre page, vos notes et vos collections vous suivent.</p>
+  <div class="ctas"><a class="btn pri" href="/app/"><span data-t="ctaRead">Commencer à lire</span><svg class="i"><use href="#i-arrow"/></svg></a>
+   <a class="btn ghost" href="/download"><svg class="i"><use href="#i-dl"/></svg><span data-t="ctaDl">Télécharger l’appli</span></a></div>
+  <p class="small" data-t="free">Gratuit · rien à installer pour commencer · fonctionne hors ligne</p>
+
+  <div class="book" id="book">
+   <div class="under"><div class="bar"><i></i><i></i><i></i><span id="host">folio.example.org</span></div><img data-shot="library" src="img/fr-library.webp" width="1280" height="800" alt=""></div>
+   <div class="phone"><img data-shot="phone-library" src="img/fr-phone-library.webp" width="780" height="1688" alt=""></div>
+   <div class="cover" aria-hidden="true">
+    <div class="cover-front"><img src="icon.svg" alt=""><b>Folio</b><span data-t="coverSub">Tome I · Vos livres</span><small data-t="coverHint">Faites défiler pour ouvrir</small></div>
+    <div class="cover-back"><div class="exlibris"><small>Ex libris</small><b data-t="exlibris">Ce livre appartient à… vous.</b></div></div>
+   </div>
+  </div>
  </div>
-</div>
+</section>
 
-<section id="features"><div class="wrap center">
- <div class="kicker" data-t="fKicker">Tout pour bien lire</div>
- <h2 data-t="fTitle">Pensée pour la lecture, pas pour les distractions</h2>
- <p class="sub" data-t="fSub">Une interface calme, des réglages fins et vos livres toujours à portée de main.</p>
- <div class="feats" style="text-align:left">
-  <div class="feat"><div class="ic"><svg class="i"><use href="#i-sync"/></svg></div><h3 data-t="f1t">Reprenez où vous étiez</h3><p data-t="f1p">Commencez un chapitre sur l’ordinateur, finissez-le dans le métro : la page, les marque-pages et les surlignages se synchronisent.</p></div>
-  <div class="feat"><div class="ic"><svg class="i"><use href="#i-stack"/></svg></div><h3 data-t="f2t">Collections</h3><p data-t="f2p">Rangez vos livres par série, par genre ou par envie, et donnez-leur la couverture de votre choix — même une illustration du livre.</p></div>
-  <div class="feat"><div class="ic"><svg class="i"><use href="#i-pen"/></svg></div><h3 data-t="f3t">Surlignages et notes</h3><p data-t="f3p">Quatre couleurs, une carte du livre pour retrouver vos passages, et l’export de vos citations en un clic.</p></div>
-  <div class="feat"><div class="ic"><svg class="i"><use href="#i-aa"/></svg></div><h3 data-t="f4t">Votre mise en page</h3><p data-t="f4p">Sept thèmes dont sépia et nuit, polices de lecture, taille, interligne, marges, pages ou défilement continu.</p></div>
-  <div class="feat"><div class="ic"><svg class="i"><use href="#i-cloud"/></svg></div><h3 data-t="f5t">Même hors ligne</h3><p data-t="f5p">Vos livres sont stockés sur l’appareil : l’avion, le train ou la plage ne vous arrêtent pas.</p></div>
-  <div class="feat"><div class="ic"><svg class="i"><use href="#i-lock"/></svg></div><h3 data-t="f6t">Privé et sécurisé</h3><p data-t="f6p">Ni publicité, ni pistage, ni revente de données. Votre compte est protégé par la double authentification.</p></div>
+<!-- I. synchronisation : les mots se lisent, les appareils suivent -->
+<section class="scene" id="sync" style="--h:280vh" data-run="I · Synchronisation" data-run-en="I · Sync">
+ <div class="pin"><div class="wrap">
+  <div class="chap-h"><span class="num">I</span><span class="kick" data-t="c1k">Synchronisation</span></div>
+  <h2 class="t" data-th="c1t">Reprenez <em>exactement</em> où vous étiez.</h2>
+  <p class="read" id="readText" data-t="c1text">L’année 1866 fut marquée par un événement bizarre, un phénomène inexpliqué et inexplicable que personne n’a sans doute oublié. Sans parler des rumeurs qui agitaient les populations des ports, les gens de mer furent particulièrement émus.</p>
+  <div class="devs" id="devs">
+   <div class="dev"><div class="top"><svg class="i"><use href="#i-win"/></svg><span data-t="dPc">Ordinateur</span><em class="pc">0 %</em></div><div class="bar"><i></i></div><div class="st"></div></div>
+   <div class="dev"><div class="top"><svg class="i"><use href="#i-phone"/></svg><span data-t="pPhoneT">Téléphone</span><em class="pc">0 %</em></div><div class="bar"><i></i></div><div class="st"></div></div>
+   <div class="dev"><div class="top"><svg class="i"><use href="#i-web"/></svg><span data-t="pWebT">Navigateur</span><em class="pc">0 %</em></div><div class="bar"><i></i></div><div class="st"></div></div>
+  </div>
+  <p class="cap" id="syncCap"></p>
+ </div></div>
+</section>
+
+<!-- II. mise en page : la page se recompose sous vos yeux -->
+<section class="scene" id="layout" style="--h:360vh" data-run="II · Mise en page" data-run-en="II · Layout">
+ <div class="pin"><div class="wrap two">
+  <div class="txt">
+   <div class="chap-h"><span class="num">II</span><span class="kick" data-t="c2k">Mise en page</span></div>
+   <h2 class="t" data-th="c2t">Une page <em>à votre mesure.</em></h2>
+   <p class="sub2" data-t="c2p">Sept thèmes, des polices pensées pour la lecture, la taille, l’interligne, les marges, pages ou défilement continu.</p>
+   <dl class="spec" id="spec">
+    <dt data-t="spTheme">Thème</dt><dd data-k="theme"></dd>
+    <dt data-t="spFont">Police</dt><dd data-k="font"></dd>
+    <dt data-t="spSize">Taille</dt><dd data-k="size"></dd>
+    <dt data-t="spLine">Interligne</dt><dd data-k="line"></dd>
+    <dt data-t="spMargin">Marges</dt><dd data-k="margin"></dd>
+   </dl>
+   <div class="newnote"><span class="mini" id="mini"></span><p data-th="newNote"><b>Nouveau</b> · Chaque appareil choisit ce qu’il synchronise : des marges larges sur l’ordinateur, serrées sur le téléphone.</p></div>
+  </div>
+  <div class="paper" id="paper">
+   <div class="rh" data-t="sampleRh">Du côté de chez Swann</div>
+   <div class="body" id="paperBody"><p data-t="sample">Longtemps, je me suis couché de bonne heure. Parfois, à peine ma bougie éteinte, mes yeux se fermaient si vite que je n’avais pas le temps de me dire : « Je m’endors. » Et, une demi-heure après, la pensée qu’il était temps de chercher le sommeil m’éveillait ; je voulais poser le volume que je croyais avoir encore dans les mains et souffler ma lumière ; je n’avais pas cessé en dormant de faire des réflexions sur ce que je venais de lire, mais ces réflexions avaient pris un tour un peu particulier ; il me semblait que j’étais moi-même ce dont parlait l’ouvrage.</p></div>
+   <div class="pg">— 3 —</div>
+  </div>
+ </div></div>
+</section>
+
+<!-- III. sommaire : les fonctionnalités comme la table d'un livre -->
+<section id="sommaire" class="chap" data-run="III · Sommaire" data-run-en="III · Contents">
+ <div class="wrap">
+  <div class="chap-h"><span class="num">III</span><span class="kick" data-t="c3k">Sommaire</span></div>
+  <h2 class="t" data-th="c3t">Tout pour bien lire, <em>rien pour distraire.</em></h2>
+  <ol class="toc" id="toc">
+   <li data-img="library" tabindex="0"><div class="row"><span class="n">i.</span><span class="tt" data-t="f1t">Reprenez où vous étiez</span><span class="dots"></span><span class="pg">7</span></div><div class="ds"><div><p data-t="f1p"></p></div></div></li>
+   <li data-img="library" tabindex="0"><div class="row"><span class="n">ii.</span><span class="tt" data-t="f2t">Collections</span><span class="dots"></span><span class="pg">19</span></div><div class="ds"><div><p data-t="f2p"></p></div></div></li>
+   <li data-img="notes" tabindex="0"><div class="row"><span class="n">iii.</span><span class="tt" data-t="f3t">Surlignages et notes</span><span class="dots"></span><span class="pg">42</span></div><div class="ds"><div><p data-t="f3p"></p></div></div></li>
+   <li data-img="reader" tabindex="0"><div class="row"><span class="n">iv.</span><span class="tt" data-t="f4t">Votre mise en page</span><span class="dots"></span><span class="pg">63</span></div><div class="ds"><div><p data-t="f4p"></p></div></div></li>
+   <li data-img="phone-reader" tabindex="0"><div class="row"><span class="n">v.</span><span class="tt"><span data-t="f7t">Chaque appareil à sa façon</span> <i class="badge" data-t="pillNew">Nouveau</i></span><span class="dots"></span><span class="pg">88</span></div><div class="ds"><div><p data-t="f7p"></p></div></div></li>
+   <li data-img="phone-library" tabindex="0"><div class="row"><span class="n">vi.</span><span class="tt" data-t="f5t">Même hors ligne</span><span class="dots"></span><span class="pg">104</span></div><div class="ds"><div><p data-t="f5p"></p></div></div></li>
+   <li data-img="reader" tabindex="0"><div class="row"><span class="n">vii.</span><span class="tt" data-t="f6t">Privé et sécurisé</span><span class="dots"></span><span class="pg">131</span></div><div class="ds"><div><p data-t="f6p"></p></div></div></li>
+  </ol>
  </div>
-</div></section>
+ <div class="peek" id="peek" aria-hidden="true"><img alt=""></div>
+</section>
 
-<section class="band"><div class="wrap split">
- <div class="txt"><div class="kicker" data-t="s1k">Lecture</div><h2 data-t="s1t">Une page qui ressemble à un livre</h2>
-  <p class="sub" data-t="s1p">Texte centré à la bonne largeur, typographie soignée, pages qui se tournent d’un geste.</p>
-  <ul class="checks"><li><svg class="i"><use href="#i-check"/></svg><span data-t="s1a">Balayez pour tourner, pincez pour changer la taille</span></li>
-   <li><svg class="i"><use href="#i-check"/></svg><span data-t="s1b">Polices pensées pour la lecture (Literata, Lora, Atkinson…)</span></li>
-   <li><svg class="i"><use href="#i-check"/></svg><span data-t="s1c">Thèmes clair, sépia, sombre, noir pour les écrans OLED</span></li></ul></div>
- <div class="frame"><img data-shot="reader" src="img/fr-reader.webp" width="1280" height="800" alt=""></div>
-</div></section>
-
-<section><div class="wrap split rev">
- <div class="txt"><div class="kicker" data-t="s2k">Notes</div><h2 data-t="s2t">Retrouvez chaque passage marquant</h2>
-  <p class="sub" data-t="s2p">Toutes vos notes, classées par chapitre, avec leur place sur la carte du livre.</p>
-  <ul class="checks"><li><svg class="i"><use href="#i-check"/></svg><span data-t="s2a">Filtrez par couleur ou par type</span></li>
-   <li><svg class="i"><use href="#i-check"/></svg><span data-t="s2b">Copiez une citation avec son titre</span></li>
-   <li><svg class="i"><use href="#i-check"/></svg><span data-t="s2c">Exportez tous vos surlignages en Markdown</span></li></ul></div>
- <div class="frame"><img data-shot="notes" src="img/fr-notes.webp" width="1280" height="800" alt=""></div>
-</div></section>
-
-<section class="band" id="platforms"><div class="wrap center">
- <div class="kicker" data-t="pK">Sur tous vos appareils</div>
- <h2 data-t="pT">Un compte, toutes vos plateformes</h2>
- <p class="sub" data-t="pS">Installez l’appli sur votre ordinateur, ajoutez Folio à l’écran d’accueil de votre téléphone, ou lisez directement dans le navigateur.</p>
- <div class="plats">
-  <a class="plat" href="/download#windows"><svg class="i"><use href="#i-win"/></svg><b>Windows</b><span data-t="pWin">10 et 11</span></a>
-  <a class="plat" href="/download#mac"><svg class="i"><use href="#i-mac"/></svg><b>macOS</b><span data-t="pMac">Apple Silicon et Intel</span></a>
-  <a class="plat" href="/download#linux"><svg class="i"><use href="#i-linux"/></svg><b>Linux</b><span data-t="pLin">Debian, Ubuntu…</span></a>
-  <a class="plat" href="/download#phone"><svg class="i"><use href="#i-phone"/></svg><b data-t="pPhoneT">Téléphone</b><span>Android, iPhone</span></a>
-  <a class="plat" href="/app/"><svg class="i"><use href="#i-web"/></svg><b data-t="pWebT">Navigateur</b><span data-t="pWeb">Rien à installer</span></a>
+<!-- IV. notes : le surligneur passe -->
+<section id="notes" class="chap" data-run="IV · Notes">
+ <div class="wrap">
+  <div class="chap-h"><span class="num">IV</span><span class="kick" data-t="c4k">Notes</span></div>
+  <p class="marks" data-rv data-th="c4p">Un bon livre se lit <mark class="hl y">deux fois</mark> : la première pour l’histoire, la seconde pour <mark class="hl g">tout ce qu’on avait souligné</mark>. Folio garde chaque passage, <mark class="hl b">classé par chapitre</mark>, prêt à être copié ou <mark class="hl p">exporté en Markdown</mark>.</p>
+  <div class="frame tilt" data-rv><img data-shot="notes" src="img/fr-notes.webp" width="1280" height="800" alt="" loading="lazy"></div>
  </div>
-</div></section>
+</section>
 
-<section id="selfhost"><div class="wrap split rev">
- <div class="txt"><div class="kicker" data-t="shK">Open source</div><h2 data-t="shT">Hébergez votre propre Folio</h2>
-  <p class="sub" data-t="shP">Le code est libre (licence MIT). Installez le serveur chez vous — un Raspberry Pi suffit — et gardez vos livres et vos notes sur votre propre machine.</p>
-  <ul class="checks"><li><svg class="i"><use href="#i-check"/></svg><span data-t="sh1">Installation en une commande avec Docker</span></li>
-   <li><svg class="i"><use href="#i-check"/></svg><span data-t="sh2">Site, lecteur et applis Windows, macOS et Linux inclus</span></li>
-   <li><svg class="i"><use href="#i-check"/></svg><span data-t="sh3">Vos données ne quittent jamais votre serveur</span></li></ul>
-  <p style="margin-top:26px"><a class="btn pri" href="https://github.com/AsuCracotte/Folio-selfhosted" target="_blank" rel="noopener"><svg class="i"><use href="#i-gh"/></svg><span data-t="shBtn">Voir le code sur GitHub</span></a></p></div>
- <div class="frame shbox"><div class="shhead"><svg class="i"><use href="#i-server"/></svg><span>Terminal</span><button class="shcopy" id="shCopy" data-t="copy">Copier</button></div>
+<!-- V. partout -->
+<section id="platforms" class="chap" data-run="V · Partout" data-run-en="V · Everywhere">
+ <div class="wrap center">
+  <div class="chap-h"><span class="num">V</span><span class="kick" data-t="c5k">Partout</span></div>
+  <p class="roll-line"><span data-t="c5a">Lisez sur</span> <span class="roll" id="roll"><span><b>Windows</b><b>macOS</b><b>Linux</b><b>Android</b><b>iPhone</b><b data-t="c5web">le navigateur</b></span></span></p>
+  <p class="sub2 c" data-t="c5p">Un seul compte : votre page, vos notes et vos collections vous suivent d’un appareil à l’autre.</p>
+  <nav class="plats2">
+   <a href="/download#windows"><svg class="i"><use href="#i-win"/></svg>Windows</a>
+   <a href="/download#mac"><svg class="i"><use href="#i-mac"/></svg>macOS</a>
+   <a href="/download#linux"><svg class="i"><use href="#i-linux"/></svg>Linux</a>
+   <a href="/download#phone"><svg class="i"><use href="#i-phone"/></svg>Android · iPhone</a>
+   <a href="/app/"><svg class="i"><use href="#i-web"/></svg><span data-t="pWebT">Navigateur</span></a>
+  </nav>
+ </div>
+</section>
+
+<!-- VI. auto-hébergement -->
+<section id="selfhost" class="chap" data-run="VI · Open source">
+ <div class="wrap split rev">
+  <div class="txt"><div class="chap-h"><span class="num">VI</span><span class="kick" data-t="shK">Open source</span></div>
+   <h2 class="t" data-th="shT2">Hébergez <em>votre propre</em> Folio.</h2>
+   <p class="sub2" data-t="shP">Le code est libre (licence MIT). Installez le serveur chez vous — un Raspberry Pi suffit — et gardez vos livres et vos notes sur votre propre machine.</p>
+   <ul class="checks"><li><svg class="i"><use href="#i-check"/></svg><span data-t="sh1">Installation en une commande avec Docker</span></li>
+    <li><svg class="i"><use href="#i-check"/></svg><span data-t="sh2">Site, lecteur et applis Windows, macOS et Linux inclus</span></li>
+    <li><svg class="i"><use href="#i-check"/></svg><span data-t="sh3">Vos données ne quittent jamais votre serveur</span></li></ul>
+   <p style="margin-top:26px"><a class="btn pri" href="https://github.com/AsuCracotte/Folio-selfhosted" target="_blank" rel="noopener"><svg class="i"><use href="#i-gh"/></svg><span data-t="shBtn">Voir le code sur GitHub</span></a></p></div>
+  <div class="frame shbox" data-rv><div class="shhead"><svg class="i"><use href="#i-server"/></svg><span>Terminal</span><button class="shcopy" id="shCopy" data-t="copy">Copier</button></div>
 <pre id="shCmd"><b>$</b> git clone https://github.com/AsuCracotte/Folio-selfhosted.git
 <b>$</b> cd Folio-selfhosted/server
 <b>$</b> cp .env.example .env
 <b>$</b> docker compose up -d --build</pre></div>
-</div></section>
+ </div>
+</section>
 
-<section><div class="wrap"><div class="cta">
- <h2 data-t="ctaT">Votre prochaine lecture vous attend</h2>
- <p data-t="ctaP">Glissez un fichier EPUB dans Folio et commencez tout de suite.</p>
- <div class="ctas"><a class="btn pri" href="/app/"><span data-t="ctaRead">Commencer à lire</span><svg class="i"><use href="#i-arrow"/></svg></a><a class="btn ghost" href="/download" data-t="ctaDl2">Télécharger</a></div>
-</div></div></section>
+<!-- fin -->
+<section class="fin" data-run="">
+ <div class="wrap">
+  <p class="ink fin-w" id="finWord" data-t="finW">Fin.</p>
+  <p class="fin-p" data-rv data-t="finP">…ou plutôt le début de votre prochaine lecture.</p>
+  <div class="ctas" data-rv><a class="btn pri" href="/app/"><span data-t="ctaRead">Commencer à lire</span><svg class="i"><use href="#i-arrow"/></svg></a><a class="btn ghost" href="/download" data-t="ctaDl2">Télécharger</a></div>
+ </div>
+</section>
+</main>
 
 <footer><div class="wrap"><a class="logo" href="/" style="font-size:17px;margin:0"><img src="icon.svg" alt="" style="width:24px;height:24px">Folio</a><span class="sp"></span>
- <a href="/app/" data-t="navOpen">Ouvrir Folio</a><a href="/download" data-t="navDownload">Télécharger</a><a href="https://github.com/AsuCracotte/Folio-selfhosted" target="_blank" rel="noopener" data-t="selfLink">Auto-hébergement</a><span>© 2026 Folio</span></div></footer>
-<script src="site.js?v=1.7.2"></script>
+ <a href="/app/" data-t="navOpen">Ouvrir Folio</a><a href="/download" data-t="navDownload">Télécharger</a><a href="https://github.com/AsuCracotte/Folio-selfhosted" target="_blank" rel="noopener" data-t="selfLink">Auto-hébergement</a><span>© 2026 Folio</span></div>
+ <div class="wrap"><p class="colophon" data-t="colophon">Composé en Fraunces et Literata. Imprimé nulle part, lisible partout.</p></div></footer>
+<script src="site.js?v=1.8.0"></script>
+<script src="home.js?v=1.8.0"></script>
 </body></html>
