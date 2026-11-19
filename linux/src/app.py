@@ -20,7 +20,7 @@ import cairo  # noqa: E402
 import math  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from library import COVERS, DATA, SYNC_KEYS, Library  # noqa: E402
+from library import COVERS, DATA, SYNC_GROUPS, Library, synced_keys  # noqa: E402
 import sync as syncmod  # noqa: E402
 from sync import ApiSync, Sync, public_post  # noqa: E402
 from i18n import LANG, T, pct  # noqa: E402
@@ -28,6 +28,11 @@ from i18n import LANG, T, pct  # noqa: E402
 syncmod.LANG = LANG            # messages du serveur dans la langue de l'interface
 
 SHARE = os.path.dirname(os.path.abspath(__file__))
+# serveur proposé par défaut à la connexion : FOLIO_URL au moment de construire le paquet (config.json)
+try:
+    DEFAULT_SERVER = json.load(open(os.path.join(SHARE, "config.json"))).get("server", "")
+except (OSError, ValueError):
+    DEFAULT_SERVER = ""
 
 
 def register_fonts():
@@ -61,11 +66,6 @@ THEMES = {  # nom: (fond, texte, libellé)
 }
 INDENTS = [(-1, "Celui du livre"), (0, "Aucun"), (1.5, "Normal"), (3, "Large")]
 WEIGHTS = {300: "Fine", 400: "Normale", 500: "Moyenne", 600: "Demi-grasse", 700: "Grasse"}
-# serveur proposé par défaut à la connexion : FOLIO_URL au moment de construire le paquet (config.json)
-try:
-    DEFAULT_SERVER = json.load(open(os.path.join(SHARE, "config.json"))).get("server", "")
-except (OSError, ValueError):
-    DEFAULT_SERVER = ""
 HL_COLORS = {"yellow": "#f6d55c", "green": "#7bd88f", "blue": "#6cb6ff", "pink": "#ff8fb1"}
 
 
@@ -1539,7 +1539,7 @@ class FolioWindow(Adw.ApplicationWindow):
         self.syncing = True
         self.last_sync = time.time()
         self.sync_btn.add_css_class("spinning")
-        mine = {k: self.settings.get(k) for k in SYNC_KEYS}
+        mine = {k: self.settings.get(k) for k in synced_keys(self.settings)}
         upd = self.settings.get("settings_updated", 0)
         api = isinstance(self.sync, ApiSync)
         want_profile = api and (profile or not quiet or time.time() - self.last_profile > 600)
@@ -1602,16 +1602,23 @@ class FolioWindow(Adw.ApplicationWindow):
     def apply_remote_settings(self, remote, rupd):
         """Le serveur l'emporte s'il est plus récent, ou à égalité (ex. jamais modifié : horodatage 0)."""
         upd = self.settings.get("settings_updated", 0)
-        mine = {k: self.settings.get(k) for k in SYNC_KEYS}
-        if rupd >= upd and any(remote.get(k) != mine.get(k) for k in SYNC_KEYS if k in remote):
-            self.settings.update({k: remote[k] for k in SYNC_KEYS if k in remote})
+        mine = {k: self.settings.get(k) for k in synced_keys(self.settings)}
+        if rupd >= upd and any(remote.get(k) != mine.get(k) for k in mine if k in remote):
+            self.settings.update({k: remote[k] for k in mine if k in remote})
             self.settings["settings_updated"] = rupd
-            self.lib.save_settings(self.settings)
-            if not self.aa_btn.get_popover().get_visible():
-                self.aa_btn.set_popover(self.build_settings_popover())
-            self.apply_theme()
-            if self.stack.get_visible_child_name() == "reader":
-                self.js(f"Folio.settings({json.dumps(self.settings)})")
+            self.refresh_appearance()
+
+    def refresh_appearance(self):
+        self.lib.save_settings(self.settings)
+        pop = self.aa_btn.get_popover()
+        if not pop.get_visible():
+            self.aa_btn.set_popover(self.build_settings_popover())
+        elif not getattr(pop, "_stale", False):    # ouvert : on le reconstruit à la fermeture
+            pop._stale = True
+            pop.connect("closed", lambda *_: GLib.idle_add(lambda: self.aa_btn.set_popover(self.build_settings_popover()) and False))
+        self.apply_theme()
+        if self.stack.get_visible_child_name() == "reader":
+            self.js(f"Folio.settings({json.dumps(self.settings)})")
 
     def push_settings_soon(self):
         if not self.sync:
@@ -1621,7 +1628,7 @@ class FolioWindow(Adw.ApplicationWindow):
 
         def go():
             self.set_push_id = 0
-            mine = {k: self.settings.get(k) for k in SYNC_KEYS}
+            mine = {k: self.settings.get(k) for k in synced_keys(self.settings)}
             upd = self.settings.get("settings_updated", 0)
             self.worker.submit(self.sync_cfg, lambda s: s.settings(mine, upd), lambda r: self.apply_remote_settings(*r))
             return False
@@ -1947,12 +1954,40 @@ class FolioWindow(Adw.ApplicationWindow):
         arow(T("Espacement des lettres"), ls)
         hdr = Gtk.Label(label=T("TYPOGRAPHIE"), xalign=0, margin_start=6, margin_top=4); hdr.add_css_class("sub-head")
         outer.append(hdr); outer.append(adv)
+        # --- ce qui est partagé avec les autres appareils
+        hdr2 = Gtk.Label(label=T("SYNCHRONISATION ENTRE APPAREILS"), xalign=0, margin_start=6, margin_top=4)
+        hdr2.add_css_class("sub-head"); outer.append(hdr2)
+        note = Gtk.Label(label=T("Décochez ce que cet appareil doit garder pour lui : il ne l’enverra plus et ne recevra plus celui des autres."),
+                         xalign=0, wrap=True, max_width_chars=44, margin_start=6, margin_end=6)
+        note.add_css_class("dim-label"); outer.append(note)
+        sg = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE); sg.add_css_class("boxed-list")
+        for g, label in (("colors", "Thème et couleurs"), ("font", "Police"), ("size", "Taille du texte"),
+                         ("spacing", "Interligne et typographie"), ("margin", "Marges"),
+                         ("layout", "Justification, pages ou défilement")):
+            w = Gtk.Switch(active=g not in (s.get("nosync") or []), valign=Gtk.Align.CENTER)
+            w.connect("notify::active", lambda w, _p, g=g: self.set_sync_group(g, w.get_active()))
+            r = Adw.ActionRow(title=T(label), activatable=False); r.add_suffix(w); sg.append(r)
+        outer.append(sg)
         reset = Gtk.Button(label=T("Réinitialiser l’apparence"), halign=Gtk.Align.CENTER)
         reset.add_css_class("flat"); reset.connect("clicked", lambda *_: self.reset_appearance())
         outer.append(reset)
         pop.set_child(Gtk.ScrolledWindow(child=outer, propagate_natural_height=True, max_content_height=640,
                                          hscrollbar_policy=Gtk.PolicyType.NEVER))
         return pop
+
+    def set_sync_group(self, group, on):
+        off = [g for g in (self.settings.get("nosync") or []) if g != group]
+        self.settings["nosync"] = off if on else off + [group]
+        self.lib.save_settings(self.settings)
+        if on and self.sync:                    # on reprend la valeur partagée
+            keys = SYNC_GROUPS[group]
+
+            def got(r):
+                remote = r[0]
+                if any(k in remote and remote[k] != self.settings.get(k) for k in keys):
+                    self.settings.update({k: remote[k] for k in keys if k in remote})
+                    self.refresh_appearance()
+            self.worker.submit(self.sync_cfg, lambda s: s.settings({}, 0), got, lambda e: None)
 
     def reset_appearance(self):
         from library import DEFAULT_SETTINGS

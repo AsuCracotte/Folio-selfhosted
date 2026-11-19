@@ -242,16 +242,18 @@ class Sync:
     def settings(self, local, updated):
         """Échange les réglages d'apparence ; retourne (réglages, horodatage) gagnants."""
         f = self.dir / "settings.json"
+        d = {}
         try:
             d = json.loads(f.read_text())
             if d.get("updated", 0) > updated:
                 return d.get("settings") or {}, d["updated"]
         except (OSError, ValueError):
             pass
+        merged = {**(d.get("settings") or {}), **local}   # garde ce que cet appareil n'envoie pas
         tmp = f.with_suffix(".tmp")
-        tmp.write_text(json.dumps({"settings": local, "updated": updated}, ensure_ascii=False))
+        tmp.write_text(json.dumps({"settings": merged, "updated": updated}, ensure_ascii=False))
         tmp.replace(f)
-        return local, updated
+        return merged, updated
 
     def _write(self, h, state):
         tmp = self._file(h).with_suffix(".tmp")

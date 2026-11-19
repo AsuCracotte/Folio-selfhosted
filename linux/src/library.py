@@ -28,6 +28,17 @@ DEFAULT_SETTINGS = {
 }
 # Réglages partagés entre appareils (format commun app Linux / PWA / serveur)
 SYNC_KEYS = tuple(DEFAULT_SETTINGS)
+# Groupes qu'un appareil peut garder pour lui (settings["nosync"], jamais envoyé)
+SYNC_GROUPS = {
+    "colors": ("theme", "bg", "fg"), "font": ("font",), "size": ("size",),
+    "spacing": ("line", "para", "indent", "weight", "letter"), "margin": ("margin",),
+    "layout": ("justify", "flow", "spread"),
+}
+
+
+def synced_keys(settings):
+    off = {k for g in settings.get("nosync") or () for k in SYNC_GROUPS.get(g, ())}
+    return [k for k in SYNC_KEYS if k not in off]
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS books(
