@@ -66,7 +66,7 @@ THEMES = {  # nom: (fond, texte, libellé)
 }
 INDENTS = [(-1, "Celui du livre"), (0, "Aucun"), (1.5, "Normal"), (3, "Large")]
 WEIGHTS = {300: "Fine", 400: "Normale", 500: "Moyenne", 600: "Demi-grasse", 700: "Grasse"}
-HL_COLORS = {"yellow": "#f6d55c", "green": "#7bd88f", "blue": "#6cb6ff", "pink": "#ff8fb1"}
+HL_COLORS = {"yellow": "#f6d55c", "green": "#7bd88f", "blue": "#6cb6ff", "pink": "#ff8fb1", "orange": "#ffa94d", "red": "#ff6b6b", "purple": "#b197fc", "teal": "#4fd1c5"}
 
 
 def load_css(provider, css):

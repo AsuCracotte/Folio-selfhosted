@@ -13,7 +13,7 @@ collections and custom covers stay in sync across all of them.
 - **Library**: covers, “continue reading”, search, automatic *Reading / Unread / Finished* categories, your own collections
 - **Custom covers**: pick an image, or right-click (long-press on phones) an illustration inside the book
 - **Reading**: paginated or scrolling, 7 themes, reading fonts, size, line spacing, margins, justification
-- **Notes**: bookmarks and highlights in 4 colours, map of the book, Markdown export
+- **Notes**: bookmarks and highlights in 8 colours, map of the book, Markdown export
 - **Sync** between every device through your server; works offline once a book is downloaded
 - **Accounts**: email confirmation, two-factor authentication (TOTP + recovery codes), sign-in alerts, device list
 - **English and French** interface, emails and error messages

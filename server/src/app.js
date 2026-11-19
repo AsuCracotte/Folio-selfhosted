@@ -37,7 +37,7 @@ function uaName(ua = "", lang = "fr") {
   return o ? `${b} ${t(lang, "on")} ${o}` : b;
 }
 // Ne garde que les champs attendus des marque-pages / surlignages (aucune donnée arbitraire stockée)
-const COLORS = new Set(["yellow", "green", "blue", "pink"]);
+const COLORS = new Set(["yellow", "green", "blue", "pink", "orange", "red", "purple", "teal"]);
 const num = (x) => (Number.isFinite(+x) ? +x : 0);
 const cleanItems = (a) => (Array.isArray(a) ? a : []).filter((x) => x && typeof x.cfi === "string" && x.cfi.length <= 2000)
   .map((x) => ({ cfi: x.cfi, label: String(x.label ?? "").slice(0, 300), color: COLORS.has(x.color) ? x.color : "yellow",
@@ -100,7 +100,7 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
     reply.header("X-Content-Type-Options", "nosniff");
     reply.header("X-Frame-Options", "DENY");
     reply.header("Referrer-Policy", "no-referrer");
-    reply.header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
+    reply.header("Permissions-Policy", "camera=(self), microphone=(), geolocation=(), payment=(), usb=()");
     reply.header("Cross-Origin-Opener-Policy", "same-origin");
     reply.header("Cross-Origin-Resource-Policy", "same-origin");
     reply.header("Strict-Transport-Security", "max-age=63072000; includeSubDomains");

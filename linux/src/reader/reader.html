@@ -68,7 +68,7 @@
 <script>
 const Folio = (() => {
   const send = o => window.webkit.messageHandlers.folio.postMessage(JSON.stringify(o));
-  const COLORS = { yellow:"#f6d55c", green:"#7bd88f", blue:"#6cb6ff", pink:"#ff8fb1" };
+  const COLORS = { yellow:"#f6d55c", green:"#7bd88f", blue:"#6cb6ff", pink:"#ff8fb1", orange:"#ffa94d", red:"#ff6b6b", purple:"#b197fc", teal:"#4fd1c5" };
   const LAYOUT = ["size","line","margin","font","flow","spread","justify","para","indent","weight","letter"];
   let book, rendition, S = {}, hls = [], bms = [], toc = [], loc = null, cur = "", pct = null, anchor = null,
       chapter = "", timer, pending = null, wheelLock = 0, title = "", tab = "toc", setPct = () => {};

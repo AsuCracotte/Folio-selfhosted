@@ -27,7 +27,8 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .btn{display:inline-flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:13px 24px;font:600 16px/1 inherit;text-decoration:none;cursor:pointer;
  background:var(--soft);color:var(--fg);transition:transform .15s,filter .15s,background .15s;white-space:nowrap}
 .btn:hover{transform:translateY(-1px)}.btn:active{transform:none}
-.btn.pri{background:var(--fg);color:var(--bg);box-shadow:0 8px 22px -6px color-mix(in srgb,var(--fg) 45%,transparent)}.btn.pri:hover{filter:brightness(1.2)}
+.btn.pri{background:var(--ac);color:var(--acfg);box-shadow:0 8px 22px -6px color-mix(in srgb,var(--ac) 60%,transparent)}.btn.pri:hover{background:color-mix(in srgb,var(--ac) 88%,var(--fg))}
+::selection{background:color-mix(in srgb,var(--ac) 28%,transparent)}
 .btn.ghost{background:transparent;border:1px solid var(--line)}.btn.sm{padding:9px 16px;font-size:14px}
 /* ---------- en-tête ---------- */
 .nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:border-color .2s}
@@ -35,7 +36,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .nav .wrap{display:flex;align-items:center;gap:8px;height:68px}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:750;font-size:21px;letter-spacing:-.02em;margin-right:auto}
 .logo img{width:32px;height:32px;border-radius:9px}
-.nav .lk{text-decoration:none;color:var(--muted);font-weight:550;font-size:15px;padding:8px 12px;border-radius:10px}.nav .lk:hover{color:var(--fg);background:var(--soft)}
+.nav .lk{text-decoration:none;color:var(--muted);font-weight:550;font-size:15px;padding:8px 12px;border-radius:10px}.nav .lk:hover{color:var(--ac);background:var(--tint)}.nav .lk[aria-current]{color:var(--ac)}
 .lang{display:flex;background:var(--soft);border-radius:999px;padding:3px;margin:0 6px}
 .lang button{border:0;background:transparent;color:var(--muted);font:700 12px/1 inherit;padding:7px 10px;border-radius:999px;cursor:pointer}
 .lang button.on{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
@@ -116,7 +117,7 @@ body.dlp::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:non
 .meta{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .dl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr);gap:16px 48px;padding:30px 0;border-bottom:1px solid var(--line);position:relative}
 .dl .hd{display:flex;gap:16px;align-items:flex-start}
-.dl .hd svg.i{width:26px;height:26px;color:var(--muted);margin-top:6px}
+.dl .hd svg.i{width:26px;height:26px;color:var(--ac);margin-top:6px}
 .dl h3{margin:0 0 4px;font:400 calc(30px * var(--ts,1))/1.15 var(--serif);letter-spacing:-.015em;font-variation-settings:"opsz" 60,"wght" 450}
 .dl .hd span{color:var(--muted);font-size:calc(14.5px * var(--ts,1))}
 /* l'appareil détecté reçoit le signet */

@@ -48,7 +48,7 @@ fr:{siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks
  cover:"Couverture",chooseImage:"Choisir une image…",origCover:"Couverture d’origine",coverTip:"Astuce : dans un livre, faites un clic droit (ou un appui long sur téléphone) sur une illustration pour en faire la couverture.",
  removeBook:"Retirer de la bibliothèque",readStatus:"Lecture",markDone:"Marquer comme terminé",markUnread:"Marquer comme non lu",
  autoReading:"En cours",autoUnread:"Non lus",autoDone:"Terminés",markedDone:"Rangé dans « Terminés »",markedUnread:"Rangé dans « Non lus »",autoTip:"Catégorie automatique",rack:"Étagère",rackAll:"Tout voir",addPaper:"Livre papier",addPaperT:"Ajouter un livre papier",editSpine:"Sur l’étagère",titleF:"Titre",authorF:"Auteur",
- takePhoto:"Photographier la tranche",importImg:"Importer une image",rotate:"Faire pivoter",removePhoto:"Retirer la photo",openBook:"Ouvrir le livre",removePaper:"Retirer de l’étagère",
+ takePhoto:"Photographier la tranche",camHint:"Placez la tranche du livre dans le cadre",camWidth:"Épaisseur",camNo:"Caméra indisponible : choisissez une photo",cropT:"Recadrer",cropHint:"Ajustez le cadre sur la tranche",useCrop:"Utiliser",importImg:"Importer une image",rotate:"Faire pivoter",removePhoto:"Retirer la photo",openBook:"Ouvrir le livre",removePaper:"Retirer de l’étagère",
  spineSet:"Tranche mise à jour",spinePhotoOff:"Photo retirée",paperAdded:"« {t} » rangé sur l’étagère",paperRemoved:"Livre retiré de l’étagère",needTitle:"Indiquez au moins le titre",
  confirmRemovePaper:"Retirer « {t} » de l’étagère ?",sortAuthor:"Auteur",sortTitle:"Titre",sortRecent:"Récents",kindBook:"Livre numérique",kindPaper:"Livre papier",
  rackTip:"Photographiez la tranche de vos livres, numériques ou papier : votre étagère se compose, et vous suit sur tous vos appareils.",spineTip:"Astuce : livre debout, tranche bien droite et cadrée serrée.",
@@ -97,7 +97,7 @@ en:{siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add bo
  cover:"Cover",chooseImage:"Choose an image…",origCover:"Original cover",coverTip:"Tip: in a book, right-click (or long-press on a phone) an illustration to make it the cover.",
  removeBook:"Remove from library",readStatus:"Reading",markDone:"Mark as finished",markUnread:"Mark as unread",
  autoReading:"Reading",autoUnread:"Unread",autoDone:"Finished",markedDone:"Moved to “Finished”",markedUnread:"Moved to “Unread”",autoTip:"Automatic category",rack:"Bookshelf",rackAll:"See all",addPaper:"Paper book",addPaperT:"Add a paper book",editSpine:"On the shelf",titleF:"Title",authorF:"Author",
- takePhoto:"Photograph the spine",importImg:"Import an image",rotate:"Rotate",removePhoto:"Remove photo",openBook:"Open the book",removePaper:"Remove from the shelf",
+ takePhoto:"Photograph the spine",camHint:"Fit the book’s spine inside the frame",camWidth:"Thickness",camNo:"Camera unavailable: pick a photo instead",cropT:"Crop",cropHint:"Adjust the frame to the spine",useCrop:"Use",importImg:"Import an image",rotate:"Rotate",removePhoto:"Remove photo",openBook:"Open the book",removePaper:"Remove from the shelf",
  spineSet:"Spine updated",spinePhotoOff:"Photo removed",paperAdded:"“{t}” added to the shelf",paperRemoved:"Book removed from the shelf",needTitle:"Enter at least the title",
  confirmRemovePaper:"Remove “{t}” from the shelf?",sortAuthor:"Author",sortTitle:"Title",sortRecent:"Recent",kindBook:"Ebook",kindPaper:"Paper book",
  rackTip:"Photograph the spines of your books, digital or paper: your bookshelf builds itself and follows you on all your devices.",spineTip:"Tip: stand the book up, keep the spine straight and frame it tightly.",
@@ -112,7 +112,7 @@ document.querySelectorAll("[data-th]").forEach(e=>e.innerHTML=t(e.dataset.th));
 
 const $=id=>document.getElementById(id),THEMES={clair:["#fbfbfa","#222222"],sepia:["#f4ecd8","#5b4636"],sombre:["#1e1f24","#d6d6d6"],noir:["#000000","#b8b8b8"],gris:["#e8e8e6","#2b2b2b"],nuit:["#141a24","#c9d1dc"],foret:["#1c2420","#cdd8c4"]};
 const WEBFONTS=["Literata","Merriweather","Lora","Source Serif 4","Atkinson Hyperlegible"];
-const COLORS={yellow:"#f6d55c",green:"#7bd88f",blue:"#6cb6ff",pink:"#ff8fb1"},ico=n=>`<svg class="i"><use href="#i-${n}"/></svg>`;
+const COLORS={yellow:"#f6d55c",green:"#7bd88f",blue:"#6cb6ff",pink:"#ff8fb1",orange:"#ffa94d",red:"#ff6b6b",purple:"#b197fc",teal:"#4fd1c5"},ico=n=>`<svg class="i"><use href="#i-${n}"/></svg>`;
 const SYNC_KEYS=["theme","bg","fg","font","size","line","margin","justify","flow","spread","para","indent","weight","letter"];
 // Groupes de réglages qu'on peut choisir de garder sur cet appareil (S.nosync = liste locale, jamais envoyée)
 const SYNC_GROUPS={colors:["theme","bg","fg"],font:["font"],size:["size"],spacing:["line","para","indent","weight","letter"],margin:["margin"],layout:["justify","flow","spread"]};
@@ -268,10 +268,59 @@ async function spineBlob(file,turn){const u=URL.createObjectURL(file);try{const 
   const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);if(rot){g.translate(c.width,0);g.rotate(Math.PI/2)}g.drawImage(im,0,0,W,H);
   return await new Promise((ok,ko)=>c.toBlob(b=>b?ok(b):ko(new Error("img")),"image/jpeg",.86))}finally{URL.revokeObjectURL(u)}}
 const paperBase=()=>({kind:"paper",title:$("spTitle").value.trim().slice(0,300),author:$("spAuthor").value.trim().slice(0,200)});
-async function spinePicked(e){const f=e.target.files[0];e.target.value="";if(!f)return;let bl;try{bl=await spineBlob(f)}catch(x){msg(t("badImage"));return}
+async function spineUse(src){let bl;try{bl=await spineBlob(src)}catch(x){msg(t("badImage"));return}
  if(!spId){spNew.blob=bl;spineFill();return}
  const b=(await allB()).find(x=>x.hash===spId);await setSpine(spId,bl,b?{kind:"book",title:b.title,author:b.author}:{});msg(t("spineSet"));rackRefresh()}
+function spinePicked(e){const f=e.target.files[0];e.target.value="";if(f)cropOpen(f)}
 $("spCam").onchange=spinePicked;$("spFile").onchange=spinePicked;
+// prise de vue dans l'appli : la vidéo de la caméra arrière, un cadre en forme de tranche (largeur réglable)
+let camS=null;
+function camLayout(){const v=$("camV"),f=$("camF"),H=v.clientHeight,h=Math.round(Math.min(H*.66,H-250)),w=Math.max(28,Math.round(h*$("camW").value/100));
+ f.style.height=h+"px";f.style.width=w+"px";f.style.top=Math.round(Math.max(70,(H-150-h)/2+30))+"px"}
+function camStop(){camS?.getTracks().forEach(k=>k.stop());camS=null;$("camV").srcObject=null;$("cam").hidden=true}
+async function camOpen(){if(!navigator.mediaDevices?.getUserMedia){$("spCam").click();return}
+ try{camS=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}}})}
+ catch(e){msg(t("camNo"));$("spFile").click();return}
+ const v=$("camV");v.srcObject=camS;$("cam").hidden=false;camLayout();try{await v.play()}catch(e){}}
+$("spShoot").onclick=camOpen;$("camX").onclick=camStop;$("camW").oninput=camLayout;$("camImp").onclick=()=>{camStop();$("spFile").click()};
+$("camGo").onclick=async()=>{const v=$("camV"),vw=v.videoWidth,vh=v.videoHeight;if(!vw)return;
+ // la vidéo est affichée en « cover » : on ramène le cadre à l'écran en pixels de l'image
+ const W=v.clientWidth,H=v.clientHeight,k=Math.max(W/vw,H/vh),ox=(W-vw*k)/2,oy=(H-vh*k)/2,f=$("camF").getBoundingClientRect(),o=v.getBoundingClientRect();
+ const c=document.createElement("canvas");c.width=vw;c.height=vh;c.getContext("2d").drawImage(v,0,0,vw,vh);
+ const r={x:(f.left-o.left-ox)/k,y:(f.top-o.top-oy)/k,w:f.width/k,h:f.height/k};
+ c.toBlob(b=>{camStop();if(b)cropOpen(b,r)},"image/jpeg",.92)};
+// recadrage : un rectangle déplaçable, redimensionnable par ses coins et ses bords, en pixels de l'image ;
+// après chaque geste, la vue se resserre sur le cadre (avec de la marge) pour garder de la précision sur un téléphone
+let crImg=null,crR=null,crV=null,crK=1,crO=[0,0];
+async function cropOpen(src,rect){let im;const u=URL.createObjectURL(src);try{im=await loadImg(u)}catch(e){URL.revokeObjectURL(u);msg(t("badImage"));return}
+ if(crImg)URL.revokeObjectURL(crImg.src);crImg=im;$("crI").src=u;const w=im.naturalWidth,h=im.naturalHeight;
+ crR=rect?crClamp({...rect},w,h):{x:0,y:0,w,h};crV=rect?crFit(crR):{x:0,y:0,w,h};$("crop").hidden=false;$("crop").classList.remove("anim");cropLayout()}
+function crClamp(r,w,h){r.w=Math.min(Math.max(r.w,16),w);r.h=Math.min(Math.max(r.h,16),h);r.x=Math.min(Math.max(r.x,0),w-r.w);r.y=Math.min(Math.max(r.y,0),h-r.h);return r}
+function crFit(r){const W=crImg.naturalWidth,H=crImg.naturalHeight,p=.12*Math.max(r.w,r.h),v={x:r.x-p,y:r.y-p,w:r.w+2*p,h:r.h+2*p};
+ if(v.w>=W){v.x=0;v.w=W}else v.x=Math.min(Math.max(v.x,0),W-v.w);if(v.h>=H){v.y=0;v.h=H}else v.y=Math.min(Math.max(v.y,0),H-v.h);return v}
+function cropLayout(){if(!crImg||$("crop").hidden)return;const s=$("crS"),w=crImg.naturalWidth,h=crImg.naturalHeight,SW=s.clientWidth,SH=s.clientHeight,v=crV;
+ const k=crK=Math.min((SW-40)/v.w,(SH-20)/v.h,Math.max(2,Math.min((SW-40)/w,(SH-20)/h)));
+ crO=[(SW-v.w*k)/2-v.x*k,(SH-v.h*k)/2-v.y*k];const i=$("crI");i.style.width=w*k+"px";i.style.height=h*k+"px";i.style.left=crO[0]+"px";i.style.top=crO[1]+"px";cropDraw()}
+function cropDraw(){const b=$("crB").style;b.left=crO[0]+crR.x*crK+"px";b.top=crO[1]+crR.y*crK+"px";b.width=crR.w*crK+"px";b.height=crR.h*crK+"px"}
+$("crB").onpointerdown=e=>{e.preventDefault();const hd=e.target.dataset.h||"m",s0={...crR},x0=e.clientX,y0=e.clientY,w=crImg.naturalWidth,h=crImg.naturalHeight,m=16;
+ e.target.setPointerCapture(e.pointerId);$("crop").classList.remove("anim");
+ const mv=ev=>{const dx=(ev.clientX-x0)/crK,dy=(ev.clientY-y0)/crK;let{x,y,w:rw,h:rh}=s0;
+  if(hd==="m"){x+=dx;y+=dy}
+  else{if(hd.includes("w")){const nx=Math.min(Math.max(0,x+dx),x+rw-m);rw+=x-nx;x=nx}if(hd.includes("e"))rw=Math.min(Math.max(m,rw+dx),w-x);
+   if(hd.includes("n")){const ny=Math.min(Math.max(0,y+dy),y+rh-m);rh+=y-ny;y=ny}if(hd.includes("s"))rh=Math.min(Math.max(m,rh+dy),h-y)}
+  crR=crClamp({x,y,w:rw,h:rh},w,h);cropDraw()};
+ const up=()=>{e.target.removeEventListener("pointermove",mv);e.target.removeEventListener("pointerup",up);e.target.removeEventListener("pointercancel",up);
+  crV=crFit(crR);$("crop").classList.add("anim");cropLayout()};
+ e.target.addEventListener("pointermove",mv);e.target.addEventListener("pointerup",up);e.target.addEventListener("pointercancel",up)};
+const cropClose=()=>{$("crop").hidden=true;if(crImg)URL.revokeObjectURL(crImg.src);crImg=null};
+$("crX").onclick=cropClose;
+$("crR").onclick=()=>{const w=crImg.naturalWidth,h=crImg.naturalHeight,c=document.createElement("canvas");c.width=h;c.height=w;const g=c.getContext("2d");
+ g.translate(h,0);g.rotate(Math.PI/2);g.drawImage(crImg,0,0);const r={x:h-crR.y-crR.h,y:crR.x,w:crR.h,h:crR.w};c.toBlob(b=>b&&cropOpen(b,r),"image/jpeg",.92)};
+$("crOk").onclick=()=>{const r=crR,c=document.createElement("canvas");c.width=Math.round(r.w);c.height=Math.round(r.h);
+ c.getContext("2d").drawImage(crImg,r.x,r.y,r.w,r.h,0,0,c.width,c.height);c.toBlob(b=>{cropClose();if(b)spineUse(b);else msg(t("badImage"))},"image/jpeg",.92)};
+$("spCrop").onclick=async()=>{const cur=spId?await getSp(spId):spNew&&spNew.blob;if(cur)cropOpen(cur)};
+addEventListener("resize",()=>{if(!$("cam").hidden)camLayout();cropLayout()});
+addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!$("crop").hidden){cropClose();e.stopImmediatePropagation()}else if(!$("cam").hidden){camStop();e.stopImmediatePropagation()}},true);
 $("spRot").onclick=async()=>{const cur=spId?await getSp(spId):spNew&&spNew.blob;if(!cur)return;const r=await spineBlob(cur,true);
  if(!spId){spNew.blob=r;spineFill();return}const x=rackGet(spId);await setSpine(spId,r,x?{}:{});rackRefresh()};
 $("spDelPh").onclick=async()=>{if(!spId){spNew.blob=null;spineFill();return}await setSpine(spId,null);msg(t("spinePhotoOff"));rackRefresh()};

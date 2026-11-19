@@ -193,7 +193,7 @@ select{border:1px solid var(--line);background:var(--bg);border-radius:12px;padd
 .ok{color:#3c9a5f}.warn{color:#d0812e}
 details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;padding:6px 2px}
 /* sélection + toasts */
-#sel{position:fixed;z-index:60;display:none;align-items:center;gap:10px;padding:8px 12px;background:#1f1d1b;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,.4)}
+#sel{position:fixed;z-index:60;display:none;align-items:center;gap:8px;padding:8px 12px;background:#1f1d1b;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,.4)}
 #sel button{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.9);padding:0;transition:transform .12s}#sel button:hover{transform:scale(1.15)}
 #sel .x{background:none;border-color:transparent;color:#fff;display:grid;place-items:center}
 #msg{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 76px);transform:translate(-50%,20px);background:color-mix(in srgb,var(--fg) 94%,var(--bg));color:var(--bg);padding:11px 20px;border-radius:999px;z-index:80;opacity:0;pointer-events:none;
@@ -287,6 +287,35 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 .field input:disabled{opacity:.75;background:var(--surface)}
 @media (max-width:560px){.plank{padding-left:16px;padding-right:16px;margin-left:-16px;margin-right:-16px}.rk-head{padding-left:14px;padding-right:14px}.case,.rk-tip{padding:0 14px}
  .rk-head .seg{order:5;flex-basis:100%;min-width:0}#rkAdd span{display:none}.sp-top{flex-direction:column;align-items:stretch}#spPrev{justify-content:center}}
+
+/* prise de vue et recadrage de la tranche */
+.shoot{position:fixed;inset:0;z-index:80;background:#0d0c10;color:#fff;display:flex;flex-direction:column;touch-action:none;user-select:none;-webkit-user-select:none}
+.shoot[hidden]{display:none!important}
+#camV{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+.cam-frame{position:absolute;left:50%;transform:translateX(-50%);border:2px solid #fff;border-radius:7px 7px 5px 5px;box-shadow:0 0 0 100vmax rgba(8,6,16,.62);pointer-events:none;transition:width .15s}
+.cam-frame::before,.cam-frame::after{content:"";position:absolute;left:10%;right:10%;border-top:1.5px dashed rgba(255,255,255,.55)}
+.cam-frame::before{top:8%}.cam-frame::after{bottom:8%}
+.cam-hint{position:relative;z-index:1;margin:calc(env(safe-area-inset-top) + 16px) auto 0;padding:7px 14px;border-radius:99px;background:rgba(0,0,0,.45);font-size:14px;text-align:center;max-width:calc(100% - 32px)}
+.shoot-bar{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:14px 20px calc(env(safe-area-inset-bottom) + 22px);display:flex;flex-direction:column;align-items:center;gap:14px;
+ background:linear-gradient(transparent,rgba(0,0,0,.55) 35%)}
+.cam-row{display:flex;align-items:center;justify-content:center;gap:34px}
+.cam-w{display:flex;align-items:center;gap:12px;font-size:13px;color:rgba(255,255,255,.85)}
+.cam-w input{width:min(220px,50vw);accent-color:var(--ac)}
+.cam-b{width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer}
+.cam-go{width:74px;height:74px;border-radius:50%;border:4px solid #fff;background:var(--ac);box-shadow:inset 0 0 0 4px #0d0c10;cursor:pointer;transition:transform .12s}
+.cam-go:active{transform:scale(.92)}
+.cr-stage{position:absolute;inset:calc(env(safe-area-inset-top) + 64px) 0 150px;overflow:hidden}
+#crI{position:absolute;max-width:none;pointer-events:none}
+.cr-box{position:absolute;border:2px solid #fff;box-shadow:0 0 0 100vmax rgba(8,6,16,.62);cursor:move;touch-action:none}
+.cr-box b{position:absolute;width:26px;height:26px;margin:-13px;touch-action:none}
+.cr-box b::after{content:"";position:absolute;inset:8px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--ac)}
+.cr-box b[data-h=nw]{left:0;top:0;cursor:nwse-resize}.cr-box b[data-h=ne]{left:100%;top:0;cursor:nesw-resize}
+.cr-box b[data-h=sw]{left:0;top:100%;cursor:nesw-resize}.cr-box b[data-h=se]{left:100%;top:100%;cursor:nwse-resize}
+.cr-box b[data-h=n]{left:50%;top:0;cursor:ns-resize}.cr-box b[data-h=s]{left:50%;top:100%;cursor:ns-resize}
+.cr-box b[data-h=w]{left:0;top:50%;cursor:ew-resize}.cr-box b[data-h=e]{left:100%;top:50%;cursor:ew-resize}
+.cr-box b[data-h=n]::after,.cr-box b[data-h=s]::after{inset:10px 5px;border-radius:3px}.cr-box b[data-h=w]::after,.cr-box b[data-h=e]::after{inset:5px 10px;border-radius:3px}
+#crop.anim #crI,#crop.anim .cr-box{transition:left .3s var(--ease),top .3s var(--ease),width .3s var(--ease),height .3s var(--ease)}
+#crop .btn.ghost{color:#fff}#crop .btn.pri{background:var(--ac);color:#fff}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
@@ -302,6 +331,7 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
 <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"/></symbol>
 <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v15H6.5A2.5 2.5 0 0 0 4 20.5 2.5 2.5 0 0 0 6.5 23H20"/><path d="M9 7h7M9 11h5"/></symbol>
+<symbol id="i-crop" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
 <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
 <symbol id="i-stack" viewBox="0 0 24 24"><path d="M4 7h16M6 4h12M3 10h18v10H3z"/></symbol>
@@ -379,12 +409,22 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <div class="sp-top"><div id="spPrev"></div><div class="sp-f"><p class="kicker" id="spKind"></p>
   <label class="field"><span data-t="titleF"></span><input id="spTitle" maxlength="300" autocomplete="off"></label>
   <label class="field"><span data-t="authorF"></span><input id="spAuthor" maxlength="200" autocomplete="off"></label></div></div>
- <div class="acts"><label class="btn pri"><svg class="i"><use href="#i-cam"/></svg><span data-t="takePhoto"></span><input type="file" id="spCam" accept="image/*" capture="environment" hidden></label>
+ <div class="acts"><button class="btn pri" id="spShoot"><svg class="i"><use href="#i-cam"/></svg><span data-t="takePhoto"></span></button><input type="file" id="spCam" accept="image/*" capture="environment" hidden>
   <label class="btn"><svg class="i"><use href="#i-image"/></svg><span data-t="importImg"></span><input type="file" id="spFile" accept="image/png,image/jpeg,image/webp" hidden></label></div>
- <div class="acts" id="spPh"><button class="btn ghost" id="spRot"><svg class="i"><use href="#i-rot"/></svg><span data-t="rotate"></span></button><button class="btn ghost" id="spDelPh" data-t="removePhoto"></button></div>
+ <div class="acts" id="spPh"><button class="btn ghost" id="spCrop"><svg class="i"><use href="#i-crop"/></svg><span data-t="cropT"></span></button><button class="btn ghost" id="spRot"><svg class="i"><use href="#i-rot"/></svg><span data-t="rotate"></span></button><button class="btn ghost" id="spDelPh" data-t="removePhoto"></button></div>
  <div class="acts"><button class="btn" id="spOpen"><svg class="i"><use href="#i-book"/></svg><span data-t="openBook"></span></button><button class="btn pri" id="spSave" data-t="save"></button>
   <button class="btn ghost danger" id="spDel"><svg class="i"><use href="#i-trash"/></svg><span data-t="removePaper"></span></button></div>
  <p class="mut" style="margin-top:12px;font-size:13px" data-t="spineTip"></p></div>
+<!-- prise de vue : cadre en forme de tranche, puis recadrage -->
+<div class="shoot" id="cam" hidden><video id="camV" playsinline muted autoplay></video>
+ <div class="cam-frame" id="camF"></div><p class="cam-hint" data-t="camHint"></p>
+ <div class="shoot-bar"><label class="cam-w"><span data-t="camWidth"></span><input type="range" id="camW" min="6" max="40" value="13"></label>
+  <div class="cam-row"><button class="cam-b" id="camX" data-tt="cancel"><svg class="i"><use href="#i-x"/></svg></button><button class="cam-go" id="camGo" data-tt="takePhoto"></button>
+  <button class="cam-b" id="camImp" data-tt="importImg"><svg class="i"><use href="#i-image"/></svg></button></div></div></div>
+<div class="shoot" id="crop" hidden><div class="cr-stage" id="crS"><img id="crI" alt=""><div class="cr-box" id="crB" data-h="m"><b data-h="nw"></b><b data-h="ne"></b><b data-h="sw"></b><b data-h="se"></b><b data-h="n"></b><b data-h="s"></b><b data-h="w"></b><b data-h="e"></b></div></div>
+ <p class="cam-hint" data-t="cropHint"></p>
+ <div class="shoot-bar"><div class="cam-row"><button class="btn ghost" id="crX" data-t="cancel"></button><button class="cam-b" id="crR" data-tt="rotate"><svg class="i"><use href="#i-rot"/></svg></button>
+  <button class="btn pri" id="crOk"><svg class="i"><use href="#i-check"/></svg><span data-t="useCrop"></span></button></div></div></div>
 <div class="sheet" id="shPick"><div class="grab"></div><h3 id="pickTitle"></h3><div id="pickList"></div>
  <div class="acts"><button class="btn pri" id="pickDone" data-t="done"></button></div></div>
 <div class="sheet" id="shCol"><div class="grab"></div><h3 id="colMenuTitle"></h3>
@@ -466,5 +506,5 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <label class="field" id="authCodeF"><span data-t="mfaOrRecovery"></span><input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="11"></label>
  <div class="acts"><button class="btn pri" id="authOk" data-t="confirm"></button><button class="btn ghost" id="authNo" data-t="cancel"></button></div></div>
 <div id="sel"></div><div id="imgm"><button id="imgCover"><svg class="i"><use href="#i-image"/></svg><span data-t="useAsCover"></span></button></div><div id="msg"></div>
-<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="app.js?v=1.9.0"></script>
+<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="app.js?v=1.9.2"></script>
 </body></html>

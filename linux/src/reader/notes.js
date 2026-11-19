@@ -1,17 +1,17 @@
 /* Folio — panneau « Sommaire & notes » partagé entre le site (PWA) et l'app Linux.
    Utilise les variables CSS de l'hôte : --bg --fg --ac --acfg --muted --line --soft --surface. */
 window.FolioNotes = (() => {
-  const COLORS = { yellow: "#f6d55c", green: "#7bd88f", blue: "#6cb6ff", pink: "#ff8fb1" };
+  const COLORS = { yellow: "#f6d55c", green: "#7bd88f", blue: "#6cb6ff", pink: "#ff8fb1", orange: "#ffa94d", red: "#ff6b6b", purple: "#b197fc", teal: "#4fd1c5" };
   // textes en français / anglais ; la langue suit <html lang> (réglée par l'hôte) ou celle du navigateur
   const TX = {
-    fr: { yellow: "Jaune", green: "Vert", blue: "Bleu", pink: "Rose", toc: "Sommaire", notes: "Notes",
+    fr: { yellow: "Jaune", green: "Vert", blue: "Bleu", pink: "Rose", orange: "Orange", red: "Rouge", purple: "Violet", teal: "Turquoise", toc: "Sommaire", notes: "Notes",
       mapTip: "Cliquez pour aller à cet endroit du livre", bm: "Marque-page", here: "Vous êtes ici", start: "Début", end: "Fin",
       at: "Vous êtes à {p}", empty: "Pas encore de notes", emptyTxt: "Sélectionnez un passage pour le surligner, ou marquez la page avec le ruban.",
       all: "Tout", bms: "Marque-pages", hls: "Surlignages", exportTip: "Copier tous les surlignages (Markdown)", export: "Exporter",
       exported: "Surlignages copiés dans le presse-papiers", bookStart: "Début du livre", copyQuote: "Copier la citation",
       copied: "Citation copiée", delHl: "Supprimer le surlignage", pageAt: "Page à {p}", delBm: "Retirer le marque-page",
       noToc: "Ce livre n’a pas de sommaire.", q: ["« ", " »"] },
-    en: { yellow: "Yellow", green: "Green", blue: "Blue", pink: "Pink", toc: "Contents", notes: "Notes",
+    en: { yellow: "Yellow", green: "Green", blue: "Blue", pink: "Pink", orange: "Orange", red: "Red", purple: "Purple", teal: "Teal", toc: "Contents", notes: "Notes",
       mapTip: "Click to jump to this point in the book", bm: "Bookmark", here: "You are here", start: "Start", end: "End",
       at: "You are at {p}", empty: "No notes yet", emptyTxt: "Select a passage to highlight it, or mark the page with the ribbon.",
       all: "All", bms: "Bookmarks", hls: "Highlights", exportTip: "Copy all highlights (Markdown)", export: "Export",
