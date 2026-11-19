@@ -1428,11 +1428,11 @@ class FolioWindow(Adw.ApplicationWindow):
         self.theme_key = (bg, fg)
         dark = is_dark(bg)
         Adw.StyleManager.get_default().set_color_scheme(Adw.ColorScheme.FORCE_DARK if dark else Adw.ColorScheme.FORCE_LIGHT)
-        acc = "#f0876a" if dark else "#b8432f"      # rouge signet, comme le site
+        acc = "#a798ff" if dark else "#6d5bd0"      # violet, comme le site
         sh = "0.45" if dark else "0.14"
         load_css(self.theme_css, f"""
           @define-color accent_bg_color {acc}; @define-color accent_color {acc};
-          @define-color accent_fg_color {"#1c0f0b" if dark else "#ffffff"};
+          @define-color accent_fg_color {"#15122a" if dark else "#ffffff"};
           @define-color window_bg_color {bg}; @define-color window_fg_color {fg};
           @define-color view_bg_color {bg}; @define-color view_fg_color {fg};
           @define-color headerbar_bg_color {bg}; @define-color headerbar_fg_color {fg};

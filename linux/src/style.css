@@ -1,11 +1,11 @@
-/* Folio — même langage visuel que le site : encre, papier, un signet rouge ; titres en Fraunces (livrée avec l'appli).
+/* Folio — même langage visuel que le site : encre, papier, un signet violet ; titres en Fraunces (livrée avec l'appli).
    Les couleurs @folio_* et accent_* sont définies dynamiquement selon le thème de lecture (app.py). */
 
 /* ---- en-têtes ---- */
 .lib-head, .reader-head { box-shadow: none; min-height: 58px; }
 .brand { font-family: Fraunces, serif; font-style: italic; font-size: 27px; font-weight: 480; letter-spacing: -0.5px; }
 .brand-logo { border-radius: 8px; }
-/* bouton principal : à l'encre, le rouge est réservé au signet */
+/* bouton principal : à l'encre, le violet est réservé au signet */
 button.suggested-action { background: @window_fg_color; color: @window_bg_color; }
 button.suggested-action:hover { background: mix(@window_fg_color, @window_bg_color, .15); }
 button.suggested-action:active { background: mix(@window_fg_color, @window_bg_color, .25); }
