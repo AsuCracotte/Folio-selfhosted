@@ -162,9 +162,11 @@ def spine_words(title):
     return w
 
 
-def spine_jpeg(path=None, data=None, turn=None):
+def spine_jpeg(path=None, data=None, turn=None, pb=None):
     """Photo de tranche : redressée (une tranche est haute), réduite et compressée en JPEG."""
-    if data is not None:
+    if pb is not None:
+        pass
+    elif data is not None:
         ld = GdkPixbuf.PixbufLoader(); ld.write(data); ld.close(); pb = ld.get_pixbuf()
     else:
         pb = GdkPixbuf.Pixbuf.new_from_file(path); pb = pb.apply_embedded_orientation() or pb
@@ -175,6 +177,27 @@ def spine_jpeg(path=None, data=None, turn=None):
         pb = pb.scale_simple(max(1, round(w * k)), max(1, round(h * k)), GdkPixbuf.InterpType.HYPER)
     ok, buf = pb.save_to_bufferv("jpeg", ["quality"], ["86"])
     return bytes(buf)
+
+
+# décorations (plantes, peluches) : mêmes dessins que le site, posées entre les livres et sur les étagères vides
+DECO = {"succ": (70, 100), "snake": (60, 150), "stack": (92, 96), "bear": (80, 92), "bunny": (64, 112), "cat": (74, 80)}
+DECO_K, DECO_GAP = ["succ", "bear", "snake", "stack", "bunny", "cat"], [6, 9, 5, 8, 7, 10]
+
+
+def deco_widget(n, big=False):
+    k = DECO_K[n % len(DECO_K)]; w, h = DECO[k]; z = 1 if big else .86
+    W, H = round(w * z), round(h * z)
+    try:   # dessin rendu au double de la taille puis réduit : net sur les écrans HiDPI
+        pb = GdkPixbuf.Pixbuf.new_from_file_at_scale(os.path.join(SHARE, "decor", k + ".svg"), W * 2, H * 2, True)
+    except GLib.Error:
+        pb = None
+    area = Gtk.DrawingArea(content_width=W, content_height=H, valign=Gtk.Align.END)
+
+    def draw(_a, cr, aw, ah):
+        if pb:
+            cr.scale(aw / pb.get_width(), ah / pb.get_height()); Gdk.cairo_set_source_pixbuf(cr, pb, 0, 0); cr.paint()
+    area.set_draw_func(draw); area.add_css_class("deco"); area.deco_w = W + 24
+    return area
 
 
 class Spine(Gtk.DrawingArea):
@@ -877,17 +900,22 @@ class FolioWindow(Adw.ApplicationWindow):
             b = Gtk.ToggleButton(label=label, group=first, active=self.settings.get("rack_sort", "author") == key)
             first = first or b
             b.connect("toggled", lambda w, k=key: w.get_active() and self.set_rack_sort(k)); seg.append(b)
-        header.pack_end(add); header.pack_end(seg)
+        deco = Gtk.ToggleButton(icon_name="folio-leaf-symbolic", tooltip_text=T("Décorations"), valign=Gtk.Align.CENTER,
+                                active=self.settings.get("rack_deco", True))
+        deco.add_css_class("flat"); deco.add_css_class("circular"); deco.add_css_class("rack-deco")
+        deco.connect("toggled", lambda w: self.set_rack_deco(w.get_active()))
+        header.pack_end(add); header.pack_end(deco); header.pack_end(seg)
         view.add_top_bar(header)
-        self.case = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, margin_top=16)
+        self.case = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, margin_top=16); self.case.add_css_class("bookcase")
         tip = Gtk.Label(label=T("Importez la photo de la tranche de vos livres, numériques ou papier : votre étagère se compose et vous suit sur tous vos appareils. Depuis votre téléphone, vous pouvez la photographier directement."),
                         wrap=True, xalign=0, margin_top=18); tip.add_css_class("muted")
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, margin_start=28, margin_end=28, margin_bottom=40)
-        box.append(self.case); box.append(tip)
+        foot = Gtk.Box(); foot.add_css_class("case-foot")
+        box.append(self.case); box.append(foot); box.append(tip)
         self.case_w = 0
         self.case.add_tick_callback(lambda *_: (self.layout_case() if self.stack.get_visible_child_name() == "rack" else None) or True)
         view.set_content(Gtk.ScrolledWindow(vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER,
-                                            child=Adw.Clamp(maximum_size=1240, child=box)))
+                                            child=Adw.Clamp(maximum_size=1240, tightening_threshold=1240, child=box)))
         return view
 
     def layout_case(self, force=False):
@@ -901,13 +929,34 @@ class FolioWindow(Adw.ApplicationWindow):
             nxt = c.get_next_sibling(); self.case.remove(c); c = nxt
         items = self.rack_items()
         self.case_count.set_label(T("{n} livres" if len(items) > 1 else "{n} livre", n=len(items)))
-        row, used = None, 0
-        for wid in [Spine(x, on_click=self.spine_dialog) for x in items] + [self.spine_add_tile()]:
-            ww = wid.get_content_width() if isinstance(wid, Spine) else 34
-            if row is None or (used and used + ww + 3 > w - 8):
-                row, used = Gtk.Box(spacing=3, height_request=200, margin_bottom=26), 0
+        on = self.settings.get("rack_deco", True)
+        wids, nd, nxt = [], 0, DECO_GAP[0]
+        for i, x in enumerate(items):
+            if on and i == nxt:
+                wids.append(deco_widget(nd)); nd += 1; nxt += DECO_GAP[nd % len(DECO_GAP)]
+            wids.append(Spine(x, on_click=self.spine_dialog))
+        wids.append(self.spine_add_tile())
+        if on and len(items) < 4:
+            wids.append(deco_widget(nd)); nd += 1
+        inner = w - 32                                          # rembourrage des rangées
+        row, used, rows = None, 0, 0
+        for wid in wids:
+            ww = wid.get_content_width() if isinstance(wid, Spine) else getattr(wid, "deco_w", 34)
+            if row is None or (used and used + ww + 3 > inner):
+                row, used = Gtk.Box(spacing=3), 0; rows += 1
                 row.add_css_class("shelf-row"); self.case.append(row)
             row.append(wid); used += ww + 3
+        # plusieurs étages même avec peu de livres : on complète par des étagères décorées
+        for r in range(rows, 3):
+            row = Gtk.Box(spacing=round(inner * .2)); row.add_css_class("shelf-row"); self.case.append(row)
+            if on:
+                d = deco_widget(nd, True); nd += 1; d.set_margin_start(round(inner * (.08 + (r * 29) % 46 / 100))); row.append(d)
+                if r % 2:
+                    row.append(deco_widget(nd, True)); nd += 1
+
+    def set_rack_deco(self, on):
+        self.settings["rack_deco"] = on; self.lib.save_settings(self.settings)
+        self.layout_case(force=True)
 
     def set_rack_sort(self, k):
         self.settings["rack_sort"] = k; self.lib.save_settings(self.settings)
@@ -938,6 +987,88 @@ class FolioWindow(Adw.ApplicationWindow):
                                lambda e: None)
             return False
         self.shelf_push_id = GLib.timeout_add(1500, go)
+
+    def crop_dialog(self, pb, done):
+        """Recadrage d'une photo de tranche : rectangle déplaçable, redimensionnable par ses coins et ses bords."""
+        st = {"pb": pb, "r": [0.0, 0.0, float(pb.get_width()), float(pb.get_height())], "k": 1.0, "o": (0.0, 0.0), "sc": None, "hd": None, "r0": None}
+        d = Adw.Dialog(title=T("Recadrer"), content_width=820, content_height=660)
+        tv = Adw.ToolbarView(); hb = Adw.HeaderBar(); tv.add_top_bar(hb)
+        area = Gtk.DrawingArea(hexpand=True, vexpand=True); area.add_css_class("crop-area")
+        HANDLES = {"nw": (0, 0), "n": (.5, 0), "ne": (1, 0), "e": (1, .5), "se": (1, 1), "s": (.5, 1), "sw": (0, 1), "w": (0, .5)}
+
+        def geom(aw, ah):
+            p = st["pb"]; W, H = p.get_width(), p.get_height()
+            k = min((aw - 48) / W, (ah - 48) / H); st["k"] = k; st["o"] = ((aw - W * k) / 2, (ah - H * k) / 2)
+            return W, H, k
+
+        def screen_rect():
+            x, y, w, h = st["r"]; k = st["k"]; ox, oy = st["o"]
+            return ox + x * k, oy + y * k, w * k, h * k
+
+        def draw(_a, cr, aw, ah):
+            W, H, k = geom(aw, ah); ox, oy = st["o"]; sw, sh = max(1, round(W * k)), max(1, round(H * k))
+            if not st["sc"] or st["sc"].get_width() != sw or st["sc"].get_height() != sh:
+                st["sc"] = st["pb"].scale_simple(sw, sh, GdkPixbuf.InterpType.BILINEAR)
+            cr.set_source_rgb(.05, .047, .063); cr.paint()
+            Gdk.cairo_set_source_pixbuf(cr, st["sc"], ox, oy); cr.paint()
+            X, Y, w, h = screen_rect()
+            cr.set_fill_rule(cairo.FILL_RULE_EVEN_ODD); cr.rectangle(ox, oy, sw, sh); cr.rectangle(X, Y, w, h)
+            cr.set_source_rgba(.03, .02, .06, .62); cr.fill()
+            cr.set_source_rgb(1, 1, 1); cr.set_line_width(2); cr.rectangle(X, Y, w, h); cr.stroke()
+            for fx, fy in HANDLES.values():
+                cr.arc(X + w * fx, Y + h * fy, 6, 0, 2 * math.pi); cr.set_source_rgb(1, 1, 1); cr.fill_preserve()
+                cr.set_source_rgb(.427, .357, .816); cr.set_line_width(2); cr.stroke()
+
+        def hit(px, py):
+            X, Y, w, h = screen_rect()
+            for name, (fx, fy) in HANDLES.items():
+                if abs(px - (X + w * fx)) < 14 and abs(py - (Y + h * fy)) < 14:
+                    return name
+            return "m" if X <= px <= X + w and Y <= py <= Y + h else None
+
+        def begin(g, px, py):
+            st["hd"] = hit(px, py); st["r0"] = list(st["r"])
+
+        def update(g, dx, dy):
+            hd = st["hd"]
+            if not hd:
+                return
+            k = st["k"]; dx, dy = dx / k, dy / k; x, y, w, h = st["r0"]; W, H, m = st["pb"].get_width(), st["pb"].get_height(), 16
+            if hd == "m":
+                x, y = x + dx, y + dy
+            else:
+                if "w" in hd:
+                    nx = min(max(0, x + dx), x + w - m); w += x - nx; x = nx
+                if "e" in hd:
+                    w = min(max(m, w + dx), W - x)
+                if "n" in hd:
+                    ny = min(max(0, y + dy), y + h - m); h += y - ny; y = ny
+                if "s" in hd:
+                    h = min(max(m, h + dy), H - y)
+            w, h = min(w, W), min(h, H); x, y = min(max(x, 0), W - w), min(max(y, 0), H - h)
+            st["r"] = [x, y, w, h]; area.queue_draw()
+
+        CURS = {"nw": "nwse-resize", "se": "nwse-resize", "ne": "nesw-resize", "sw": "nesw-resize", "n": "ns-resize", "s": "ns-resize",
+                "e": "ew-resize", "w": "ew-resize", "m": "move"}
+        mo = Gtk.EventControllerMotion(); mo.connect("motion", lambda c, px, py: area.set_cursor(Gdk.Cursor.new_from_name(CURS.get(hit(px, py), "default"))))
+        dg = Gtk.GestureDrag(); dg.connect("drag-begin", begin); dg.connect("drag-update", update)
+        area.add_controller(mo); area.add_controller(dg); area.set_draw_func(draw)
+
+        def rotate(*_):
+            p = st["pb"]; H = p.get_height(); x, y, w, h = st["r"]
+            st["pb"] = p.rotate_simple(GdkPixbuf.PixbufRotation.CLOCKWISE); st["r"] = [H - y - h, x, h, w]; st["sc"] = None; area.queue_draw()
+
+        def use(*_):
+            x, y, w, h = (round(v) for v in st["r"]); p = st["pb"]
+            w, h = max(1, min(w, p.get_width() - x)), max(1, min(h, p.get_height() - y))
+            sub = p.new_subpixbuf(x, y, w, h).copy(); d.close(); done(sub)
+
+        rot = Gtk.Button(icon_name="object-rotate-right-symbolic", tooltip_text=T("Faire pivoter")); rot.connect("clicked", rotate)
+        ok = Gtk.Button(label=T("Utiliser")); ok.add_css_class("suggested-action"); ok.connect("clicked", use)
+        hb.pack_start(rot); hb.pack_end(ok)
+        tip = Gtk.Label(label=T("Ajustez le cadre sur la tranche"), margin_top=8, margin_bottom=12); tip.add_css_class("muted")
+        body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL); body.append(area); body.append(tip)
+        tv.set_content(body); d.set_child(tv); d.present(self)
 
     def spine_dialog(self, item):
         """Fiche d'un livre de l'étagère ; item None = nouveau livre papier."""
@@ -999,9 +1130,10 @@ class FolioWindow(Adw.ApplicationWindow):
                 except GLib.Error:
                     return
                 try:
-                    store(spine_jpeg(path=f.get_path()))
+                    pb = GdkPixbuf.Pixbuf.new_from_file(f.get_path()); pb = pb.apply_embedded_orientation() or pb
                 except GLib.Error as e:
-                    self.toast(T("Image illisible : {e}", e=e.message))
+                    return self.toast(T("Image illisible : {e}", e=e.message))
+                self.crop_dialog(pb, lambda sub: store(spine_jpeg(pb=sub)))
             Gtk.FileDialog(title=T("Photo de la tranche"), filters=fl).open(self, None, picked)
 
         def rotate(*_):
@@ -1011,8 +1143,15 @@ class FolioWindow(Adw.ApplicationWindow):
 
         imp = Gtk.Button(child=Adw.ButtonContent(icon_name="image-x-generic-symbolic", label=T("Importer la photo de la tranche")))
         imp.add_css_class("pill"); imp.add_css_class("suggested-action"); imp.connect("clicked", pick)
+        def recrop(*_):
+            p = st["photo"] if new else str(Library.spine_path(item["id"]))
+            if p and os.path.exists(p):
+                self.crop_dialog(GdkPixbuf.Pixbuf.new_from_file(p), lambda sub: store(spine_jpeg(pb=sub)))
+
         rot = Gtk.Button(child=Adw.ButtonContent(icon_name="object-rotate-right-symbolic", label=T("Faire pivoter"))); rot.add_css_class("pill")
         rot.connect("clicked", rotate)
+        crp = Gtk.Button(child=Adw.ButtonContent(icon_name="folio-crop-symbolic", label=T("Recadrer"))); crp.add_css_class("pill")
+        crp.connect("clicked", recrop); ph_row.append(crp)
         rm = Gtk.Button(label=T("Retirer la photo")); rm.add_css_class("pill"); rm.connect("clicked", lambda *_: store(None))
         ph_row.append(rot); ph_row.append(rm)
         acts = Gtk.Box(spacing=10, homogeneous=True)

@@ -275,10 +275,17 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 .rk-head h2{margin:0;font-size:30px;font-weight:450}
 #rkCount{color:var(--muted);font-size:13px;flex:1}
 .rk-head .seg{min-width:260px}
-/* planches : chaque rangée fait 240 px, la planche est dessinée en fond à la même hauteur */
-.case{max-width:1180px;margin:14px auto 0;padding:0 28px;display:flex;flex-wrap:wrap;gap:0 3px;
- background:linear-gradient(transparent 214px,color-mix(in srgb,var(--fg) 11%,var(--bg)) 214px,color-mix(in srgb,var(--fg) 11%,var(--bg)) 226px,rgba(0,0,0,.1) 226px,transparent 234px) 0 0/100% 240px repeat-y}
+/* meuble : montants et fronton en bois, fond plus sombre, une planche toutes les 240 px (dessinée en fond) */
+.case{--back:color-mix(in srgb,var(--fg) 5%,var(--bg));max-width:1180px;margin:18px auto 0;padding:0 18px;display:flex;flex-wrap:wrap;gap:0 3px;
+ border:14px solid var(--wood);border-bottom:0;border-radius:12px 12px 0 0;box-shadow:inset 0 10px 18px -8px rgba(0,0,0,.25),inset 12px 0 16px -12px rgba(0,0,0,.3),inset -12px 0 16px -12px rgba(0,0,0,.3),0 20px 40px -24px rgba(0,0,0,.35);
+ background:linear-gradient(transparent 214px,var(--wood) 214px,var(--wood) 217px,var(--wood2) 217px,var(--wood2) 228px,rgba(0,0,0,.16) 228px,transparent 238px) 0 0/100% 240px repeat-y,var(--back)}
 .case .slot{height:240px;padding-bottom:26px;display:flex;align-items:flex-end}
+.case .slot.deco{padding:0 12px 26px}.case .slot.deco img{display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))}
+.case .slot.srow{flex-basis:100%;gap:22%;overflow:hidden;min-width:0}.case .slot.srow .deco{height:auto;padding-bottom:0}
+.rk-foot{max-width:1180px;margin:0 auto;height:22px;background:var(--wood2);border-radius:0 0 6px 6px;position:relative;box-shadow:0 8px 16px -8px rgba(0,0,0,.4)}
+.rk-foot::before,.rk-foot::after{content:"";position:absolute;bottom:-10px;width:28px;height:10px;background:var(--wood2);border-radius:0 0 4px 4px;filter:brightness(.85)}.rk-foot::before{left:24px}.rk-foot::after{right:24px}
+#rkDeco.on{color:var(--ac);background:var(--tint,color-mix(in srgb,var(--ac) 12%,transparent))}
+#rack{--wood:#c9a57a;--wood2:#b48c5f}:root.dark #rack{--wood:#6b5038;--wood2:#57402c}
 .rk-tip{max-width:1180px;margin:24px auto 0;padding:0 28px}
 .sp-top{display:flex;gap:22px;align-items:flex-end;margin-bottom:6px}
 #spPrev{flex:none;display:flex;align-items:flex-end;min-width:60px;border-bottom:10px solid color-mix(in srgb,var(--fg) 11%,var(--bg))}
@@ -333,6 +340,7 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v15H6.5A2.5 2.5 0 0 0 4 20.5 2.5 2.5 0 0 0 6.5 23H20"/><path d="M9 7h7M9 11h5"/></symbol>
 <symbol id="i-crop" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-8 5-14 15-15 0 10-6 15-14 15M5 19l8-8"/></symbol>
 <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
 <symbol id="i-stack" viewBox="0 0 24 24"><path d="M4 7h16M6 4h12M3 10h18v10H3z"/></symbol>
 <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></symbol>
@@ -356,8 +364,8 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 <div class="drop" data-t="dropHere"></div>
 <div id="rack" hidden><header class="rk-head"><button class="ib" id="rkBack" data-tt="library"><svg class="i"><use href="#i-back"/></svg></button><h2 data-t="rack"></h2><span id="rkCount"></span>
  <div class="seg" id="rkSort"><button data-s="author" data-t="sortAuthor"></button><button data-s="title" data-t="sortTitle"></button><button data-s="recent" data-t="sortRecent"></button></div>
- <button class="btn pri" id="rkAdd" data-tt="addPaperT"><svg class="i"><use href="#i-plus"/></svg><span data-t="addPaper"></span></button></header>
- <div class="case" id="rkCase"></div><p class="mut rk-tip" data-t="rackTip"></p></div>
+ <button class="ib" id="rkDeco" data-tt="decoT"><svg class="i"><use href="#i-leaf"/></svg></button><button class="btn pri" id="rkAdd" data-tt="addPaperT"><svg class="i"><use href="#i-plus"/></svg><span data-t="addPaper"></span></button></header>
+ <div class="case" id="rkCase"></div><div class="rk-foot" id="rkFoot"></div><p class="mut rk-tip" data-t="rackTip"></p></div>
 <div id="rd"><div id="top">
   <button class="ib" id="bBack" data-tt="library"><svg class="i"><use href="#i-back"/></svg></button>
   <div class="tt"><div id="ttl"></div><div id="chapTop"></div></div>

@@ -1,5 +1,5 @@
 // Folio pour Windows et macOS : une fenêtre de bureau autour de l'appli web Folio (même interface, même synchro).
-const { app, BrowserWindow, Menu, shell, ipcMain, nativeTheme } = require("electron");
+const { app, BrowserWindow, Menu, shell, ipcMain, nativeTheme, systemPreferences } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -75,8 +75,17 @@ function createWindow() {
     e.preventDefault();
     if (/^(https?|mailto):/.test(url)) shell.openExternal(url);
   });
-  // aucun accès caméra, micro, notifications…
-  win.webContents.session.setPermissionRequestHandler((_wc, perm, cb) => cb(perm === "clipboard-sanitized-write"));
+  // seule la caméra est accordée, à Folio lui-même (photo de la tranche d'un livre) ; jamais le micro, la position, les notifications…
+  win.webContents.session.setPermissionRequestHandler(async (_wc, perm, cb, details) => {
+    if (perm === "clipboard-sanitized-write") return cb(true);
+    const types = (details && details.mediaTypes) || [];
+    const own = details && typeof details.requestingUrl === "string" && details.requestingUrl.startsWith(ORIGIN + "/");
+    if (perm !== "media" || !own || !types.length || types.some((t) => t !== "video")) return cb(false);
+    if (isMac && systemPreferences.getMediaAccessStatus("camera") !== "granted") {
+      try { return cb(await systemPreferences.askForMediaAccess("camera")); } catch (e) { return cb(false); }
+    }
+    cb(true);
+  });
 
   // hors ligne au tout premier lancement (pas encore de cache) : page d'attente avec « Réessayer »
   win.webContents.on("did-fail-load", (_e, code, _desc, url, isMain) => {

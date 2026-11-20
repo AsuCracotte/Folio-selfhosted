@@ -1,7 +1,7 @@
 {
   "name": "folio-desktop",
   "productName": "Folio",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Folio \u2014 desktop app (Windows, macOS) for a self-hosted Folio server",
   "author": "Folio contributors",
   "license": "MIT",
@@ -78,6 +78,7 @@
         }
       ],
       "identity": null,
+      "extendInfo": { "NSCameraUsageDescription": "Folio utilise la caméra pour photographier la tranche de vos livres." },
       "artifactName": "Folio-${version}-mac-${arch}.${ext}"
     }
   }

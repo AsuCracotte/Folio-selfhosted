@@ -51,7 +51,7 @@ fr:{siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks
  takePhoto:"Photographier la tranche",camHint:"Placez la tranche du livre dans le cadre",camWidth:"Épaisseur",camNo:"Caméra indisponible : choisissez une photo",cropT:"Recadrer",cropHint:"Ajustez le cadre sur la tranche",useCrop:"Utiliser",importImg:"Importer une image",rotate:"Faire pivoter",removePhoto:"Retirer la photo",openBook:"Ouvrir le livre",removePaper:"Retirer de l’étagère",
  spineSet:"Tranche mise à jour",spinePhotoOff:"Photo retirée",paperAdded:"« {t} » rangé sur l’étagère",paperRemoved:"Livre retiré de l’étagère",needTitle:"Indiquez au moins le titre",
  confirmRemovePaper:"Retirer « {t} » de l’étagère ?",sortAuthor:"Auteur",sortTitle:"Titre",sortRecent:"Récents",kindBook:"Livre numérique",kindPaper:"Livre papier",
- rackTip:"Photographiez la tranche de vos livres, numériques ou papier : votre étagère se compose, et vous suit sur tous vos appareils.",spineTip:"Astuce : livre debout, tranche bien droite et cadrée serrée.",
+ decoT:"Décorations",decoT:"Decorations",rackTip:"Photographiez la tranche de vos livres, numériques ou papier : votre étagère se compose, et vous suit sur tous vos appareils.",spineTip:"Astuce : livre debout, tranche bien droite et cadrée serrée.",
  fold:"Replier",unfold:"Déplier",useAsCover:"Utiliser comme couverture",coverSet:"Couverture mise à jour",coverReset:"Couverture d’origine rétablie",customCover:"Couverture personnalisée",bookOptions:"Options du livre"},
 en:{siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
  library:"Library",bookmark:"Bookmark",tocNotes:"Contents and notes",appearance:"Appearance",customColors:"Custom colours",background:"Background",text:"Text",font:"Font",bookFont:"Book’s font",
@@ -100,7 +100,7 @@ en:{siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add bo
  takePhoto:"Photograph the spine",camHint:"Fit the book’s spine inside the frame",camWidth:"Thickness",camNo:"Camera unavailable: pick a photo instead",cropT:"Crop",cropHint:"Adjust the frame to the spine",useCrop:"Use",importImg:"Import an image",rotate:"Rotate",removePhoto:"Remove photo",openBook:"Open the book",removePaper:"Remove from the shelf",
  spineSet:"Spine updated",spinePhotoOff:"Photo removed",paperAdded:"“{t}” added to the shelf",paperRemoved:"Book removed from the shelf",needTitle:"Enter at least the title",
  confirmRemovePaper:"Remove “{t}” from the shelf?",sortAuthor:"Author",sortTitle:"Title",sortRecent:"Recent",kindBook:"Ebook",kindPaper:"Paper book",
- rackTip:"Photograph the spines of your books, digital or paper: your bookshelf builds itself and follows you on all your devices.",spineTip:"Tip: stand the book up, keep the spine straight and frame it tightly.",
+ decoT:"Decorations",rackTip:"Photograph the spines of your books, digital or paper: your bookshelf builds itself and follows you on all your devices.",spineTip:"Tip: stand the book up, keep the spine straight and frame it tightly.",
  fold:"Collapse",unfold:"Expand",useAsCover:"Use as cover",coverSet:"Cover updated",coverReset:"Original cover restored",customCover:"Custom cover",bookOptions:"Book options"}};
 const t=(k,v={})=>String(TX[LANG][k]??TX.fr[k]??k).replace(/\{(\w+)\}/g,(_,x)=>v[x]??"");
 const tn=(n,one,many)=>t(n>1?many:one,{n});
@@ -243,13 +243,27 @@ async function render(){const all=(await allB()).sort((a,b)=>(b.lastRead||b.adde
  bs.forEach(b=>g.append(card(b)))}
 $("q").oninput=()=>render();
 // ---------- vue « étagère » ----------
+// décorations dessinées (plantes, peluches : decor/*.svg, partagés avec l'appli Linux) posées entre les livres et sur les étagères vides
+const DECO={succ:[70,100],snake:[60,150],stack:[92,96],bear:[80,92],bunny:[64,112],cat:[74,80]};
+const DECO_K=["succ","bear","snake","stack","bunny","cat"],DECO_GAP=[6,9,5,8,7,10];
+let DECO_ON=localStorage.folioRackDeco!=="0";
+function decoEl(n,big){const k=DECO_K[n%DECO_K.length],[w,h]=DECO[k],z=big?1:.86;const d=document.createElement("div");d.className="slot deco";
+ d.innerHTML=`<img src="decor/${k}.svg" width="${Math.round(w*z)}" height="${Math.round(h*z)}" alt="" draggable="false">`;return d}
 async function renderRack(){const items=rackList(await allB()),c=$("rkCase");c.innerHTML="";$("rkCount").textContent=tn(items.length,"books1","booksN");
  document.querySelectorAll("#rkSort button").forEach(b=>b.classList.toggle("on",b.dataset.s===(localStorage.folioRackSort||"author")));
- items.forEach(x=>{const s=document.createElement("div");s.className="slot";s.append(spineEl(x));c.append(s)});
- const s=document.createElement("div");s.className="slot";const add=document.createElement("button");add.type="button";add.className="spine add";add.title=t("addPaperT");add.innerHTML=ico("plus");add.onclick=()=>spineMenu(null);s.append(add);c.append(s)}
+ $("rkDeco").classList.toggle("on",DECO_ON);$("rkDeco").setAttribute("aria-pressed",String(DECO_ON));
+ let nd=0,next=DECO_GAP[0];
+ items.forEach((x,i)=>{if(DECO_ON&&i===next){c.append(decoEl(nd++));next+=DECO_GAP[nd%DECO_GAP.length]}const s=document.createElement("div");s.className="slot";s.append(spineEl(x));c.append(s)});
+ const s=document.createElement("div");s.className="slot";const add=document.createElement("button");add.type="button";add.className="spine add";add.title=t("addPaperT");add.innerHTML=ico("plus");add.onclick=()=>spineMenu(null);s.append(add);c.append(s);
+ if(DECO_ON&&items.length<4)c.append(decoEl(nd++));
+ // plusieurs étages même avec peu de livres : on complète par des étagères décorées
+ const tops=new Set([...c.children].map(e=>e.offsetTop)),min=innerWidth<560?4:3;
+ for(let r=tops.size;r<min;r++){const row=document.createElement("div");row.className="slot srow";
+  if(DECO_ON){row.style.paddingLeft=(8+(r*29)%46)+"%";row.append(decoEl(nd++,true));if(r%2)row.append(decoEl(nd++,true))}c.append(row)}}
 function openRack(){$("rack").hidden=false;renderRack()}
 const rackRefresh=()=>{render();if(!$("rack").hidden)renderRack();if($("shSpine").classList.contains("on"))spineFill()};
-$("rkBack").onclick=()=>{$("rack").hidden=true;render()};$("rkAdd").onclick=()=>spineMenu(null);
+$("rkBack").onclick=()=>{$("rack").hidden=true;render()};$("rkDeco").onclick=()=>{DECO_ON=!DECO_ON;localStorage.folioRackDeco=DECO_ON?"1":"0";renderRack()};
+let rkRz;addEventListener("resize",()=>{clearTimeout(rkRz);rkRz=setTimeout(()=>{if(!$("rack").hidden)renderRack()},200)});$("rkAdd").onclick=()=>spineMenu(null);
 document.querySelectorAll("#rkSort button").forEach(b=>b.onclick=()=>{localStorage.folioRackSort=b.dataset.s;renderRack()});
 // fiche d'un livre de l'étagère (id null = nouveau livre papier)
 let spId=null,spNew=null;           // spNew : brouillon d'un livre papier pas encore rangé { blob }
