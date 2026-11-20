@@ -27,7 +27,7 @@ window.FolioVoice = (() => {
 .fv .msg{padding:0 10px;max-width:340px;line-height:1.35;font-size:13px}.fv .msg button{display:inline;width:auto;height:auto;border-radius:999px;padding:6px 12px;margin-left:6px;background:var(--ac);color:var(--acfg);font-weight:600}
 .fv .st{font-size:12px;color:var(--muted);padding:0 6px;white-space:nowrap}
 .fv.busy .pp{animation:fvp 1s ease-in-out infinite}@keyframes fvp{50%{opacity:.55}}
-@media (max-width:600px){.fv{bottom:calc(env(safe-area-inset-bottom) + 50px)}.fv select{max-width:120px}.fv .sp{display:none}}`;
+@media (max-width:600px){.fv{bottom:calc(env(safe-area-inset-bottom) + 50px)}.fv select{max-width:46vw}.fv .sp{display:none}}`;
   const BLOCK = "p,h1,h2,h3,h4,h5,h6,li,blockquote,dd,dt,figcaption,pre,td,th,div";
   const MAXC = 260, MERGE = 150;   // phrases courtes regroupées (~2 s de voix) : la voix démarre vite et le serveur garde de l'avance
 

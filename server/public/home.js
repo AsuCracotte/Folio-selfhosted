@@ -91,7 +91,7 @@
   // ---------- éléments pilotés par le défilement ----------
   const book = $("#book"), cover = $(".cover", book);
   const sync = $("#sync"), read = $("#readText"), trackEl = $("#track"), pctEl = $("#pct"), devNames = $$("#track span");
-  const tilts = $$(".frame.tilt,.stage"), tiltCache = tilts.map(() => ({}));
+  const tilts = $$(".frame.tilt,.duo"), tiltCache = tilts.map(() => ({}));
 
   // le texte de la synchro, mot par mot
   const words = (() => {

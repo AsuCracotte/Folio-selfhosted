@@ -1,4 +1,4 @@
-const C="folio-app-v16",F=["./","index.html","app.js","notes.js","write.js","voice.js","fonts/od-400-normal.woff2","epub.min.js","jszip.min.js","manifest.json","icon.svg","decor/succ.svg","decor/snake.svg","decor/stack.svg","decor/bear.svg","decor/bunny.svg","decor/cat.svg"];
+const C="folio-app-v17",F=["./","index.html","app.js","notes.js","write.js","voice.js","fonts/od-400-normal.woff2","epub.min.js","jszip.min.js","manifest.json","icon.svg","decor/succ.svg","decor/snake.svg","decor/stack.svg","decor/bear.svg","decor/bunny.svg","decor/cat.svg"];
 self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(F.map(u=>new Request(u,{cache:"reload"})))))});
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(n=>n!==C).map(n=>caches.delete(n)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",e=>{const u=new URL(e.request.url);
