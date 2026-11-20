@@ -122,7 +122,7 @@ window.FolioVoice = (() => {
       return null;
     }
 
-    // ---- audio : morceau courant + 3 d'avance, demandés au serveur ----
+    // ---- audio : morceau courant + 4 d'avance, demandés au serveur ----
     const key = (p) => `${voice}|${p.sec}|${p.b}|${p.k}`;
     function fetchAudio(p) {
       const it = item(p); if (!it) return null;
@@ -132,7 +132,7 @@ window.FolioVoice = (() => {
     }
     function prefetch(p) {
       let q = p;
-      for (let i = 0; i < 3; i++) { q = step(q, 1); if (!q || q.cross) break; fetchAudio(q); }
+      for (let i = 0; i < 4; i++) { q = step(q, 1); if (!q || q.cross) break; fetchAudio(q); }
       if (cache.size > 40) [...cache.keys()].slice(0, cache.size - 40).forEach((k) => cache.delete(k));
     }
     function mark(it) {
@@ -167,7 +167,9 @@ window.FolioVoice = (() => {
       mark(it); prefetch(p);
       if (url) URL.revokeObjectURL(url);
       url = URL.createObjectURL(blob); au.src = url; au.playbackRate = speed;
-      au.onended = () => { if (g === gen && playing) playAt(step(pos, 1)); };
+      // paragraphe suivant : courte respiration (les silences des moteurs sont retirés côté serveur) ; même paragraphe : enchaîné
+      au.onended = () => { if (g !== gen || !playing) return; const n = step(pos, 1);
+        if (n && !n.cross && n.b === pos.b) playAt(n); else setTimeout(() => { if (g === gen && playing) playAt(n); }, 160); };
       try { await au.play(); } catch (e) { playing = false; paint(); }
     }
     function stopAudio() { gen++; au.pause(); au.removeAttribute("src"); try { au.load(); } catch (e) {} }

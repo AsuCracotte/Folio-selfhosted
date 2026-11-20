@@ -4,6 +4,7 @@ const path = require("node:path");
 const Fastify = require("fastify");
 const QRCode = require("qrcode");
 const { mergeState, mergeDraft } = require("./merge");
+const { trimWav } = require("./trim");
 const { Tts } = require("./tts");
 const { GoogleTts } = require("./gtts");
 const S = require("./security");
@@ -602,11 +603,11 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
         try {
           const r = await gtts.say(voice, s);
           if (!r.cached) ttsUse.set(req.userId, { day, n: used + s.length });
-          return reply.type("audio/mpeg").send(r.data);
+          return reply.type("audio/wav").send(r.data);
         } catch (e) { console.error("[tts]", e.message); return fail(reply, 502, "internal"); }
       }
       if (!tts.has(voice)) return fail(reply, 400, "bad_request");
-      try { return reply.type("audio/wav").send(await tts.say(voice, s)); }
+      try { return reply.type("audio/wav").send(trimWav(await tts.say(voice, s))); }
       catch (e) { return fail(reply, e.busy ? 503 : 500, e.busy ? "too_many" : "internal"); }
     });
 

@@ -4,6 +4,7 @@
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
+const { trimWav } = require("./trim");
 
 const API = "https://texttospeech.googleapis.com/v1";
 const LANGS = ["fr-FR", "en-US", "en-GB"];
@@ -41,14 +42,14 @@ function GoogleTts(key, cacheDir) {
 
   async function say(id, text) {
     const name = id.slice(2), lc = name.split("-").slice(0, 2).join("-");
-    const file = cacheDir && path.join(cacheDir, crypto.createHash("sha256").update(name + "\n" + text).digest("hex") + ".mp3");
+    const file = cacheDir && path.join(cacheDir, crypto.createHash("sha256").update(name + "\n" + text).digest("hex") + ".wav");
     if (file && fs.existsSync(file)) { const t = new Date(); fs.utimesSync(file, t, t); return { data: fs.readFileSync(file), cached: true }; }
     const r = await fetch(`${API}/text:synthesize?key=${k}`, {
       method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(20e3),
-      body: JSON.stringify({ input: { text }, voice: { languageCode: lc, name }, audioConfig: { audioEncoding: "MP3" } }),
+      body: JSON.stringify({ input: { text }, voice: { languageCode: lc, name }, audioConfig: { audioEncoding: "LINEAR16" } }),   // WAV : silences retirés avant la mise en cache
     });
     if (!r.ok) throw new Error("google " + r.status);
-    const data = Buffer.from((await r.json()).audioContent || "", "base64");
+    const data = trimWav(Buffer.from((await r.json()).audioContent || "", "base64"));
     if (!data.length) throw new Error("google: audio vide");
     if (file) {
       try { fs.mkdirSync(cacheDir, { recursive: true }); fs.writeFileSync(file, data); if (++writes % 50 === 1) prune(); } catch { /* disque plein : on sert quand même */ }

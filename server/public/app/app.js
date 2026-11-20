@@ -3,7 +3,7 @@
 const LANG=(()=>{let l;try{l=localStorage.folioLang}catch(e){}return l==="fr"||l==="en"?l:/^fr/i.test(navigator.language||"")?"fr":"en"})();
 document.documentElement.lang=LANG;
 const TX={
-fr:{facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",camFront:"Cadrez la couverture du livre",camBack:"Cadrez le dos du livre (4e de couverture)",photoSaved:"Photo enregistrée",updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
+fr:{facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",camFront:"Cadrez la couverture du livre",camBack:"Cadrez le dos du livre (4e de couverture)",photoSaved:"Photo enregistrée",updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",updOld:"Une nouvelle version de l’appli Folio est disponible",updDl:"Télécharger",updCheck:"Rechercher une mise à jour",updNone:"Folio {v} est à jour",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
  library:"Bibliothèque",bookmark:"Marque-page",tocNotes:"Sommaire et notes",appearance:"Apparence",customColors:"Couleurs perso",background:"Fond",text:"Texte",font:"Police",bookFont:"Police du livre",
  size:"Taille",lineHeight:"Interligne",margins:"Marges",justify:"Texte justifié",pages:"Pages",scroll:"Défilement",typography:"Typographie",paraSpace:"Espace entre paragraphes",weight:"Graisse",
  letterSpace:"Espacement des lettres",indent:"Retrait de première ligne",indBook:"Livre",indNone:"Aucun",indNormal:"Normal",indWide:"Large",resetLook:"Réinitialiser l’apparence",syncLook:"Synchronisation entre appareils",syncLookTxt:"Décochez ce que cet appareil doit garder pour lui : il ne l’enverra plus et ne recevra plus celui des autres.",sg_colors:"Thème et couleurs",sg_font:"Police",sg_size:"Taille du texte",sg_spacing:"Interligne et typographie",sg_margin:"Marges",sg_layout:"Justification, pages ou défilement",
@@ -53,7 +53,7 @@ fr:{facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",ca
  confirmRemovePaper:"Retirer « {t} » de l’étagère ?",editSpine:"Tranche et infos",sortAuthor:"Auteur",sortTitle:"Titre",sortRecent:"Récents",kindBook:"Livre numérique",kindPaper:"Livre papier",
  decoT:"Décorations",decoT:"Decorations",rackTip:"Photographiez la tranche de vos livres, numériques ou papier : votre étagère se compose, et vous suit sur tous vos appareils.",spineTip:"Astuce : livre debout, tranche bien droite et cadrée serrée.",
  fold:"Replier",unfold:"Déplier",useAsCover:"Utiliser comme couverture",coverSet:"Couverture mise à jour",coverReset:"Couverture d’origine rétablie",customCover:"Couverture personnalisée",bookOptions:"Options du livre"},
-en:{facesT:"Cover and back (3D view)",faceFront:"Cover",faceBack:"Back",camFront:"Fit the book’s cover in the frame",camBack:"Fit the back cover in the frame",photoSaved:"Photo saved",updWeb:"New version of Folio",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
+en:{facesT:"Cover and back (3D view)",faceFront:"Cover",faceBack:"Back",camFront:"Fit the book’s cover in the frame",camBack:"Fit the back cover in the frame",photoSaved:"Photo saved",updWeb:"New version of Folio",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",updOld:"A new version of the Folio app is available",updDl:"Download",updCheck:"Check for updates",updNone:"Folio {v} is up to date",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
  library:"Library",bookmark:"Bookmark",tocNotes:"Contents and notes",appearance:"Appearance",customColors:"Custom colours",background:"Background",text:"Text",font:"Font",bookFont:"Book’s font",
  size:"Size",lineHeight:"Line spacing",margins:"Margins",justify:"Justified text",pages:"Pages",scroll:"Scrolling",typography:"Typography",paraSpace:"Paragraph spacing",weight:"Weight",
  letterSpace:"Letter spacing",indent:"First-line indent",indBook:"Book",indNone:"None",indNormal:"Normal",indWide:"Wide",resetLook:"Reset appearance",syncLook:"Sync across devices",syncLookTxt:"Untick what this device should keep to itself: it will no longer send it, nor receive the one from your other devices.",sg_colors:"Theme and colours",sg_font:"Font",sg_size:"Text size",sg_spacing:"Line height and typography",sg_margin:"Margins",sg_layout:"Justification, pages or scrolling",
@@ -812,15 +812,21 @@ $("bSync").onclick=doSync;
 // ---------- mises à jour ----------
 // le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
 // l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
-const APPV="2.3.0";let updShown=false;
+const APPV="2.3.1";let updShown=false;
 function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
  $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
+const D=window.folioDesktop;
+function offerApp(u){updBar(t("updApp",{v:u.version}),t("updGo"),async()=>{$("updGo").disabled=true;
+  D.onProgress?.(p=>$("updT").textContent=t("updGet",{p:Math.round(p*100)+(LANG==="fr"?" %":"%")}));
+  try{await D.installUpdate()}catch(e){$("updT").textContent=t("updFail");$("updGo").disabled=false}})}
 async function checkUpd(){if(updShown||!navigator.onLine)return;
  try{const v=(await (await fetch("version.json",{cache:"no-store"})).json()).version;if(v&&v!==APPV)return updBar(t("updWeb")+" ("+v+")",t("updGo"),()=>location.reload())}catch(e){}
- const D=window.folioDesktop;if(!D?.checkUpdate)return;
- try{const u=await D.checkUpdate();if(u)updBar(t("updApp",{v:u.version}),t("updGo"),async()=>{$("updGo").disabled=true;
-  D.onProgress?.(p=>$("updT").textContent=t("updGet",{p:Math.round(p*100)+(LANG==="fr"?" %":"%")}));
-  try{await D.installUpdate()}catch(e){$("updT").textContent=t("updFail");$("updGo").disabled=false}})}catch(e){}}
+ // appli de bureau d'avant la 1.9 : pas de mise à jour intégrée, on l'envoie vers la page de téléchargement (une seule fois)
+ if(D&&!D.checkUpdate)return updBar(t("updOld"),t("updDl"),()=>{window.open(location.origin+"/download");$("upd").hidden=true});
+ if(!D)return;try{const u=await D.checkUpdate();if(u?.version)offerApp(u)}catch(e){}}
+// lien discret en bas de la bibliothèque (appli de bureau) : version installée, vérification à la demande
+if(D?.checkUpdate){const a=$("updLnk");a.hidden=false;a.onclick=async e=>{e.preventDefault();let u=null;try{u=await D.checkUpdate()}catch(x){}
+ if(u?.version){updShown=false;offerApp(u)}else msg(u?.current?t("updNone",{v:u.current}):t("updNone",{v:""}).replace("  "," "))}}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpd()});setInterval(checkUpd,3600e3);setTimeout(checkUpd,4000);
 addEventListener("hashchange",mailLinks);
 (async()=>{initDav();outer();mailLinks();await open();render();if(navigator.serviceWorker)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"});if(dav)doSync()})();
