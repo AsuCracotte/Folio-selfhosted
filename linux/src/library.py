@@ -107,7 +107,10 @@ class Library:
                         ("highlights", ("updated REAL", "deleted INTEGER DEFAULT 0")),
                         ("books", ("pos_updated REAL", "synced TEXT", "uploaded INTEGER DEFAULT 0",
                                    # couverture choisie par l'utilisateur (fichier à part ; la plus récente gagne)
-                                   "custom_cover TEXT DEFAULT ''", "cover_updated REAL DEFAULT 0", "cover_sent INTEGER DEFAULT 1"))):
+                                   "custom_cover TEXT DEFAULT ''", "cover_updated REAL DEFAULT 0", "cover_sent INTEGER DEFAULT 1")),
+                        # étagère : photos de la couverture et du dos (vue 3D), comme la tranche
+                        ("shelf", ("front REAL DEFAULT 0", "back REAL DEFAULT 0", "front_at REAL DEFAULT 0", "front_sent REAL DEFAULT 0",
+                                   "back_at REAL DEFAULT 0", "back_sent REAL DEFAULT 0"))):
             have = {r[1] for r in self.db.execute(f"PRAGMA table_info({t})")}
             for c in cols:
                 if c.split()[0] not in have:
@@ -314,7 +317,11 @@ class Library:
 
     # ---- étagère : livres numériques (id = empreinte) et papier, photo de tranche facultative -------------
     # spine = date de la photo en vigueur (0 = aucune) ; spine_at = celle présente ici ; spine_sent = celle envoyée
-    SHELF_KEYS = ("id", "kind", "title", "author", "spine", "created", "updated", "deleted")
+    SHELF_KEYS = ("id", "kind", "title", "author", "spine", "front", "back", "created", "updated", "deleted")
+    FACES = ("spine", "front", "back")
+    _UPSERT = ("INSERT INTO shelf(id,kind,title,author,spine,front,back,created,updated,deleted) VALUES(?,?,?,?,?,?,?,?,?,?) "
+               "ON CONFLICT(id) DO UPDATE SET kind=excluded.kind, title=excluded.title, author=excluded.author, spine=excluded.spine, "
+               "front=excluded.front, back=excluded.back, updated=excluded.updated, deleted=excluded.deleted")
 
     def shelf_items(self, with_deleted=False):
         q = "SELECT * FROM shelf" + ("" if with_deleted else " WHERE COALESCE(deleted,0)=0")
@@ -329,39 +336,37 @@ class Library:
         return [{k: x[k] for k in self.SHELF_KEYS} for x in self.shelf_items(with_deleted=True)]
 
     @staticmethod
-    def spine_path(sid):
-        return SPINES / f"{sid}.jpg"
+    def spine_path(sid, face="spine"):
+        return SPINES / (f"{sid}.jpg" if face == "spine" else f"{sid}.{face}.jpg")
 
     def shelf_put(self, sid, **kw):
         """Crée ou modifie un livre de l'étagère (horodaté : le plus récent gagne à la synchro)."""
         now = time.time()
-        cur = self.shelf_item(sid) or {"id": sid, "kind": "book", "title": "", "author": "", "spine": 0, "created": now, "deleted": 0}
+        cur = self.shelf_item(sid) or {"id": sid, "kind": "book", "title": "", "author": "", "spine": 0, "front": 0, "back": 0, "created": now, "deleted": 0}
         cur.update(kw); cur["updated"] = now
-        self.db.execute("INSERT INTO shelf(id,kind,title,author,spine,created,updated,deleted) VALUES(?,?,?,?,?,?,?,?) "
-                        "ON CONFLICT(id) DO UPDATE SET kind=excluded.kind, title=excluded.title, author=excluded.author, "
-                        "spine=excluded.spine, updated=excluded.updated, deleted=excluded.deleted",
-                        (sid, cur["kind"], str(cur["title"])[:300], str(cur["author"])[:200], cur["spine"] or 0,
-                         cur["created"] or now, now, 1 if cur["deleted"] else 0))
+        self.db.execute(self._UPSERT, (sid, cur["kind"], str(cur["title"])[:300], str(cur["author"])[:200], cur["spine"] or 0,
+                                       cur.get("front") or 0, cur.get("back") or 0, cur["created"] or now, now, 1 if cur["deleted"] else 0))
         self.db.commit()
         return cur
 
-    def set_spine(self, sid, data, **base):
-        """Pose (data = JPEG) ou retire (data = None) la photo de tranche."""
-        p = self.spine_path(sid)
+    def set_spine(self, sid, data, face="spine", **base):
+        """Pose (data = JPEG) ou retire (data = None) une photo : tranche, couverture (front) ou dos (back)."""
+        p = self.spine_path(sid, face)
         if data:
             p.write_bytes(data); t = time.time()
-            self.shelf_put(sid, spine=t, deleted=0, **base)
-            self.mark_spine(sid, at=t)
+            self.shelf_put(sid, **{face: t}, deleted=0, **base)
+            self.mark_spine(sid, at=t, face=face)
         else:
             p.unlink(missing_ok=True)
-            self.shelf_put(sid, spine=0, **base)
-            self.mark_spine(sid, at=0)
+            self.shelf_put(sid, **{face: 0}, **base)
+            self.mark_spine(sid, at=0, face=face)
 
-    def mark_spine(self, sid, at=None, sent=None):
+    def mark_spine(self, sid, at=None, sent=None, face="spine"):
+        assert face in self.FACES
         if at is not None:
-            self.db.execute("UPDATE shelf SET spine_at=? WHERE id=?", (at, sid))
+            self.db.execute(f"UPDATE shelf SET {face}_at=? WHERE id=?", (at, sid))
         if sent is not None:
-            self.db.execute("UPDATE shelf SET spine_sent=? WHERE id=?", (sent, sid))
+            self.db.execute(f"UPDATE shelf SET {face}_sent=? WHERE id=?", (sent, sid))
         self.db.commit()
 
     def new_paper(self, title, author=""):
@@ -379,12 +384,9 @@ class Library:
             cur = self.shelf_item(x["id"])
             if cur and (cur["updated"] or 0) >= (x.get("updated") or 0):
                 continue
-            self.db.execute("INSERT INTO shelf(id,kind,title,author,spine,created,updated,deleted) VALUES(?,?,?,?,?,?,?,?) "
-                            "ON CONFLICT(id) DO UPDATE SET kind=excluded.kind, title=excluded.title, author=excluded.author, "
-                            "spine=excluded.spine, updated=excluded.updated, deleted=excluded.deleted",
-                            (x["id"], "paper" if x.get("kind") == "paper" else "book", str(x.get("title", ""))[:300],
-                             str(x.get("author", ""))[:200], x.get("spine") or 0, x.get("created") or 0, x.get("updated") or 0,
-                             1 if x.get("deleted") else 0))
+            self.db.execute(self._UPSERT, (x["id"], "paper" if x.get("kind") == "paper" else "book", str(x.get("title", ""))[:300],
+                                           str(x.get("author", ""))[:200], x.get("spine") or 0, x.get("front") or 0, x.get("back") or 0,
+                                           x.get("created") or 0, x.get("updated") or 0, 1 if x.get("deleted") else 0))
             changed = True
         self.db.commit()
         return changed

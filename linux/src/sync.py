@@ -97,50 +97,55 @@ class Sync:
             tmp = f.with_suffix(".tmp"); tmp.write_text(json.dumps(mine, ensure_ascii=False)); tmp.replace(f)
         return changed
 
-    def _spine_file(self, x):
-        return self.dir / "spines" / f"{x['id']}-{round((x['spine'] or 0) * 1000)}.jpg"
+    # photos : tranche « id-<date>.jpg », couverture « id.front-<date>.jpg », dos « id.back-<date>.jpg »
+    @staticmethod
+    def _stem(x, face):
+        return x["id"] if face == "spine" else f"{x['id']}.{face}"
 
-    def _sent(self, x):
-        return self._spine_file(x).exists()
+    def _spine_file(self, x, face="spine"):
+        return self.dir / "spines" / f"{self._stem(x, face)}-{round((x[face] or 0) * 1000)}.jpg"
 
-    def _get_spine(self, x):
+    def _sent(self, x, face="spine"):
+        return self._spine_file(x, face).exists()
+
+    def _get_spine(self, x, face="spine"):
         try:
-            return self._spine_file(x).read_bytes()
+            return self._spine_file(x, face).read_bytes()
         except OSError:
             return None
 
-    def _put_spine(self, x, data):
+    def _put_spine(self, x, data, face="spine"):
         d = self.dir / "spines"; d.mkdir(exist_ok=True)
-        for old in d.glob(f"{x['id']}-*.jpg"):                 # versions précédentes
-            old.unlink(missing_ok=True)
-        tmp = d / f".{x['id']}.tmp"; tmp.write_bytes(data); tmp.replace(self._spine_file(x))
+        self._drop_spine(x, face)                                  # versions précédentes
+        tmp = d / f".{self._stem(x, face)}.tmp"; tmp.write_bytes(data); tmp.replace(self._spine_file(x, face))
         return True
 
-    def _drop_spine(self, x):
-        for old in (self.dir / "spines").glob(f"{x['id']}-*.jpg"):
+    def _drop_spine(self, x, face="spine"):
+        for old in (self.dir / "spines").glob(f"{self._stem(x, face)}-*.jpg"):
             old.unlink(missing_ok=True)
 
     def shelf(self):
-        """Échange l'étagère puis les photos de tranches. Retourne True si quelque chose a changé ici."""
+        """Échange l'étagère puis les photos (tranche, couverture, dos). Retourne True si quelque chose a changé ici."""
         changed = self._shelf_exchange()
         for x in self.lib.shelf_items(with_deleted=True):
-            sid, p = x["id"], self.lib.spine_path(x["id"])
-            if x["deleted"] or not x["spine"]:
-                if x["spine_at"] or p.exists():
-                    p.unlink(missing_ok=True); self.lib.mark_spine(sid, at=0); changed = True
-                self._drop_spine(x)
-                continue
-            if x["spine_at"] == x["spine"] and p.exists():           # notre photo : à envoyer si pas encore fait
-                if not self._sent(x):
-                    try:
-                        if self._put_spine(x, p.read_bytes()):
-                            self.lib.mark_spine(sid, sent=x["spine"])
-                    except OSError:
-                        pass
-            else:                                                     # photo plus récente ailleurs : on la récupère
-                data = self._get_spine(x)
-                if data:
-                    p.write_bytes(data); self.lib.mark_spine(sid, at=x["spine"], sent=x["spine"]); changed = True
+            for face in self.lib.FACES:
+                sid, p, ts, at = x["id"], self.lib.spine_path(x["id"], face), x[face] or 0, x[f"{face}_at"] or 0
+                if x["deleted"] or not ts:
+                    if at or p.exists():
+                        p.unlink(missing_ok=True); self.lib.mark_spine(sid, at=0, face=face); changed = True
+                    self._drop_spine(x, face)
+                    continue
+                if at == ts and p.exists():                          # notre photo : à envoyer si pas encore fait
+                    if not self._sent(x, face):
+                        try:
+                            if self._put_spine(x, p.read_bytes(), face):
+                                self.lib.mark_spine(sid, sent=ts, face=face)
+                        except OSError:
+                            pass
+                else:                                                 # photo plus récente ailleurs : on la récupère
+                    data = self._get_spine(x, face)
+                    if data:
+                        p.write_bytes(data); self.lib.mark_spine(sid, at=ts, sent=ts, face=face); changed = True
         return changed
 
     def collections(self):
@@ -301,21 +306,25 @@ class ApiSync(Sync):
         merged = json.load(self._req("PUT", "/api/shelf", json.dumps({"items": self.lib.shelf_public()}).encode()))
         return self.lib.merge_shelf(merged)
 
-    def _sent(self, x):
-        return x["spine_sent"] == x["spine"]
+    def _sent(self, x, face="spine"):
+        return x[f"{face}_sent"] == x[face]
 
-    def _drop_spine(self, x):
+    def _drop_spine(self, x, face="spine"):
         pass                                  # le serveur efface la photo de lui-même
 
-    def _get_spine(self, x):
+    @staticmethod
+    def _url(x, face):
+        return f"/api/spines/{x['id']}" + ("" if face == "spine" else f"?face={face}")
+
+    def _get_spine(self, x, face="spine"):
         try:
-            return self._req("GET", f"/api/spines/{x['id']}").read()
+            return self._req("GET", self._url(x, face)).read()
         except OSError:
             return None
 
-    def _put_spine(self, x, data):
+    def _put_spine(self, x, data, face="spine"):
         ctype = "image/png" if data[:4] == b"\x89PNG" else "image/jpeg"
-        self._req("PUT", f"/api/spines/{x['id']}", data, ctype)
+        self._req("PUT", self._url(x, face), data, ctype)
         return True
 
     def set_lang(self, lang):

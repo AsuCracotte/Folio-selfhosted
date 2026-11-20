@@ -65,6 +65,8 @@ HTTPS is required for phones to install the web app.
 | `ALLOW_SIGNUP` | `true` | Set to `false` to close registrations |
 | `QUOTA_MB` | `2048` | Storage per account |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | — | Outgoing email (port 465 = TLS, otherwise STARTTLS) |
+| `GOOGLE_TTS_KEY` | — | Optional: natural read-aloud voices (Google Cloud Text-to-Speech, Chirp 3 HD). The text being read is sent to Google; without a key, the local Piper voices are used |
+| `GOOGLE_TTS_DAILY_CHARS` | `200000` | Characters per account and per day sent to Google (protects your bill; phrases already spoken are cached) |
 | `TUNNEL_TOKEN` | — | Only for the `tunnel` profile |
 | `FOLIO_SECRET` | — | Optional, replaces `data/secret.key` (encrypts 2FA secrets) |
 

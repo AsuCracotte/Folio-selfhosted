@@ -187,6 +187,15 @@ def spine_jpeg(path=None, data=None, turn=None, pb=None):
     return bytes(buf)
 
 
+def face_jpeg(pb):
+    """Photo de couverture ou de dos : réduite (900 × 1350 au plus) et compressée en JPEG."""
+    w, h = pb.get_width(), pb.get_height(); k = min(1, 900 / w, 1350 / h)
+    if k < 1:
+        pb = pb.scale_simple(max(1, round(w * k)), max(1, round(h * k)), GdkPixbuf.InterpType.HYPER)
+    ok, buf = pb.save_to_bufferv("jpeg", ["quality"], ["85"])
+    return bytes(buf)
+
+
 # décorations (plantes, peluches) : mêmes dessins que le site, posées entre les livres et sur les étagères vides
 DECO = {"succ": (70, 100), "snake": (60, 150), "stack": (92, 96), "bear": (80, 92), "bunny": (64, 112), "cat": (74, 80)}
 DECO_K, DECO_GAP = ["succ", "bear", "snake", "stack", "bunny", "cat"], [6, 9, 5, 8, 7, 10]
@@ -270,10 +279,11 @@ class Book3D(Gtk.DrawingArea):
     """Un livre en 3D (projection orthogonale, faces en Cairo) : il arrive tranche face à nous puis pivote vers sa couverture.
     Glisser pour le tourner."""
 
-    def __init__(self, item, cover_pb):
+    def __init__(self, item, cover_pb, back_pb=None):
         super().__init__(hexpand=True, vexpand=True, content_height=380)
         H = 300.0
         self.front = self.surface_from(cover_pb) if cover_pb else self.gen_cover(item)
+        self.back = self.surface_from(back_pb) if back_pb else "back"
         sp = Spine(item, big=True); sw, sh = sp.get_content_width(), sp.get_content_height()
         self.spine = cairo.ImageSurface(cairo.FORMAT_ARGB32, sw, sh); sp.draw(None, cairo.Context(self.spine), sw, sh)
         fw, fh = self.front.get_width(), self.front.get_height()
@@ -346,7 +356,7 @@ class Book3D(Gtk.DrawingArea):
             ((-W/2, -H/2, -T/2), (-W/2, -H/2, T/2), (-W/2, H/2, -T/2), (-1, 0, 0), self.spine),
             ((W/2, -H/2, T/2), (W/2, -H/2, -T/2), (W/2, H/2, T/2), (1, 0, 0), "pages"),
             ((-W/2, -H/2, -T/2), (W/2, -H/2, -T/2), (-W/2, -H/2, T/2), (0, -1, 0), "pages"),
-            ((W/2, -H/2, -T/2), (-W/2, -H/2, -T/2), (W/2, H/2, -T/2), (0, 0, -1), "back")]
+            ((W/2, -H/2, -T/2), (-W/2, -H/2, -T/2), (W/2, H/2, -T/2), (0, 0, -1), self.back)]
         # ombre portée
         cr.save(); cr.translate(cx, cy + H / 2 + 16); cr.scale(max(W, T) * .75, 10); cr.arc(0, 0, 1, 0, 2 * math.pi); cr.restore()
         cr.set_source_rgba(0, 0, 0, .18); cr.fill()
@@ -1033,9 +1043,11 @@ class FolioWindow(Adw.ApplicationWindow):
         books = self.lib.books() if books is None else books
         sh = {x["id"]: x for x in self.lib.shelf_items()}
         out = [{"id": b["hash"], "kind": "book", "bid": b["id"], "title": b["title"] or "", "author": b["author"] or "",
-                "at": b["added"] or 0, "spine": (sh.get(b["hash"]) or {}).get("spine", 0), "cover": b["cover"] or ""} for b in books]
+                "at": b["added"] or 0, "spine": (sh.get(b["hash"]) or {}).get("spine", 0), "cover": b["cover"] or "",
+                "back": (sh.get(b["hash"]) or {}).get("back", 0)} for b in books]
         out += [{"id": x["id"], "kind": "paper", "title": x["title"] or "", "author": x["author"] or "",
-                 "at": x["created"] or 0, "spine": x["spine"]} for x in sh.values() if x["kind"] == "paper"]
+                 "at": x["created"] or 0, "spine": x["spine"], "front": x["front"] or 0, "back": x["back"] or 0}
+                for x in sh.values() if x["kind"] == "paper"]
         k = self.settings.get("rack_sort", "author")
         last = lambda a: (a or "").split()[-1].casefold() if (a or "").split() else ""
         if k == "recent":
@@ -1150,7 +1162,8 @@ class FolioWindow(Adw.ApplicationWindow):
         dlg = Adw.Dialog(content_width=460, content_height=640, title=item.get("title") or T("Sans titre"))
         tv = Adw.ToolbarView(); tv.add_top_bar(Adw.HeaderBar(show_title=False))
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, margin_start=24, margin_end=24, margin_bottom=24)
-        b3 = Book3D(item, cover_pixbuf(item.get("cover")) if item["kind"] == "book" else None); box.append(b3)
+        ph = lambda f: cover_pixbuf(Library.spine_path(item["id"], f)) if item.get(f) else None  # noqa: E731
+        b3 = Book3D(item, cover_pixbuf(item.get("cover")) if item["kind"] == "book" else ph("front"), ph("back")); box.append(b3)
         t = Gtk.Label(label=item.get("title") or T("Sans titre"), wrap=True, justify=Gtk.Justification.CENTER); t.add_css_class("title-2")
         sub = [item.get("author") or "", T("Livre numérique") if item["kind"] == "book" else T("Livre papier")]
         a = Gtk.Label(label=" · ".join(x for x in sub if x), wrap=True, justify=Gtk.Justification.CENTER); a.add_css_class("muted")
@@ -1199,7 +1212,7 @@ class FolioWindow(Adw.ApplicationWindow):
             return False
         self.shelf_push_id = GLib.timeout_add(1500, go)
 
-    def crop_dialog(self, pb, done):
+    def crop_dialog(self, pb, done, hint=None):
         """Recadrage d'une photo de tranche : rectangle déplaçable, redimensionnable par ses coins et ses bords."""
         st = {"pb": pb, "r": [0.0, 0.0, float(pb.get_width()), float(pb.get_height())], "k": 1.0, "o": (0.0, 0.0), "sc": None, "hd": None, "r0": None}
         d = Adw.Dialog(title=T("Recadrer"), content_width=820, content_height=660)
@@ -1277,9 +1290,27 @@ class FolioWindow(Adw.ApplicationWindow):
         rot = Gtk.Button(icon_name="object-rotate-right-symbolic", tooltip_text=T("Faire pivoter")); rot.connect("clicked", rotate)
         ok = Gtk.Button(label=T("Utiliser")); ok.add_css_class("suggested-action"); ok.connect("clicked", use)
         hb.pack_start(rot); hb.pack_end(ok)
-        tip = Gtk.Label(label=T("Ajustez le cadre sur la tranche"), margin_top=8, margin_bottom=12); tip.add_css_class("muted")
+        tip = Gtk.Label(label=hint or T("Ajustez le cadre sur la tranche"), margin_top=8, margin_bottom=12); tip.add_css_class("muted")
         body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL); body.append(area); body.append(tip)
         tv.set_content(body); d.set_child(tv); d.present(self)
+
+    def pick_image(self, title, done):
+        flt = Gtk.FileFilter(name=T("Images"))
+        for m in ("image/png", "image/jpeg", "image/webp"):
+            flt.add_mime_type(m)
+        fl = Gio.ListStore.new(Gtk.FileFilter); fl.append(flt)
+
+        def picked(dlg, res):
+            try:
+                f = dlg.open_finish(res)
+            except GLib.Error:
+                return
+            try:
+                pb = GdkPixbuf.Pixbuf.new_from_file(f.get_path()); pb = pb.apply_embedded_orientation() or pb
+            except GLib.Error as e:
+                return self.toast(T("Image illisible : {e}", e=e.message))
+            done(pb)
+        Gtk.FileDialog(title=title, filters=fl).open(self, None, picked)
 
     def spine_dialog(self, item):
         """Fiche d'un livre de l'étagère ; item None = nouveau livre papier."""
@@ -1347,6 +1378,51 @@ class FolioWindow(Adw.ApplicationWindow):
                 self.crop_dialog(pb, lambda sub: store(spine_jpeg(pb=sub)))
             Gtk.FileDialog(title=T("Photo de la tranche"), filters=fl).open(self, None, picked)
 
+        # couverture (livres papier : un livre numérique a déjà la sienne) et dos : pour la vue 3D
+        faces = Gtk.Box(spacing=18)
+        faces_t = Gtk.Label(label=T("Couverture et dos (vue 3D)"), xalign=0); faces_t.add_css_class("kicker")
+
+        def face_tile(face, label):
+            col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+            pic = Gtk.Picture(content_fit=Gtk.ContentFit.COVER, width_request=84, height_request=126, can_shrink=True); pic.add_css_class("face-thumb")
+            btns = Gtk.Box(spacing=2, halign=Gtk.Align.CENTER)
+            imp_b = Gtk.Button(icon_name="image-x-generic-symbolic", tooltip_text=T("Importer une image")); imp_b.add_css_class("flat")
+            rm_b = Gtk.Button(icon_name="user-trash-symbolic", tooltip_text=T("Retirer la photo")); rm_b.add_css_class("flat")
+            btns.append(imp_b); btns.append(rm_b)
+            lab = Gtk.Label(label=label); lab.add_css_class("caption"); lab.add_css_class("muted")
+            for w in (pic, lab, btns):
+                col.append(w)
+
+            def path():
+                if new:
+                    return st.get(face)
+                x = self.lib.shelf_item(item["id"]) or {}
+                p = Library.spine_path(item["id"], face)
+                return str(p) if x.get(face) and not x.get("deleted") and p.exists() else None
+
+            def paint():
+                p = path(); pic.set_filename(p); rm_b.set_visible(bool(p))
+            def store_face(data):
+                if new:
+                    f = Path(tempfile.gettempdir()) / f"folio-{face}-new-{os.getpid()}.jpg"
+                    if data:
+                        f.write_bytes(data)
+                    else:
+                        f.unlink(missing_ok=True)
+                    st[face] = str(f) if data else None
+                else:
+                    self.lib.set_spine(item["id"], data, face=face, **base())
+                    self.toast(T("Photo enregistrée") if data else T("Photo retirée")); self.rack_changed()
+                paint()
+            hint = T("Cadrez la couverture du livre") if face == "front" else T("Cadrez le dos du livre (4e de couverture)")
+            imp_b.connect("clicked", lambda *_: self.pick_image(label, lambda pb: self.crop_dialog(pb, lambda sub: store_face(face_jpeg(sub)), hint)))
+            rm_b.connect("clicked", lambda *_: store_face(None))
+            paint()
+            return col
+        if not is_book:
+            faces.append(face_tile("front", T("Couverture")))
+        faces.append(face_tile("back", T("Dos")))
+
         def rotate(*_):
             p = st["photo"] if new else str(Library.spine_path(item["id"]))
             if p and os.path.exists(p):
@@ -1379,6 +1455,9 @@ class FolioWindow(Adw.ApplicationWindow):
                 sid = self.lib.new_paper(b["title"], b["author"])
                 if st["photo"]:
                     self.lib.set_spine(sid, Path(st["photo"]).read_bytes(), **b); Path(st["photo"]).unlink(missing_ok=True)
+                for face in ("front", "back"):
+                    if st.get(face):
+                        self.lib.set_spine(sid, Path(st[face]).read_bytes(), face=face, **b); Path(st[face]).unlink(missing_ok=True)
                 d.close(); self.toast(T("« {t} » rangé sur l’étagère", t=b["title"])); self.rack_changed()
             sv.connect("clicked", save); acts.append(sv)
         elif not is_book:
@@ -1386,7 +1465,9 @@ class FolioWindow(Adw.ApplicationWindow):
             dl.add_css_class("pill"); dl.add_css_class("destructive-action")
 
             def remove(*_):
-                self.lib.set_spine(item["id"], None); self.lib.shelf_put(item["id"], deleted=1)
+                for face in self.lib.FACES:
+                    self.lib.set_spine(item["id"], None, face=face)
+                self.lib.shelf_put(item["id"], deleted=1)
                 d.close(); self.toast(T("Livre retiré de l’étagère")); self.rack_changed()
             dl.connect("clicked", remove); acts.append(dl)
 
@@ -1395,12 +1476,13 @@ class FolioWindow(Adw.ApplicationWindow):
                 b, x = base(), self.lib.shelf_item(item["id"])
                 if x and not x["deleted"] and b["title"] and (b["title"] != x["title"] or b["author"] != x["author"]):
                     self.lib.shelf_put(item["id"], title=b["title"], author=b["author"]); self.rack_changed()
-            if new and st["photo"]:
-                Path(st["photo"]).unlink(missing_ok=True)
+            for k in ("photo", "front", "back"):
+                if new and st.get(k):
+                    Path(st[k]).unlink(missing_ok=True)
         d.connect("closed", closed)
         tip = Gtk.Label(label=T("Astuce : livre debout, tranche bien droite et cadrée serrée. Une photo prise à plat est redressée."), wrap=True, xalign=0)
         tip.add_css_class("muted"); tip.add_css_class("caption")
-        for w in (top, imp, ph_row, acts, tip):
+        for w in (top, imp, ph_row, faces_t, faces, acts, tip):
             box.append(w)
         repaint()
         tv.set_content(box); d.set_child(tv); d.present(self)
@@ -2216,7 +2298,8 @@ class FolioWindow(Adw.ApplicationWindow):
                     v = api._json("GET", "/api/tts/voices")
                 else:
                     body = json.dumps({"voice": str(m.get("voice", "")), "text": str(m.get("text", ""))[:1000]}).encode()
-                    v = base64.b64encode(api._req("POST", "/api/tts", body).read()).decode()
+                    resp = api._req("POST", "/api/tts", body)       # MP3 (voix Google) ou WAV (Piper)
+                    v = {"data": base64.b64encode(resp.read()).decode(), "type": resp.headers.get_content_type()}
             except Exception:  # noqa: BLE001 — la barre affiche « voix indisponible »
                 v = [] if m["t"] == "tts_voices" else None
             GLib.idle_add(lambda: self.js(f"Folio.reply({rid}, {json.dumps(v)})") and False)

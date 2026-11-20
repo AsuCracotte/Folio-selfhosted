@@ -23,6 +23,8 @@ const app = build(db, {
   publicUrl: process.env.PUBLIC_URL || "http://127.0.0.1:8787",
   quotaMB: +(process.env.QUOTA_MB || 2048),
   ttsDir: process.env.TTS_DIR || path.join(__dirname, "..", "tts"),
+  googleKey: process.env.GOOGLE_TTS_KEY || "",                  // voix naturelles Google Cloud (facultatif)
+  ttsDailyChars: +(process.env.GOOGLE_TTS_DAILY_CHARS || 200000), // plafond par compte et par jour
   mailer,
 });
 app.listen({ host: process.env.HOST || "0.0.0.0", port: +(process.env.PORT || 8787) })

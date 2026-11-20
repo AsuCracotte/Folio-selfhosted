@@ -5,6 +5,7 @@ const Fastify = require("fastify");
 const QRCode = require("qrcode");
 const { mergeState, mergeDraft } = require("./merge");
 const { Tts } = require("./tts");
+const { GoogleTts } = require("./gtts");
 const S = require("./security");
 const { esc } = require("./mailer");
 const { langOf, t, pick } = require("./i18n");
@@ -59,7 +60,7 @@ const SID = /^(?:[0-9a-f]{40}|[a-z0-9]{6,32})$/;
 const txt = (s, n) => String(s ?? "").normalize("NFKC").replace(CTRL, "").trim().slice(0, n);
 const cleanShelf = (a) => (Array.isArray(a) ? a : []).filter((x) => x && SID.test(String(x.id))).slice(0, 10000)
   .map((x) => ({ id: x.id, kind: x.kind === "paper" ? "paper" : "book", title: txt(x.title, 300), author: txt(x.author, 200),
-    spine: num(x.spine), created: num(x.created), updated: num(x.updated), deleted: x.deleted ? 1 : 0 }))
+    spine: num(x.spine), front: num(x.front), back: num(x.back), created: num(x.created), updated: num(x.updated), deleted: x.deleted ? 1 : 0 }))
   .filter((x) => x.kind === "paper" || HASH.test(x.id));
 // Manuscrits : HTML gardé tel quel (jamais affiché par le serveur ; les clients le nettoient avant affichage et export)
 const COVER = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
@@ -75,13 +76,14 @@ function dirSize(d) {
   try { return fs.readdirSync(d).reduce((n, f) => n + fs.statSync(path.join(d, f)).size, 0); } catch { return 0; }
 }
 
-function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, publicUrl = "", mailer, quotaMB = 2048, ttsDir = "" }) {
+function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, publicUrl = "", mailer, quotaMB = 2048, ttsDir = "", googleKey = "", ttsDailyChars = 200000 }) {
   const app = Fastify({ bodyLimit: 2 * 1024 * 1024 });
   const key = S.loadKey(dataDir);
   const RL = new S.Limiter();
   const tickets = new Map();             // tickets 2FA en attente : sha256(ticket) → { userId, exp, tries }
   const base = (publicUrl || "").replace(/\/$/, "");
-  const tts = Tts(ttsDir);
+  const tts = Tts(ttsDir), gtts = GoogleTts(googleKey, path.join(dataDir, "tts-cache"));
+  const ttsUse = new Map();            // caractères envoyés à Google aujourd'hui, par compte (protège la facture)
 
   app.addContentTypeParser("application/epub+zip", { parseAs: "buffer", bodyLimit: 300 * 1024 * 1024 }, (_r, b, done) => done(null, b));
   app.addContentTypeParser(["image/png", "image/jpeg", "image/webp"], { parseAs: "buffer", bodyLimit: 3 * 1024 * 1024 }, (_r, b, done) => done(null, b));
@@ -522,7 +524,10 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
       return merged;
     });
     // ---------- étagère et photos de tranches ----------
-    const spineFile = (uid, id) => path.join(dataDir, "spines", uid, id);
+    // photos d'un livre de l'étagère : tranche (id), couverture (id.front) et dos (id.back) pour le rendu 3D
+    const FACES = ["spine", "front", "back"];
+    const faceOf = (req) => (FACES.includes((req.query || {}).face) ? req.query.face : "spine");
+    const spineFile = (uid, id, face = "spine") => path.join(dataDir, "spines", uid, face === "spine" ? id : `${id}.${face}`);
     const SP = { schema: { params: { type: "object", properties: { id: { type: "string", pattern: SID.source } } } } };
     const shelfOf = async (id) => JSON.parse((await db.user.findUnique({ where: { id } })).shelf || "[]");
     api.get("/api/shelf", async (req) => shelfOf(req.userId));
@@ -533,11 +538,11 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
       const json = JSON.stringify(merged);
       if (json.length > 3 * 1048576) return fail(reply, 413, "too_big");
       await db.user.update({ where: { id: req.userId }, data: { shelf: json } });
-      for (const x of merged) if (x.deleted || !x.spine) fs.rmSync(spineFile(req.userId, x.id), { force: true });
+      for (const x of merged) for (const f of FACES) if (x.deleted || !x[f]) fs.rmSync(spineFile(req.userId, x.id, f), { force: true });
       return merged;
     });
     api.get("/api/spines/:id", SP, async (req, reply) => {
-      const f = spineFile(req.userId, req.params.id);
+      const f = spineFile(req.userId, req.params.id, faceOf(req));
       if (!fs.existsSync(f)) return fail(reply, 404, "no_spine");
       const b = fs.readFileSync(f);
       return reply.type(imgType(b) || "application/octet-stream").header("Content-Disposition", "inline; filename=spine").send(b);
@@ -545,12 +550,12 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
     api.put("/api/spines/:id", SP, async (req, reply) => {
       if (RL.hit(`spine:${req.userId}`, 300, 3600)) return tooMany(reply);
       if (!Buffer.isBuffer(req.body) || !imgType(req.body)) return fail(reply, 400, "image_expected");
-      const it = (await shelfOf(req.userId)).find((x) => x.id === req.params.id);
-      if (!it || it.deleted || !it.spine) return fail(reply, 404, "no_spine");      // l'étagère est envoyée d'abord
+      const it = (await shelfOf(req.userId)).find((x) => x.id === req.params.id), face = faceOf(req);
+      if (!it || it.deleted || !it[face]) return fail(reply, 404, "no_spine");      // l'étagère est envoyée d'abord
       const dir = path.dirname(spineFile(req.userId, req.params.id));
       if (dirSize(dir) + req.body.length > 200 * 1048576) return fail(reply, 413, "quota", {}, { n: 200 });
       fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(spineFile(req.userId, req.params.id), req.body);
+      fs.writeFileSync(spineFile(req.userId, req.params.id, face), req.body);
       return { ok: true };
     });
     // ---------- manuscrits (fusion par chapitre, cf. merge.js) ----------
@@ -581,12 +586,24 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
     });
 
     // ---------- lecture à voix haute (Piper, sur ce serveur) ----------
-    api.get("/api/tts/voices", async () => tts.voices());
+    // voix naturelles de Google si une clé est configurée, puis les voix Piper calculées sur ce serveur (secours, hors connexion de Google)
+    api.get("/api/tts/voices", async () => [...(await gtts.voices().catch((e) => { console.error("[tts]", e.message); return []; })), ...tts.voices()]);
     api.post("/api/tts", async (req, reply) => {
       const { voice, text } = req.body || {};
       const s = String(text ?? "").replace(CTRL, " ").trim();
-      if (!tts.has(voice) || !s || s.length > 1000 || !/\p{L}|\p{N}/u.test(s)) return fail(reply, 400, "bad_request");
+      if (!s || s.length > 1000 || !/\p{L}|\p{N}/u.test(s)) return fail(reply, 400, "bad_request");
       if (RL.hit(`tts:${req.userId}`, 3000, 3600)) return tooMany(reply);
+      if (await gtts.has(voice)) {
+        const day = new Date().toISOString().slice(0, 10), u = ttsUse.get(req.userId);
+        const used = u && u.day === day ? u.n : 0;
+        if (used + s.length > ttsDailyChars) return tooMany(reply);
+        try {
+          const r = await gtts.say(voice, s);
+          if (!r.cached) ttsUse.set(req.userId, { day, n: used + s.length });
+          return reply.type("audio/mpeg").send(r.data);
+        } catch (e) { console.error("[tts]", e.message); return fail(reply, 502, "internal"); }
+      }
+      if (!tts.has(voice)) return fail(reply, 400, "bad_request");
       try { return reply.type("audio/wav").send(await tts.say(voice, s)); }
       catch (e) { return fail(reply, e.busy ? 503 : 500, e.busy ? "too_many" : "internal"); }
     });

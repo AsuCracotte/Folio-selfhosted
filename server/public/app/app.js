@@ -3,7 +3,7 @@
 const LANG=(()=>{let l;try{l=localStorage.folioLang}catch(e){}return l==="fr"||l==="en"?l:/^fr/i.test(navigator.language||"")?"fr":"en"})();
 document.documentElement.lang=LANG;
 const TX={
-fr:{updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
+fr:{facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",camFront:"Cadrez la couverture du livre",camBack:"Cadrez le dos du livre (4e de couverture)",photoSaved:"Photo enregistrée",updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
  library:"Bibliothèque",bookmark:"Marque-page",tocNotes:"Sommaire et notes",appearance:"Apparence",customColors:"Couleurs perso",background:"Fond",text:"Texte",font:"Police",bookFont:"Police du livre",
  size:"Taille",lineHeight:"Interligne",margins:"Marges",justify:"Texte justifié",pages:"Pages",scroll:"Défilement",typography:"Typographie",paraSpace:"Espace entre paragraphes",weight:"Graisse",
  letterSpace:"Espacement des lettres",indent:"Retrait de première ligne",indBook:"Livre",indNone:"Aucun",indNormal:"Normal",indWide:"Large",resetLook:"Réinitialiser l’apparence",syncLook:"Synchronisation entre appareils",syncLookTxt:"Décochez ce que cet appareil doit garder pour lui : il ne l’enverra plus et ne recevra plus celui des autres.",sg_colors:"Thème et couleurs",sg_font:"Police",sg_size:"Taille du texte",sg_spacing:"Interligne et typographie",sg_margin:"Marges",sg_layout:"Justification, pages ou défilement",
@@ -53,7 +53,7 @@ fr:{updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application :
  confirmRemovePaper:"Retirer « {t} » de l’étagère ?",editSpine:"Tranche et infos",sortAuthor:"Auteur",sortTitle:"Titre",sortRecent:"Récents",kindBook:"Livre numérique",kindPaper:"Livre papier",
  decoT:"Décorations",decoT:"Decorations",rackTip:"Photographiez la tranche de vos livres, numériques ou papier : votre étagère se compose, et vous suit sur tous vos appareils.",spineTip:"Astuce : livre debout, tranche bien droite et cadrée serrée.",
  fold:"Replier",unfold:"Déplier",useAsCover:"Utiliser comme couverture",coverSet:"Couverture mise à jour",coverReset:"Couverture d’origine rétablie",customCover:"Couverture personnalisée",bookOptions:"Options du livre"},
-en:{updWeb:"New version of Folio",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
+en:{facesT:"Cover and back (3D view)",faceFront:"Cover",faceBack:"Back",camFront:"Fit the book’s cover in the frame",camBack:"Fit the back cover in the frame",photoSaved:"Photo saved",updWeb:"New version of Folio",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
  library:"Library",bookmark:"Bookmark",tocNotes:"Contents and notes",appearance:"Appearance",customColors:"Custom colours",background:"Background",text:"Text",font:"Font",bookFont:"Book’s font",
  size:"Size",lineHeight:"Line spacing",margins:"Margins",justify:"Justified text",pages:"Pages",scroll:"Scrolling",typography:"Typography",paraSpace:"Paragraph spacing",weight:"Weight",
  letterSpace:"Letter spacing",indent:"First-line indent",indBook:"Book",indNone:"None",indNormal:"Normal",indWide:"Wide",resetLook:"Reset appearance",syncLook:"Sync across devices",syncLookTxt:"Untick what this device should keep to itself: it will no longer send it, nor receive the one from your other devices.",sg_colors:"Theme and colours",sg_font:"Font",sg_size:"Text size",sg_spacing:"Line height and typography",sg_margin:"Margins",sg_layout:"Justification, pages or scrolling",
@@ -166,12 +166,15 @@ function rackItem(id,base){let x=rackGet(id);if(!x){x={id,kind:"book",title:"",a
 const spUrls=new Map();
 async function spineUrl(id){if(spUrls.has(id))return spUrls.get(id);const b=spMap("folioSpineAt")[id]?await getSp(id):null;const u=b?URL.createObjectURL(b):null;spUrls.set(id,u);return u}
 const dropUrl=id=>{const u=spUrls.get(id);if(u)URL.revokeObjectURL(u);spUrls.delete(id)};
-async function setSpine(id,blob,base){const x=rackItem(id,base);Object.assign(x,base||{});x.deleted=0;dropUrl(id);
- if(blob){await putSp(id,blob);x.spine=now();spSet("folioSpineAt",id,x.spine)}else{await delSp(id);x.spine=0;spSet("folioSpineAt",id,0)}
+// photos d'un livre : tranche (clé = id), couverture et dos pour la vue 3D (clés id.front / id.back)
+const FACES=["spine","front","back"],fkey=(id,f)=>f==="spine"?id:id+"."+f;
+async function setPhoto(id,f,blob,base){const x=rackItem(id,base),k=fkey(id,f);Object.assign(x,base||{});x.deleted=0;dropUrl(k);
+ if(blob){await putSp(k,blob);x[f]=now();spSet("folioSpineAt",k,x[f])}else{await delSp(k);x[f]=0;spSet("folioSpineAt",k,0)}
  x.updated=now();saveRack()}
+const setSpine=(id,blob,base)=>setPhoto(id,"spine",blob,base);
 // livres de l'étagère : tous les livres numériques de la bibliothèque + les livres papier
-function rackList(all){const out=all.map(b=>{const x=rackGet(b.hash);return{id:b.hash,kind:"book",title:b.title,author:b.author,at:b.added||0,spine:x&&!x.deleted?x.spine:0}});
- RACK.filter(x=>x.kind==="paper"&&!x.deleted).forEach(x=>out.push({id:x.id,kind:"paper",title:x.title,author:x.author,at:(x.created||0)*1000,spine:x.spine}));
+function rackList(all){const out=all.map(b=>{const x=rackGet(b.hash),ok=x&&!x.deleted;return{id:b.hash,kind:"book",title:b.title,author:b.author,at:b.added||0,spine:ok?x.spine:0,front:0,back:ok?x.back||0:0}});
+ RACK.filter(x=>x.kind==="paper"&&!x.deleted).forEach(x=>out.push({id:x.id,kind:"paper",title:x.title,author:x.author,at:(x.created||0)*1000,spine:x.spine,front:x.front||0,back:x.back||0}));
  const k=localStorage.folioRackSort||"author",c=(a,b)=>String(a||"").localeCompare(String(b||""),LANG,{sensitivity:"base"});
  const last=a=>String(a||"").trim().split(/\s+/).pop();
  return out.sort(k==="recent"?(a,b)=>b.at-a.at:k==="title"?(a,b)=>c(a.title,b.title):(a,b)=>c(last(a.author),last(b.author))||c(a.title,b.title))}
@@ -278,13 +281,14 @@ async function renderRack(){const all=await allB(),items=rackList(all),c=$("rkCa
   if(DECO_ON){row.style.paddingLeft=(8+(r*29)%46)+"%";row.append(decoEl(nd++,true));if(r%2)row.append(decoEl(nd++,true))}c.append(row)}}
 // ---------- un livre de l'étagère, en 3D : la tranche pivote et montre la couverture ----------
 let b3x=null,b3a=0;
-async function bookView(x){b3x=x;const all=await allB(),b=x.kind==="book"&&all.find(z=>z.hash===x.id),cu=b&&coverUrl(b),su=x.spine?await spineUrl(x.id):null;
+async function bookView(x){b3x=x;const all=await allB(),b=x.kind==="book"&&all.find(z=>z.hash===x.id),su=x.spine?await spineUrl(x.id):null,
+ cu=b?coverUrl(b):x.front?await spineUrl(fkey(x.id,"front")):null,bu=x.back?await spineUrl(fkey(x.id,"back")):null;
  const H=Math.round(Math.min(innerHeight*.46,360)),ld=u=>u?loadImg(u).catch(()=>null):null,[ci,si]=await Promise.all([ld(cu),ld(su)]);
  const W=Math.round(H*(ci?Math.max(.5,Math.min(.85,ci.naturalWidth/ci.naturalHeight)):.66)),T=Math.round(si?Math.max(H*.07,Math.min(H*.22,H*si.naturalWidth/si.naturalHeight)):Math.min(H*.18,H*.07+String(x.title).length*.5));
  const e=$("b3"),n=hn(x.id);e.style.cssText=`--W:${W}px;--H:${H}px;--T:${T}px`;e.className="b3";
  const front=ci?`<img src="${cu}" alt="">`:`<div class="gen sp${n%7}"><b>${esc(x.title||t("untitled"))}</b><i>${esc(x.author)}</i></div>`;
  const sp=spineEl(x,true);sp.removeAttribute("style");sp.disabled=true;
- e.innerHTML=`<div class="fc f">${front}</div><div class="fc bk sp${n%7}"></div><div class="fc s"></div><div class="fc e"></div><div class="fc tp"></div><div class="fc bt"></div>`;e.querySelector(".s").append(sp);
+ e.innerHTML=`<div class="fc f">${front}</div><div class="fc bk sp${n%7}"${bu?` style="background:url('${bu}') center/cover"`:""}></div><div class="fc s"></div><div class="fc e"></div><div class="fc tp"></div><div class="fc bt"></div>`;e.querySelector(".s").append(sp);
  $("b3T").textContent=x.title||t("untitled");$("b3A").textContent=[x.author,t(x.kind==="book"?"kindBook":"kindPaper"),b&&b.progress>0?pctS(b.progress):""].filter(Boolean).join(" · ");
  $("b3Open").hidden=x.kind!=="book";$("bk3").hidden=false;b3a=90;b3turn(false);
  requestAnimationFrame(()=>requestAnimationFrame(()=>{b3a=-24;b3turn(true)}))}
@@ -310,7 +314,12 @@ async function spineFill(){const all=await allB(),b=spId&&all.find(x=>x.hash===s
  const pv=$("spPrev");pv.innerHTML="";const el=spineEl(it,true);
  if(!spId&&spNew&&spNew.blob){const u=URL.createObjectURL(spNew.blob);el.classList.add("photo");el.style.backgroundImage=`url("${u}")`;const i=new Image();i.onload=()=>el.style.setProperty("--w",Math.round(Math.min(150,236*i.naturalWidth/i.naturalHeight))+"px");i.src=u}
  pv.append(el);const hasPh=spId?!!it.spine:!!(spNew&&spNew.blob);$("spPh").hidden=!hasPh;
- $("spOpen").hidden=it.kind!=="book";$("spDel").hidden=!(spId&&it.kind==="paper");$("spSave").hidden=!!spId}
+ $("spOpen").hidden=it.kind!=="book";$("spDel").hidden=!(spId&&it.kind==="paper");$("spSave").hidden=!!spId;
+ // couverture (livres papier seulement : un livre numérique a déjà la sienne) et dos
+ for(const tl of document.querySelectorAll("#spFaces .fc-t")){const fc=tl.dataset.f,im=tl.querySelector(".fc-im");tl.hidden=fc==="front"&&it.kind==="book";
+  const bl=spId?(x&&x[fc]?await getSp(fkey(spId,fc)):null):spNew&&spNew[fc];
+  if(tl._u)URL.revokeObjectURL(tl._u);tl._u=bl?URL.createObjectURL(bl):null;im.style.backgroundImage=tl._u?`url("${tl._u}")`:"";im.classList.toggle("has",!!bl);
+  tl.querySelector("[data-a=del]").hidden=!bl}}
 function spineMenu(id){spId=id;spNew=id?null:{blob:null};if(!id){$("spTitle").value="";$("spAuthor").value=""}spineFill();show("shSpine");if(!id)setTimeout(()=>$("spTitle").focus(),300)}
 // photo : redressée (une tranche est haute), réduite et compressée
 async function spineBlob(file,turn){const u=URL.createObjectURL(file);try{const im=await loadImg(u);let w=im.naturalWidth,h=im.naturalHeight;const rot=turn??(w>h);
@@ -318,6 +327,12 @@ async function spineBlob(file,turn){const u=URL.createObjectURL(file);try{const 
   const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);if(rot){g.translate(c.width,0);g.rotate(Math.PI/2)}g.drawImage(im,0,0,W,H);
   return await new Promise((ok,ko)=>c.toBlob(b=>b?ok(b):ko(new Error("img")),"image/jpeg",.86))}finally{URL.revokeObjectURL(u)}}
 const paperBase=()=>({kind:"paper",title:$("spTitle").value.trim().slice(0,300),author:$("spAuthor").value.trim().slice(0,200)});
+// prise de vue en cours : tranche, couverture ou dos
+let phFace="spine";
+async function faceBlob(file){const u=URL.createObjectURL(file);try{const im=await loadImg(u);return await toBlob(im,900,1350)}finally{URL.revokeObjectURL(u)}}
+async function photoUse(src){if(phFace==="spine")return spineUse(src);let bl;try{bl=await faceBlob(src)}catch(x){msg(t("badImage"));return}
+ if(!spId){spNew[phFace]=bl;spineFill();return}
+ const b=(await allB()).find(x=>x.hash===spId);await setPhoto(spId,phFace,bl,b?{kind:"book",title:b.title,author:b.author}:{});msg(t("photoSaved"));rackRefresh()}
 async function spineUse(src){let bl;try{bl=await spineBlob(src)}catch(x){msg(t("badImage"));return}
  if(!spId){spNew.blob=bl;spineFill();return}
  const b=(await allB()).find(x=>x.hash===spId);await setSpine(spId,bl,b?{kind:"book",title:b.title,author:b.author}:{});msg(t("spineSet"));rackRefresh()}
@@ -325,14 +340,20 @@ function spinePicked(e){const f=e.target.files[0];e.target.value="";if(f)cropOpe
 $("spCam").onchange=spinePicked;$("spFile").onchange=spinePicked;
 // prise de vue dans l'appli : la vidéo de la caméra arrière, un cadre en forme de tranche (largeur réglable)
 let camS=null;
-function camLayout(){const v=$("camV"),f=$("camF"),H=v.clientHeight,h=Math.round(Math.min(H*.66,H-250)),w=Math.max(28,Math.round(h*$("camW").value/100));
+function camLayout(){const v=$("camV"),f=$("camF"),H=v.clientHeight,h=Math.round(Math.min(H*.66,H-250)),cv=phFace!=="spine",w=cv?Math.min(Math.round(h*.68),v.clientWidth-40):Math.max(28,Math.round(h*$("camW").value/100));
+ $("camW").parentElement.style.display=cv?"none":"";$("camHint").textContent=t(cv?(phFace==="front"?"camFront":"camBack"):"camHint");
  f.style.height=h+"px";f.style.width=w+"px";f.style.top=Math.round(Math.max(70,(H-150-h)/2+30))+"px"}
 function camStop(){camS?.getTracks().forEach(k=>k.stop());camS=null;$("camV").srcObject=null;$("cam").hidden=true}
 async function camOpen(){if(!navigator.mediaDevices?.getUserMedia){$("spCam").click();return}
  try{camS=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}}})}
  catch(e){msg(t("camNo"));$("spFile").click();return}
  const v=$("camV");v.srcObject=camS;$("cam").hidden=false;camLayout();try{await v.play()}catch(e){}}
-$("spShoot").onclick=camOpen;$("camX").onclick=camStop;$("camW").oninput=camLayout;$("camImp").onclick=()=>{camStop();$("spFile").click()};
+$("spShoot").onclick=()=>{phFace="spine";camOpen()};
+$("spFile").addEventListener("click",()=>{phFace="spine"});$("spCam").addEventListener("click",()=>{phFace="spine"});
+document.querySelectorAll("#spFaces .fc-t").forEach(tl=>tl.onclick=async e=>{const a=e.target.closest("[data-a]")?.dataset.a,fc=tl.dataset.f;phFace=fc;
+ if(a==="del"){if(!spId){spNew[fc]=null;spineFill();return}await setPhoto(spId,fc,null);rackRefresh();return}
+ if(a==="imp")$("faceFile").click();else camOpen()});
+$("faceFile").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)cropOpen(f)};$("camX").onclick=camStop;$("camW").oninput=camLayout;$("camImp").onclick=()=>{camStop();$("spFile").click()};
 $("camGo").onclick=async()=>{const v=$("camV"),vw=v.videoWidth,vh=v.videoHeight;if(!vw)return;
  // la vidéo est affichée en « cover » : on ramène le cadre à l'écran en pixels de l'image
  const W=v.clientWidth,H=v.clientHeight,k=Math.max(W/vw,H/vh),ox=(W-vw*k)/2,oy=(H-vh*k)/2,f=$("camF").getBoundingClientRect(),o=v.getBoundingClientRect();
@@ -367,7 +388,7 @@ $("crX").onclick=cropClose;
 $("crR").onclick=()=>{const w=crImg.naturalWidth,h=crImg.naturalHeight,c=document.createElement("canvas");c.width=h;c.height=w;const g=c.getContext("2d");
  g.translate(h,0);g.rotate(Math.PI/2);g.drawImage(crImg,0,0);const r={x:h-crR.y-crR.h,y:crR.x,w:crR.h,h:crR.w};c.toBlob(b=>b&&cropOpen(b,r),"image/jpeg",.92)};
 $("crOk").onclick=()=>{const r=crR,c=document.createElement("canvas");c.width=Math.round(r.w);c.height=Math.round(r.h);
- c.getContext("2d").drawImage(crImg,r.x,r.y,r.w,r.h,0,0,c.width,c.height);c.toBlob(b=>{cropClose();if(b)spineUse(b);else msg(t("badImage"))},"image/jpeg",.92)};
+ c.getContext("2d").drawImage(crImg,r.x,r.y,r.w,r.h,0,0,c.width,c.height);c.toBlob(b=>{cropClose();if(b)photoUse(b);else msg(t("badImage"))},"image/jpeg",.92)};
 $("spCrop").onclick=async()=>{const cur=spId?await getSp(spId):spNew&&spNew.blob;if(cur)cropOpen(cur)};
 addEventListener("resize",()=>{if(!$("cam").hidden)camLayout();cropLayout()});
 addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!$("crop").hidden){cropClose();e.stopImmediatePropagation()}else if(!$("cam").hidden){camStop();e.stopImmediatePropagation()}},true);
@@ -377,10 +398,11 @@ $("spDelPh").onclick=async()=>{if(!spId){spNew.blob=null;spineFill();return}awai
 $("spOpen").onclick=()=>{const id=spId;show(null);if(id)openBook(id)};
 $("spSave").onclick=async()=>{const base=paperBase();if(!base.title){msg(t("needTitle"));$("spTitle").focus();return}
  const id=newId();rackItem(id,{...base,created:now()});await setSpine(id,spNew&&spNew.blob||null,base);if(!(spNew&&spNew.blob)){const x=rackGet(id);x.spine=0}
+ for(const fc of ["front","back"])if(spNew&&spNew[fc])await setPhoto(id,fc,spNew[fc],base);
  show(null);msg(t("paperAdded",{t:base.title}));rackRefresh()};
 const paperEdit=()=>{if(!spId)return;const x=rackGet(spId);if(!x||x.kind!=="paper")return;const base=paperBase();if(!base.title||base.title===x.title&&base.author===x.author)return;Object.assign(x,base,{updated:now()});saveRack();rackRefresh()};
 $("spTitle").onchange=paperEdit;$("spAuthor").onchange=paperEdit;
-$("spDel").onclick=async()=>{const x=rackGet(spId);if(!x||!confirm(t("confirmRemovePaper",{t:x.title})))return;x.deleted=1;x.spine=0;x.updated=now();await delSp(x.id);spSet("folioSpineAt",x.id,0);dropUrl(x.id);saveRack();show(null);msg(t("paperRemoved"));rackRefresh()};
+$("spDel").onclick=async()=>{const x=rackGet(spId);if(!x||!confirm(t("confirmRemovePaper",{t:x.title})))return;x.deleted=1;x.updated=now();for(const fc of FACES){const k=fkey(x.id,fc);x[fc]=0;await delSp(k);spSet("folioSpineAt",k,0);dropUrl(k)}saveRack();show(null);msg(t("paperRemoved"));rackRefresh()};
 // ---------- feuilles : options d'un livre, choix de livres, collection, saisie ----------
 let askCb=null;function ask(title,value){return new Promise(ok=>{askCb=ok;$("askTitle").textContent=title;$("askIn").value=value||"";show("shAsk");setTimeout(()=>{$("askIn").focus();$("askIn").select()},300)})}
 $("askOk").onclick=()=>{const cb=askCb;askCb=null;show(null);const v=$("askIn").value.trim();cb&&cb(v||null)};
@@ -475,7 +497,8 @@ const cur_cfi=()=>cur.cfi; // = début de la page lue, ou la position exacte re�
 (()=>{let l="";try{l=localStorage.folioLang||""}catch(e){}document.querySelectorAll("#langSeg button").forEach(b=>{b.classList.toggle("on",b.dataset.l===l);
  b.onclick=()=>{try{b.dataset.l?localStorage.folioLang=b.dataset.l:localStorage.removeItem("folioLang")}catch(e){}if(dav)dav.setLang(b.dataset.l||LANG).catch(()=>{});location.reload()}})})();
 // ---------- lecteur ----------
-async function openBook(hash){try{await dav?.pullOne?.(hash)}catch(e){}cur=await getB(hash);if(!cur)return;cur.lastRead=Date.now();await putB(cur);
+async function openBook(hash){if(dav&&!VOICES)dav.ttsVoices().then(v=>VOICES=v,()=>{});  // liste des voix prête avant le premier clic
+try{await dav?.pullOne?.(hash)}catch(e){}cur=await getB(hash);if(!cur)return;cur.lastRead=Date.now();await putB(cur);
  const buf=await rq(tx("files").get(hash));$("rd").classList.add("on");$("rd").classList.remove("full");$("ttl").textContent=cur.title;$("chapTop").textContent=cur.author;outer();
  book=ePub(buf);toc=[];book.loaded.navigation.then(n=>{(function w(it,l){it.forEach(i=>{const s=book.spine.get(i.href);toc.push({label:i.label.trim(),href:i.href,l,idx:s?s.index:-1});i.subitems&&w(i.subitems,l+1)})})(n.toc,0)});
  book.spine.hooks.serialize.register((o,s)=>{s.output=String(s.output||o).replace(/<script\b[\s\S]*?<\/script\s*>/gi,"").replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*')/gi,"")});
@@ -670,10 +693,10 @@ function Api(c){const base=(c.server||"").replace(/\/$/,""),h={Authorization:"Be
   // étagère : on envoie la nôtre, le serveur renvoie la fusion ; puis photos à envoyer / à récupérer
   async rack(){const before=JSON.stringify(RACK),r=await P("/api/shelf",{items:RACK},"PUT");RACK=r;localStorage.folioRack=JSON.stringify(RACK);let ch=JSON.stringify(r)!==before;
    const at=spMap("folioSpineAt"),sent=spMap("folioSpineSent");
-   for(const x of RACK){const id=x.id;
-    if(x.deleted||!x.spine){if(at[id]){await delSp(id);spSet("folioSpineAt",id,0);dropUrl(id);ch=true}continue}
-    if(at[id]===x.spine){if(sent[id]!==x.spine){const b=await getSp(id);if(b){const q=await f(`/api/spines/${id}`,{method:"PUT",headers:{"Content-Type":b.type||"image/jpeg"},body:b});if(q.ok)spSet("folioSpineSent",id,x.spine)}}}
-    else{const q=await f(`/api/spines/${id}`);if(q.ok){await putSp(id,await q.blob());spSet("folioSpineAt",id,x.spine);spSet("folioSpineSent",id,x.spine);dropUrl(id);ch=true}}}
+   for(const x of RACK)for(const fc of FACES){const id=fkey(x.id,fc),ts=x[fc]||0,u=`/api/spines/${x.id}${fc==="spine"?"":"?face="+fc}`;
+    if(x.deleted||!ts){if(at[id]){await delSp(id);spSet("folioSpineAt",id,0);dropUrl(id);ch=true}continue}
+    if(at[id]===ts){if(sent[id]!==ts){const b=await getSp(id);if(b){const q=await f(u,{method:"PUT",headers:{"Content-Type":b.type||"image/jpeg"},body:b});if(q.ok)spSet("folioSpineSent",id,ts)}}}
+    else{const q=await f(u);if(q.ok){await putSp(id,await q.blob());spSet("folioSpineAt",id,ts);spSet("folioSpineSent",id,ts);dropUrl(id);ch=true}}}
    return ch},
   // manuscrits : on n'envoie que ce qui a changé depuis le dernier envoi réussi, le serveur répond avec ce qui nous manque
   async pushDraft(id){const d=await getD(id);if(!d)return;const s=DS()[id]||{rev:0,at:0},st=FolioWriter.stamp(d);
@@ -784,7 +807,7 @@ $("bSync").onclick=doSync;
 // ---------- mises à jour ----------
 // le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
 // l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
-const APPV="2.1.0";let updShown=false;
+const APPV="2.2.0";let updShown=false;
 function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
  $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
 async function checkUpd(){if(updShown||!navigator.onLine)return;

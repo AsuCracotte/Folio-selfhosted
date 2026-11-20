@@ -140,3 +140,6 @@ scale slider { min-width: 18px; min-height: 18px; background: @window_bg_color; 
 .spine-add:hover { border-color: @accent_color; color: @accent_color; }
 .spine-prev { border-bottom: 10px solid mix(@window_bg_color, @window_fg_color, .11); min-width: 60px; }
 .fold { min-width: 30px; min-height: 30px; margin-right: -4px; color: @folio_muted; }
+
+/* fiche d’un livre de l’étagère : vignettes couverture et dos */
+.face-thumb { border-radius: 4px 8px 8px 4px; border: 1.5px dashed alpha(currentColor, .2); background: alpha(currentColor, .04); }

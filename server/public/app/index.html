@@ -315,6 +315,11 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 .b3i{text-align:center;max-width:440px}.b3i h3{margin:0 0 6px;font-size:24px}.b3i p{margin:0 0 16px;color:var(--muted);font-family:var(--serif);font-style:italic}
 .b3i .acts{justify-content:center}.b3i .acts .btn{flex:none}
 @media (prefers-reduced-motion:reduce){.b3{transition:none}}
+#spFaces{margin-top:18px}#spFaces .kicker{margin:0 0 8px}.fc-row{display:flex;gap:14px}
+.fc-t{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;color:var(--muted)}.fc-t[hidden]{display:none}
+.fc-im{width:84px;height:126px;border-radius:4px 8px 8px 4px;border:1.5px dashed var(--line);display:grid;place-items:center;background:var(--surface) center/cover no-repeat}
+.fc-im.has{border:0;box-shadow:var(--shadow)}.fc-im.has svg{display:none}.fc-im svg.i{opacity:.4}
+.fc-b{display:flex}.fc-b .ib{width:34px;height:34px}.fc-b svg.i{width:17px;height:17px}.fc-b [hidden]{display:none}
 #rack{--wood:#c9a57a;--wood2:#b48c5f}:root.dark #rack{--wood:#6b5038;--wood2:#57402c}
 .rk-tip{max-width:1180px;margin:24px auto 0;padding:0 28px}
 .sp-top{display:flex;gap:22px;align-items:flex-end;margin-bottom:6px}
@@ -459,12 +464,16 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <div class="acts"><button class="btn pri" id="spShoot"><svg class="i"><use href="#i-cam"/></svg><span data-t="takePhoto"></span></button><input type="file" id="spCam" accept="image/*" capture="environment" hidden>
   <label class="btn"><svg class="i"><use href="#i-image"/></svg><span data-t="importImg"></span><input type="file" id="spFile" accept="image/png,image/jpeg,image/webp" hidden></label></div>
  <div class="acts" id="spPh"><button class="btn ghost" id="spCrop"><svg class="i"><use href="#i-crop"/></svg><span data-t="cropT"></span></button><button class="btn ghost" id="spRot"><svg class="i"><use href="#i-rot"/></svg><span data-t="rotate"></span></button><button class="btn ghost" id="spDelPh" data-t="removePhoto"></button></div>
+ <div id="spFaces"><p class="kicker" data-t="facesT"></p><div class="fc-row">
+  <div class="fc-t" data-f="front"><div class="fc-im"><svg class="i"><use href="#i-book"/></svg></div><span data-t="faceFront"></span><div class="fc-b"><button class="ib" data-a="cam" data-tt="takePhoto"><svg class="i"><use href="#i-cam"/></svg></button><button class="ib" data-a="imp" data-tt="importImg"><svg class="i"><use href="#i-image"/></svg></button><button class="ib" data-a="del" data-tt="removePhoto"><svg class="i"><use href="#i-trash"/></svg></button></div></div>
+  <div class="fc-t" data-f="back"><div class="fc-im"><svg class="i"><use href="#i-book"/></svg></div><span data-t="faceBack"></span><div class="fc-b"><button class="ib" data-a="cam" data-tt="takePhoto"><svg class="i"><use href="#i-cam"/></svg></button><button class="ib" data-a="imp" data-tt="importImg"><svg class="i"><use href="#i-image"/></svg></button><button class="ib" data-a="del" data-tt="removePhoto"><svg class="i"><use href="#i-trash"/></svg></button></div></div>
+ </div><input type="file" id="faceFile" accept="image/png,image/jpeg,image/webp" hidden></div>
  <div class="acts"><button class="btn" id="spOpen"><svg class="i"><use href="#i-book"/></svg><span data-t="openBook"></span></button><button class="btn pri" id="spSave" data-t="save"></button>
   <button class="btn ghost danger" id="spDel"><svg class="i"><use href="#i-trash"/></svg><span data-t="removePaper"></span></button></div>
  <p class="mut" style="margin-top:12px;font-size:13px" data-t="spineTip"></p></div>
 <!-- prise de vue : cadre en forme de tranche, puis recadrage -->
 <div class="shoot" id="cam" hidden><video id="camV" playsinline muted autoplay></video>
- <div class="cam-frame" id="camF"></div><p class="cam-hint" data-t="camHint"></p>
+ <div class="cam-frame" id="camF"></div><p class="cam-hint" id="camHint" data-t="camHint"></p>
  <div class="shoot-bar"><label class="cam-w"><span data-t="camWidth"></span><input type="range" id="camW" min="6" max="40" value="13"></label>
   <div class="cam-row"><button class="cam-b" id="camX" data-tt="cancel"><svg class="i"><use href="#i-x"/></svg></button><button class="cam-go" id="camGo" data-tt="takePhoto"></button>
   <button class="cam-b" id="camImp" data-tt="importImg"><svg class="i"><use href="#i-image"/></svg></button></div></div></div>
@@ -553,5 +562,5 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <label class="field" id="authCodeF"><span data-t="mfaOrRecovery"></span><input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="11"></label>
  <div class="acts"><button class="btn pri" id="authOk" data-t="confirm"></button><button class="btn ghost" id="authNo" data-t="cancel"></button></div></div>
 <div id="sel"></div><div id="imgm"><button id="imgCover"><svg class="i"><use href="#i-image"/></svg><span data-t="useAsCover"></span></button></div><div id="msg"></div>
-<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="write.js?v=2.1.0"></script><script src="voice.js?v=2.1.0"></script><script src="app.js?v=2.1.0"></script>
+<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="write.js?v=2.2.0"></script><script src="voice.js?v=2.2.0"></script><script src="app.js?v=2.2.0"></script>
 </body></html>

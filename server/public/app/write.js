@@ -25,6 +25,9 @@ window.FolioWriter = (() => {
       spell: "Correcteur orthographique", size: "Taille du texte", delBook: "Supprimer le livre", confirmDelBook: "Supprimer définitivement « {t} » ? Cette action ne peut pas être annulée.",
       deleted: "Livre supprimé", ok: "OK", cancel: "Annuler", close: "Fermer", open: "Ouvrir", more: "Plus d'actions",
       imported: "« {t} » importé : {n} chapitres", badFile: "Fichier illisible", badImage: "Image illisible", by: "par {a}", exportFail: "Export impossible : {e}",
+      rename: "Renommer", duplicate: "Dupliquer", copySuffix: "(copie)", cut: "Couper", copy: "Copier", paste: "Coller",
+      pasteKeys: "Collez avec {k}", fmt: "Mise en forme", boldL: "Gras", italicL: "Italique", underL: "Souligné",
+      blockT: "Paragraphe", alignT: "Alignement", insertT: "Insérer",
       justNow: "à l'instant", minAgo: "il y a {n} min", hAgo: "il y a {n} h", saveNow: "Enregistré" },
     en: { mine: "My manuscripts", newBook: "New book", import: "Import a text", importTip: ".txt, .md or .html file: one chapter per heading",
       empty: "Your first book starts here", emptyTxt: "Write chapter by chapter; everything is saved as you type, on this device and to your account.",
@@ -48,6 +51,9 @@ window.FolioWriter = (() => {
       spell: "Spell check", size: "Text size", delBook: "Delete the book", confirmDelBook: "Permanently delete “{t}”? This cannot be undone.",
       deleted: "Book deleted", ok: "OK", cancel: "Cancel", close: "Close", open: "Open", more: "More actions",
       imported: "“{t}” imported: {n} chapters", badFile: "Unreadable file", badImage: "Unreadable image", by: "by {a}", exportFail: "Export failed: {e}",
+      rename: "Rename", duplicate: "Duplicate", copySuffix: "(copy)", cut: "Cut", copy: "Copy", paste: "Paste",
+      pasteKeys: "Paste with {k}", fmt: "Formatting", boldL: "Bold", italicL: "Italic", underL: "Underline",
+      blockT: "Paragraph", alignT: "Alignment", insertT: "Insert",
       justNow: "just now", minAgo: "{n} min ago", hAgo: "{n} h ago", saveNow: "Saved" },
   };
   let L = "fr";
@@ -272,7 +278,8 @@ ${d.desc ? `<dc:description>${xesc(d.desc)}</dc:description>` : ""}<meta propert
     image: "M4 5h16v14H4zM4 16l5-5 4 4 2-2 5 5M15.5 9.5h.01", clear: "M6 4h12M12 4l-4 16M4 20l16-16", x: "M6 6l12 12M18 6L6 18", dots: "M5 12h.01M12 12h.01M19 12h.01",
     up: "M12 19V5M5 12l7-7 7 7", down: "M12 5v14M19 12l-7 7-7-7", trash: "M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3", grip: "M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01",
     hist: "M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2", lib: "M4 4h4v16H4zM10 4h4v16h-4zM16 5l3.5-.8 3 15.6-3.5.8z", up2: "M12 15V3M7 8l5-5 5 5M5 21h14",
-    chev: "M6 9l6 6 6-6",
+    chev: "M6 9l6 6 6-6", check: "M5 12l5 5L20 7", pen: "M4 20h4L19 9l-4-4L4 16z", copy: "M9 9h11v11H9zM5 15H4V4h11v1",
+    cut: "M6 6a2.5 2.5 0 1 0 0 .01M6 18a2.5 2.5 0 1 0 0 .01M8 7.5 20 18M8 16.5 20 6", paste: "M9 4h6v3H9zM7 5H5v16h14V5h-2",
   };
   const ic = (n) => `<svg class="fw-i" viewBox="0 0 24 24" aria-hidden="true"><path d="${P[n]}"/></svg>`;
 
@@ -306,7 +313,7 @@ ${d.desc ? `<dc:description>${xesc(d.desc)}</dc:description>` : ""}<meta propert
 .fw-side{width:260px;flex:none;border-right:1px solid var(--line);display:flex;flex-direction:column;background:var(--surface);min-height:0}
 .fw-sh{display:flex;align-items:center;justify-content:space-between;padding:14px 10px 6px 18px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
 .fw-chs{list-style:none;margin:0;padding:4px 8px;overflow:auto;flex:1}
-.fw-chs li{display:flex;align-items:center;gap:6px;padding:8px 8px 8px 4px;border-radius:10px;cursor:pointer;user-select:none;touch-action:pan-y}
+.fw-chs li{-webkit-touch-callout:none;display:flex;align-items:center;gap:6px;padding:8px 8px 8px 4px;border-radius:10px;cursor:pointer;user-select:none;touch-action:pan-y}
 .fw-chs li:hover{background:var(--soft)}.fw-chs li.on{background:color-mix(in srgb,var(--ac) 14%,var(--bg))}.fw-chs li.drag{opacity:.6;background:var(--soft)}
 .fw-chs .g{cursor:grab;color:var(--muted);opacity:.5;touch-action:none;display:grid;place-items:center;width:22px;height:28px}.fw-chs li:hover .g{opacity:1}
 .fw-chs .n{flex:1;min-width:0}.fw-chs .n b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fw-chs .n small{color:var(--muted);font-size:12px}
@@ -337,7 +344,11 @@ ${d.desc ? `<dc:description>${xesc(d.desc)}</dc:description>` : ""}<meta propert
 .fw.focus .fw-side,.fw.focus .fw-foot{display:none}.fw.focus .fw-top,.fw.focus .fw-tools{opacity:.15;transition:opacity .3s}.fw.focus .fw-top:hover,.fw.focus .fw-tools:hover,.fw.focus .fw-tools:focus-within{opacity:1}
 .fw-menu{position:fixed;z-index:60;background:var(--bg);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px -8px rgba(0,0,0,.3);padding:6px;min-width:200px}
 .fw-menu button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:9px 12px;border-radius:9px;text-align:left}.fw-menu button:hover{background:var(--soft)}
-.fw-menu button:disabled{opacity:.4}
+.fw-menu button:disabled{opacity:.4}.fw-menu{overflow:auto;min-width:250px}.fw-menu hr{border:0;border-top:1px solid var(--line);margin:5px 6px}
+.fw-menu .h{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;padding:9px 12px 3px}
+.fw-menu button{padding:7px 12px}.fw-menu .ic{width:22px;display:grid;place-items:center;flex:none}.fw-menu .l{flex:1}
+.fw-menu kbd{font:12px system-ui,sans-serif;color:var(--muted);background:var(--soft);border-radius:6px;padding:1px 6px}.fw-menu .k{color:var(--ac);display:grid}
+.fw-menu .gl{font:16px/1 Georgia,serif;width:20px;text-align:center}.fw-menu button:focus-visible{outline:2px solid var(--ac);outline-offset:-2px}
 .fw-scrim{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.28)}
 .fw-sheet{position:fixed;z-index:56;right:0;top:0;bottom:0;width:min(440px,100%);background:var(--bg);overflow:auto;padding:calc(env(safe-area-inset-top) + 18px) 24px 30px;box-shadow:-20px 0 60px rgba(0,0,0,.18);overscroll-behavior:contain}
 .fw-sheet h3{font:500 22px/1.2 var(--serif);margin:0;flex:1}.fw-sheet h4{margin:26px 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
@@ -398,7 +409,7 @@ ${d.desc ? `<dc:description>${xesc(d.desc)}</dc:description>` : ""}<meta propert
      <button class="fw-ib" data-c="insertUnorderedList" title="${t("ul")}">${ic("ul")}</button><button class="fw-ib" data-c="insertOrderedList" title="${t("ol")}">${ic("ol")}</button><span class="sep"></span>
      <button class="fw-ib" data-c="justifyLeft" title="${t("left")}">${ic("left")}</button><button class="fw-ib" data-c="justifyCenter" title="${t("center")}">${ic("center")}</button>
      <button class="fw-ib" data-c="justifyRight" title="${t("right")}">${ic("right")}</button><button class="fw-ib" data-c="justifyFull" title="${t("justify")}">${ic("justify")}</button><span class="sep"></span>
-     <button class="fw-ib" data-c="scene" title="${t("scene")}">${ic("scene")}</button><button class="fw-ib" data-c="link" title="${t("link")}">${ic("link")}</button>
+     <button class="fw-ib" data-c="scene" title="${t("scene")}" style="font:600 15px Georgia,serif">⁂</button><button class="fw-ib" data-c="link" title="${t("link")}">${ic("link")}</button>
      <label class="fw-ib" title="${t("image")}" style="cursor:pointer">${ic("image")}<input type="file" accept="image/*" hidden data-c="image"></label>
      <button class="fw-ib" data-c="clear" title="${t("clear")}">${ic("clear")}</button></div>
     <div class="fw-find" hidden><input type="text" data-f="q" placeholder="${t("findPh")}"><span class="c"></span><button class="fw-ib" data-f="prev">${ic("up")}</button><button class="fw-ib" data-f="next">${ic("down")}</button>
@@ -423,15 +434,25 @@ ${d.desc ? `<dc:description>${xesc(d.desc)}</dc:description>` : ""}<meta propert
         W.append(m); (inp || m.querySelector("[data-r='1']")).focus();
       });
     }
+    // items : [icône, libellé, action, désactivé, raccourci, coché] | "-" (séparateur) | { head: "Titre de section" }
     function menu(anchor, items) {
       const s = document.createElement("div"); s.className = "fw-scrim"; s.style.background = "transparent";
-      const m = document.createElement("div"); m.className = "fw-menu";
-      items.forEach(([icon, label, fn, off]) => { const b = document.createElement("button"); b.innerHTML = ic(icon) + `<span>${esc(label)}</span>`; b.disabled = !!off; b.onclick = () => { close(); fn(); }; m.append(b); });
-      const close = () => { s.remove(); m.remove(); };
-      s.onclick = close; W.append(s, m);
-      const r = anchor.getBoundingClientRect();
-      m.style.left = Math.max(8, Math.min(innerWidth - m.offsetWidth - 8, r.right - m.offsetWidth)) + "px";
-      m.style.top = (r.top > innerHeight / 2 ? r.top - m.offsetHeight - 6 : r.bottom + 6) + "px";
+      const m = document.createElement("div"); m.className = "fw-menu"; m.setAttribute("role", "menu");
+      items.forEach((it) => {
+        if (it === "-") return m.append(Object.assign(document.createElement("hr")));
+        if (it.head) return m.append(Object.assign(document.createElement("div"), { className: "h", textContent: it.head }));
+        const [icon, label, fn, off, key, on] = it, b = document.createElement("button"); b.setAttribute("role", "menuitem");
+        b.innerHTML = `<span class="ic">${icon.startsWith("<") ? icon : ic(icon)}</span><span class="l">${esc(label)}</span>${on ? `<span class="k">${ic("check")}</span>` : key ? `<kbd>${esc(key)}</kbd>` : ""}`;
+        b.disabled = !!off; b.onclick = () => { close(); fn(); }; m.append(b);
+      });
+      const close = () => { s.remove(); m.remove(); removeEventListener("keydown", esc2, true); };
+      const esc2 = (e) => { if (e.key === "Escape") { e.stopPropagation(); close(); } };
+      s.onclick = close; s.oncontextmenu = (e) => { e.preventDefault(); close(); }; addEventListener("keydown", esc2, true); W.append(s, m);
+      const pt = anchor.getBoundingClientRect ? null : anchor, r = pt ? { left: pt.x, right: pt.x, top: pt.y, bottom: pt.y } : anchor.getBoundingClientRect();
+      m.style.maxHeight = innerHeight - 16 + "px";
+      m.style.left = Math.max(8, Math.min(innerWidth - m.offsetWidth - 8, pt ? pt.x : r.right - m.offsetWidth)) + "px";
+      m.style.top = Math.max(8, Math.min(innerHeight - m.offsetHeight - 8, pt ? pt.y : (r.top > innerHeight / 2 ? r.top - m.offsetHeight - 6 : r.bottom + 6))) + "px";
+      m.querySelector("button:not(:disabled)")?.focus({ preventScroll: true });
     }
     function sheet(html, bind) {
       const s = document.createElement("div"); s.className = "fw-scrim";
@@ -761,11 +782,60 @@ ${d.desc ? `<dc:description>${xesc(d.desc)}</dc:description>` : ""}<meta propert
     const fileName = () => (D.title || t("untitled")).normalize("NFKC").replace(/[\\/:*?"<>|\u0000-\u001f]+/g, "").trim().slice(0, 80) + ".epub";
     async function doExport() { await flush(); try { await host.exportFile(await toEpub(D), fileName()); } catch (e) { console.error(e); host.msg(t("exportFail", { e: e.message })); } }
     async function doLibrary() { await flush(); try { await host.toLibrary(await toEpub(D), D.id); host.msg(t("inLibrary")); } catch (e) { console.error(e); host.msg(t("exportFail", { e: e.message })); } }
-    function chMenu(anchor) {
-      const ids = ordered(D).map((x) => x.id), i = ids.indexOf(C);
-      menu(anchor, [["up", t("moveUp"), () => move(C, -1), i <= 0], ["down", t("moveDown"), () => move(C, 1), i >= ids.length - 1],
-        ["plus", t("addChapter"), addChapter], ["trash", t("delChapter"), () => delChapter(C)]]);
+    function chMenu(anchor, id = C) {
+      const ids = ordered(D).map((x) => x.id), i = ids.indexOf(id);
+      menu(anchor, [["pen", t("rename"), () => { if (id !== C) showChapter(id); cti.focus(); cti.select(); }],
+        ["up", t("moveUp"), () => move(id, -1), i <= 0], ["down", t("moveDown"), () => move(id, 1), i >= ids.length - 1],
+        ["copy", t("duplicate"), () => dupChapter(id)], ["plus", t("addChapter"), addChapter], "-",
+        ["trash", t("delChapter"), () => delChapter(id)]]);
     }
+    function dupChapter(id) {
+      flush();
+      const c = chap(id), n = now(), d = { ...c, id: newId(), title: (c.title || "") + (c.title ? " " : "") + t("copySuffix"), created: n, updated: n, deleted: 0 }, ids = ordered(D).map((x) => x.id);
+      ids.splice(ids.indexOf(id) + 1, 0, d.id); D.chapters.push(d); D.order = ids; D.updated = n; counts.set(d.id, counts.get(id) || 0);
+      touched(); showChapter(d.id);
+    }
+    // clic droit (appui long au doigt) sur un chapitre de la liste
+    let lpT = 0, lpAt = 0;     // Android envoie aussi « contextmenu » sur un appui long : un seul menu
+    chs.addEventListener("contextmenu", (e) => { const li = e.target.closest("li"); if (!li) return; e.preventDefault(); clearTimeout(lpT);
+      if (Date.now() - lpAt < 1000) return; lpAt = Date.now(); chMenu({ x: e.clientX, y: e.clientY }, li.dataset.id); });
+    chs.addEventListener("touchstart", (e) => {
+      const li = e.target.closest("li"); if (!li || e.target.closest(".g")) return;
+      const p = e.touches[0]; lpT = setTimeout(() => { if (Date.now() - lpAt < 1000) return; lpAt = Date.now(); navigator.vibrate?.(15); chMenu({ x: p.clientX, y: p.clientY }, li.dataset.id); }, 550);
+    }, { passive: true });
+    ["touchmove", "touchend", "touchcancel"].forEach((ev) => chs.addEventListener(ev, () => clearTimeout(lpT), { passive: true }));
+    chs.addEventListener("click", (e) => { if (Date.now() - lpAt < 700) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+
+    // clic droit dans le texte (ordinateur) : la barre d'outils en clair, avec les raccourcis ; au doigt, le menu du système reste
+    const G = (ch, style = "") => `<b class="gl" style="${style}">${ch}</b>`;
+    ed.addEventListener("contextmenu", (e) => {
+      if (!matchMedia("(pointer:fine)").matches) return;
+      e.preventDefault();
+      const sel = getSelection(), has = !sel.isCollapsed && ed.contains(sel.anchorNode), mod = /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl+";
+      const q = (c) => { try { return document.queryCommandState(c); } catch (x) { return false; } };
+      let blk = ""; try { blk = String(document.queryCommandValue("formatBlock") || "").toLowerCase(); } catch (x) {}
+      const run = (c, v) => () => { ed.focus(); document.execCommand(c, false, v); paintTools(); };
+      const tool = (c) => () => tools.querySelector(`[data-c=${c}]`).click();
+      menu({ x: e.clientX, y: e.clientY }, [
+        ["cut", t("cut"), run("cut"), !has, mod + "X"], ["copy", t("copy"), run("copy"), !has, mod + "C"],
+        ["paste", t("paste"), async () => { ed.focus(); try { const tx = await navigator.clipboard.readText(); document.execCommand(/\n/.test(tx.trim()) ? "insertHTML" : "insertText", false, /\n/.test(tx.trim()) ? textToHtml(tx) : tx); } catch (x) { host.msg(t("pasteKeys", { k: mod + "V" })); } }, false, mod + "V"],
+        { head: t("fmt") },
+        [G("B", "font-weight:800"), t("boldL"), run("bold"), false, mod + "B", q("bold")],
+        [G("I", "font-style:italic"), t("italicL"), run("italic"), false, mod + "I", q("italic")],
+        [G("U", "text-decoration:underline"), t("underL"), run("underline"), false, mod + "U", q("underline")],
+        [G("S", "text-decoration:line-through"), t("strike"), run("strikeThrough"), false, "", q("strikeThrough")],
+        { head: t("blockT") },
+        [G("¶"), t("para"), run("formatBlock", "<p>"), false, "", !["h2", "h3", "blockquote"].includes(blk)],
+        [G("T", "font-size:17px"), t("h2"), run("formatBlock", "<h2>"), false, "", blk === "h2"],
+        [G("T", "font-size:13px"), t("h3"), run("formatBlock", "<h3>"), false, "", blk === "h3"],
+        ["quote", t("quote"), run("formatBlock", "<blockquote>"), false, "", blk === "blockquote"],
+        ["ul", t("ul"), run("insertUnorderedList"), false, "", q("insertUnorderedList")], ["ol", t("ol"), run("insertOrderedList"), false, "", q("insertOrderedList")],
+        { head: t("alignT") },
+        ["left", t("left"), run("justifyLeft")], ["center", t("center"), run("justifyCenter")], ["justify", t("justify"), run("justifyFull")],
+        { head: t("insertT") },
+        [G("⁂"), t("scene"), run("insertHorizontalRule")], ["link", t("link"), tool("link")], ["image", t("image"), () => tools.querySelector("input[data-c=image]").click()],
+        "-", ["clear", t("clear"), tool("clear"), !has]]);
+    });
 
     // ---- actions, raccourcis ----
     W.addEventListener("click", async (e) => {

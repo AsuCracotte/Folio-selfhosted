@@ -159,6 +159,9 @@ EN = {
     "Mise à jour annulée": "Update cancelled", "Téléchargement de la mise à jour…": "Downloading the update…",
     "Mise à jour : seulement pour Folio installé depuis le paquet .deb": "Updates: only for Folio installed from the .deb package",
     "Tranche et infos": "Spine and details",
+    "Couverture et dos (vue 3D)": "Cover and back (3D view)", "Couverture": "Cover", "Dos": "Back", "Photo enregistrée": "Photo saved",
+    "Cadrez la couverture du livre": "Fit the book’s cover in the frame", "Cadrez le dos du livre (4e de couverture)": "Fit the back cover in the frame",
+    "Importer une image": "Import an image",
 }
 
 

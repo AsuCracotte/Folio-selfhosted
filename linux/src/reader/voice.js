@@ -6,13 +6,13 @@ window.FolioVoice = (() => {
     fr: { listen: "Lecture à voix haute", play: "Lire", pause: "Pause", prev: "Phrase précédente", next: "Phrase suivante", close: "Arrêter la lecture",
       voice: "Voix", speed: "Vitesse", loading: "Préparation de la voix…", needAccount: "La lecture à voix haute utilise les voix de votre serveur Folio : connectez-vous à votre compte.",
       login: "Se connecter", noVoices: "Aucune voix installée sur votre serveur Folio.", fail: "Voix indisponible pour le moment", end: "Fin du livre",
-      fr: "Français", en: "English", f: "femme", m: "homme",
+      fr: "Français", en: "English", f: "femme", m: "homme", natural: "voix naturelles", local: "voix de secours (Piper)",
       siwis: "Élise", jessica: "Jessica", pierre: "Pierre", tom: "Tom", gilles: "Gilles", lessac: "Linda", kristin: "Kristin", ryan: "Ryan", northern: "Oliver",
       d_siwis: "claire", d_jessica: "douce", d_pierre: "posé", d_tom: "chaleureux", d_gilles: "grave", d_lessac: "expressive", d_kristin: "douce", d_ryan: "neutre", d_northern: "chaleureux, accent anglais" },
     en: { listen: "Read aloud", play: "Play", pause: "Pause", prev: "Previous sentence", next: "Next sentence", close: "Stop reading",
       voice: "Voice", speed: "Speed", loading: "Preparing the voice…", needAccount: "Read aloud uses the voices of your Folio server: sign in to your account.",
       login: "Sign in", noVoices: "No voice installed on your Folio server.", fail: "Voice unavailable right now", end: "End of the book",
-      fr: "Français", en: "English", f: "woman", m: "man",
+      fr: "Français", en: "English", f: "woman", m: "man", natural: "natural voices", local: "backup voices (Piper)",
       siwis: "Élise", jessica: "Jessica", pierre: "Pierre", tom: "Tom", gilles: "Gilles", lessac: "Linda", kristin: "Kristin", ryan: "Ryan", northern: "Oliver",
       d_siwis: "clear", d_jessica: "soft", d_pierre: "calm", d_tom: "warm", d_gilles: "deep", d_lessac: "expressive", d_kristin: "soft", d_ryan: "neutral", d_northern: "warm, British accent" },
   };
@@ -29,7 +29,7 @@ window.FolioVoice = (() => {
 .fv.busy .pp{animation:fvp 1s ease-in-out infinite}@keyframes fvp{50%{opacity:.55}}
 @media (max-width:600px){.fv{bottom:calc(env(safe-area-inset-bottom) + 50px)}.fv select{max-width:120px}.fv .sp{display:none}}`;
   const BLOCK = "p,h1,h2,h3,h4,h5,h6,li,blockquote,dd,dt,figcaption,pre,td,th,div";
-  const MAXC = 260;     // ~4 s de voix : la première phrase arrive vite et le serveur garde de l'avance
+  const MAXC = 260, MERGE = 150;   // phrases courtes regroupées (~2 s de voix) : la voix démarre vite et le serveur garde de l'avance
 
   /* hôte = { root (élément où poser la barre), get() → { book, rend, title, author },
               voices() → Promise<[{id, lang, g}] | null (pas de compte)>, speak(voix, texte) → Promise<Blob>,
@@ -59,7 +59,7 @@ window.FolioVoice = (() => {
           const part = text.slice(s, s + MAXC), cut = Math.max(part.lastIndexOf(", "), part.lastIndexOf(" ")) + 1 || MAXC;
           if (cur) { out.push(cur); cur = null; } out.push([s, s + cut]); s += cut;
         }
-        if (cur && e - cur[0] <= MAXC) cur[1] = e; else { if (cur) out.push(cur); cur = [s, e]; }
+        if (cur && e - cur[0] <= MERGE) cur[1] = e; else { if (cur) out.push(cur); cur = [s, e]; }
       }
       if (cur) out.push(cur);
       return out.filter(([s, e]) => /[\p{L}\p{N}]/u.test(text.slice(s, e)));
@@ -173,7 +173,7 @@ window.FolioVoice = (() => {
     function stopAudio() { gen++; au.pause(); au.removeAttribute("src"); try { au.load(); } catch (e) {} }
 
     // ---- barre ----
-    const label = (v) => `${t(v.id)} · ${t(v.g)}, ${t("d_" + v.id)}`;
+    const label = (v) => v.hd ? `${v.name} · ${t(v.g)}${v.region && v.lang === "en" ? " (" + v.region + ")" : ""}` : `${t(v.id)} · ${t(v.g)}, ${t("d_" + v.id)}`;
     function status(s) { const el = bar.querySelector(".st"); if (el) el.textContent = s; }
     function paint() {
       const pp = bar.querySelector(".pp"); if (!pp) return;
@@ -191,10 +191,13 @@ window.FolioVoice = (() => {
       }
       if (!voices.length) { bar.innerHTML = `<span class="msg">${t("noVoices")}</span><button class="x">${ic("x")}</button>`; bar.querySelector(".x").onclick = () => api.stop(); return; }
       const bl = String(B()?.packaging?.metadata?.language || L).slice(0, 2).toLowerCase();
-      if (!voices.some((v) => v.id === voice && v.lang === bl)) voice = (voices.find((v) => v.lang === bl) || voices.find((v) => v.id === voice) || voices[0]).id;
-      const langs = [...new Set(voices.map((v) => v.lang))];
+      // voix choisie si elle parle la langue du livre, sinon une voix naturelle (femme d'abord) de cette langue
+      if (!voices.some((v) => v.id === voice && v.lang === bl))
+        voice = (voices.find((v) => v.lang === bl && v.hd && v.g === "f") || voices.find((v) => v.lang === bl) || voices.find((v) => v.id === voice) || voices[0]).id;
+      const groups = [];
+      for (const v of voices) { const k = v.lang + (v.hd ? "1" : "0"); let g = groups.find((x) => x.k === k); if (!g) groups.push(g = { k, label: `${t(v.lang)} — ${t(v.hd ? "natural" : "local")}`, list: [] }); g.list.push(v); }
       bar.innerHTML = `<button class="pv" title="${t("prev")}">${ic("prev", true)}</button><button class="pp"></button><button class="nx" title="${t("next")}">${ic("next", true)}</button>
-<select class="vo" title="${t("voice")}">${langs.map((l) => `<optgroup label="${t(l)}">${voices.filter((v) => v.lang === l).map((v) => `<option value="${v.id}">${label(v)}</option>`).join("")}</optgroup>`).join("")}</select>
+<select class="vo" title="${t("voice")}">${groups.map((g) => `<optgroup label="${g.label}">${g.list.map((v) => `<option value="${v.id}">${label(v)}</option>`).join("")}</optgroup>`).join("")}</select>
 <select class="sp" title="${t("speed")}">${[0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75].map((s) => `<option value="${s}">${String(s).replace(".", L === "fr" ? "," : ".")}×</option>`).join("")}</select>
 <span class="st"></span><button class="x" title="${t("close")}">${ic("x")}</button>`;
       const vo = bar.querySelector(".vo"), sp = bar.querySelector(".sp");

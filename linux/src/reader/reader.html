@@ -75,8 +75,8 @@ const Folio = (() => {
   let V = null;
   const voice = () => (V = V || FolioVoice.create({ root: document.body, lang: document.documentElement.lang,
     get: () => ({ book, rend: rendition, title }), voices: () => ask("tts_voices"), login: () => send({ t: "login" }),
-    speak: async (v, text) => { const b = await ask("tts", { voice: v, text }); if (!b) throw new Error("tts");
-      return new Blob([Uint8Array.from(atob(b), c => c.charCodeAt(0))], { type: "audio/wav" }); } }));
+    speak: async (v, text) => { const r = await ask("tts", { voice: v, text }); if (!r) throw new Error("tts");
+      return new Blob([Uint8Array.from(atob(r.data), c => c.charCodeAt(0))], { type: r.type }); } }));
   const COLORS = { yellow:"#f6d55c", green:"#7bd88f", blue:"#6cb6ff", pink:"#ff8fb1", orange:"#ffa94d", red:"#ff6b6b", purple:"#b197fc", teal:"#4fd1c5" };
   const LAYOUT = ["size","line","margin","font","flow","spread","justify","para","indent","weight","letter"];
   let book, rendition, S = {}, hls = [], bms = [], toc = [], loc = null, cur = "", pct = null, anchor = null,
