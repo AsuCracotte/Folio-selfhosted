@@ -105,9 +105,9 @@ const Folio = (() => {
     ${s.letter ? `body { letter-spacing:${s.letter}em !important; word-spacing:${(s.letter * 2).toFixed(3)}em !important; }` : ""}`;
   }
   function applyOuter() {
-    // largeur de la colonne : ~34 caractères par « em » de police + les marges choisies
+    // largeur de la colonne : comme l'appli web (50 « em » de police + les marges choisies) ; en double page, deux colonnes plus étroites
     const two = S.spread && S.flow !== "scrolled" && innerWidth >= 1000;
-    const col = Math.round((S.size || 19) * 34);
+    const col = Math.round((S.size || 19) * (two ? 34 : 50));
     document.documentElement.style.setProperty("--mw", (two ? 2 * col + 4 * S.margin : col + 2 * S.margin) + "px");
     document.documentElement.style.setProperty("--bg", S.bg);
     document.documentElement.style.setProperty("--fg", S.fg);
@@ -166,10 +166,11 @@ const Folio = (() => {
           spread: S.spread ? "auto" : "none", minSpreadWidth:1000, gap: Math.round(S.margin * 2) });
     // défilement : epub.js compte deux fois la hauteur des chapitres insérés au-dessus de la cible et atterrit trop bas
     // (fin du chapitre ou chapitre suivant) → après chaque affichage, on recale sur le début du chapitre ou l'ancre visée
-    if (scrolled) { const disp = rendition.display.bind(rendition); rendition.display = x => disp(x).then(r => { place(x); return r; }); }
+    if (scrolled) { const disp = rendition.display.bind(rendition); rendition.display = x => disp(x).then(r => { pin(x); return r; }); }
     rendition.hooks.content.register(c => {
       styleContents(c); imgMenu(c);
       c.document.addEventListener("wheel", onWheel, { passive:true });
+      ["wheel", "touchstart", "mousedown", "keydown"].forEach(e => c.document.addEventListener(e, unpin, { passive:true }));
       c.document.addEventListener("mouseup", () => setTimeout(() => {
         const sel = c.window.getSelection();
         if (sel && sel.rangeCount && !sel.getRangeAt(0).collapsed) c.triggerSelectedEvent(sel);
@@ -183,11 +184,24 @@ const Folio = (() => {
     return rendition.display(cfi || undefined);
   }
 
+  // epub.js continue ensuite d'insérer ou de redimensionner des chapitres au-dessus (images, chapitres préchargés) et la cible glisse :
+  // on la maintient en place ~2,5 s, jusqu'à ce que la lectrice fasse défiler elle-même
+  let pinX = null, pinF = 0;
+  function pin(x) {
+    pinX = x; cancelAnimationFrame(pinF); const end = Date.now() + 2500;
+    const step = () => { if (pinX !== x) return; if (Date.now() > end) { pinX = null; return; } place(x); pinF = requestAnimationFrame(step); };
+    step();
+  }
+  function unpin() { pinX = null; cancelAnimationFrame(pinF); }
+  ["wheel", "touchstart", "mousedown", "keydown"].forEach(e => $("viewer").addEventListener(e, unpin, { capture:true, passive:true }));
+  // début du chapitre visé (+1 px : sinon la dernière ligne du chapitre précédent compte comme « visible » et devient la position
+  // enregistrée), ou l'ancre visée en gardant sa ligne entière à l'écran
   function place(x) {
     const m = rendition && rendition.manager, sec = x && book.spine.get(x), v = sec && m && m.views.find(sec);
     if (!v) return;
     let top = 0; try { if (/#|^epubcfi\(/.test(x)) top = v.locationOf(x).top || 0; } catch (e) {}
-    m.container.scrollTop = Math.max(0, v.element.offsetTop + top - 4);   // 4 px : la ligne visée compte comme visible
+    const o = v.element.offsetTop, want = Math.max(o + 1, o + top - 4);
+    if (Math.abs(m.container.scrollTop - want) > 1) m.container.scrollTop = want;
   }
 
   async function open(p) {

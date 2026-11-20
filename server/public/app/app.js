@@ -449,14 +449,23 @@ function build(cfi){anchor=cfi||null;if(rend){try{rend.destroy()}catch(e){}$("vi
  rend=book.renderTo("viewer",sc?{manager:"continuous",flow:"scrolled",width:"100%",height:"100%",allowScriptedContent:true}:{manager:"default",flow:"paginated",width:"100%",height:"100%",allowScriptedContent:true,spread:"none",gap:Math.round(S.margin*2)});
  // défilement : epub.js compte deux fois la hauteur des chapitres insérés au-dessus de la cible et atterrit trop bas
  // (fin du chapitre ou chapitre suivant) → après chaque affichage, on recale sur le début du chapitre ou l'ancre visée
- if(sc){const disp=rend.display.bind(rend);rend.display=x=>disp(x).then(r=>{place(x);return r})}
- rend.hooks.content.register(c=>{styleC(c);gestures(c);imgMenu(c)});
+ if(sc){const disp=rend.display.bind(rend);rend.display=x=>disp(x).then(r=>{pin(x);return r})}
+ rend.hooks.content.register(c=>{styleC(c);gestures(c);imgMenu(c);["wheel","touchstart","mousedown","keydown"].forEach(e=>c.document.addEventListener(e,unpin,{passive:true}))});
  rend.on("relocated",l=>{loc=l;hideSel();hideImg();report()});rend.on("selected",onSel);
  rend.on("click",e=>{if(sel.style.display==="flex"){hideSel();return}if($("imgm").style.display==="block"){hideImg();return}if(Date.now()-G.at<450)return;const w=e.view;if(String(w?.getSelection?.()||"")||e.target.closest?.("a"))return;
   const x=(w.frameElement.getBoundingClientRect().left+e.clientX)/innerWidth;if(S.flow!=="scrolled"&&x<.25)turn(-1);else if(S.flow!=="scrolled"&&x>.75)turn(1);else toggleBars()});
  rend.on("keydown",keys);cur.highlights.filter(h=>!h.deleted).forEach(drawHl);return rend.display(cfi||undefined)}
+// epub.js continue ensuite d'insérer ou de redimensionner des chapitres au-dessus (images, chapitres préchargés) et la cible glisse :
+// on la maintient en place ~2,5 s, jusqu'à ce que la lectrice fasse défiler elle-même
+let pinX=null,pinF=0;
+function pin(x){pinX=x;cancelAnimationFrame(pinF);const end=Date.now()+2500;const step=()=>{if(pinX!==x)return;if(Date.now()>end){pinX=null;return}place(x);pinF=requestAnimationFrame(step)};step()}
+const unpin=()=>{pinX=null;cancelAnimationFrame(pinF)};
+["wheel","touchstart","mousedown","keydown"].forEach(e=>$("viewer").addEventListener(e,unpin,{capture:true,passive:true}));
+// début du chapitre visé (+1 px : sinon la dernière ligne du chapitre précédent compte comme « visible » et devient la position enregistrée),
+// ou l'ancre visée en gardant sa ligne entière à l'écran
 function place(x){const m=rend?.manager,sec=x&&book?.spine.get(x),v=sec&&m?.views.find(sec);if(!v)return;
- let top=0;try{if(/#|^epubcfi\(/.test(x))top=v.locationOf(x).top||0}catch(e){}m.container.scrollTop=Math.max(0,v.element.offsetTop+top-4)} // 4 px : la ligne visée compte comme visible
+ let top=0;try{if(/#|^epubcfi\(/.test(x))top=v.locationOf(x).top||0}catch(e){}
+ const o=v.element.offsetTop,want=Math.max(o+1,o+top-4);if(Math.abs(m.container.scrollTop-want)>1)m.container.scrollTop=want}
 function keys(e){if(!rend||!$("rd").classList.contains("on"))return;if(e.key==="ArrowRight"||e.key==="PageDown")rend.next();if(e.key==="ArrowLeft"||e.key==="PageUp")rend.prev();if(e.key==="Escape"){if(document.querySelector(".sheet.on"))show(null);else if($("imgm").style.display==="block")hideImg();else $("bBack").click()}}
 addEventListener("keydown",keys);
 // ---------- illustration du livre → couverture (clic droit, ou appui long au doigt) ----------
