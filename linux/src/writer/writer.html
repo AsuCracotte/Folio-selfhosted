@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src file:; connect-src blob: data:">
+<style>
+  @font-face { font-family:"Fraunces"; src:url(../fonts/Fraunces.ttf); font-weight:100 900; }
+  @font-face { font-family:"Fraunces"; src:url(../fonts/Fraunces-Italic.ttf); font-style:italic; font-weight:100 900; }
+  :root { --bg:#fbfbfa; --fg:#222; --ac:#6d5bd0; --acfg:#fff; --serif:"Fraunces",Georgia,serif;
+    --muted:color-mix(in srgb,var(--fg) 58%,var(--bg)); --line:color-mix(in srgb,var(--fg) 11%,var(--bg));
+    --soft:color-mix(in srgb,var(--fg) 6%,var(--bg)); --surface:color-mix(in srgb,var(--fg) 3%,var(--bg)); }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--fg); }
+  /* l'en-tête GTK porte déjà le bouton retour vers la bibliothèque */
+  .fw-lh [data-a=close] { display:none; } .fw-lh, .fw-top { padding-top:10px; }
+</style></head>
+<body><div id="wr"></div>
+<script src="jszip.min.js"></script>
+<script src="write.js"></script>
+<script>
+// Pont avec l'app Linux : stockage, synchro, export et bibliothèque sont faits en Python (drafts.py, app.py)
+const send = o => window.webkit.messageHandlers.writer.postMessage(JSON.stringify(o));
+let rid = 0; const waits = {};
+const ask = (t, o = {}) => new Promise(ok => { const id = ++rid; waits[id] = ok; send({ t, id, ...o }); });
+const b64 = blob => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = ko; r.readAsDataURL(blob); });
+let W = null;
+window.Writer = {
+  reply(id, v) { const f = waits[id]; delete waits[id]; if (f) f(v); },
+  remote(id) { W && W.remote(id); },
+  flush() { return W ? W.flush() : null; },
+  // couleurs du thème de l'app, langue de l'interface
+  start(o) {
+    const r = document.documentElement, dark = (h => { const n = parseInt(h.slice(1), 16); return (.299 * (n >> 16) + .587 * ((n >> 8) & 255) + .114 * (n & 255)) / 255 < .5; })(o.bg);
+    r.lang = o.lang; r.style.setProperty("--bg", o.bg); r.style.setProperty("--fg", o.fg);
+    r.style.setProperty("--ac", dark ? "#a798ff" : "#6d5bd0"); r.style.setProperty("--acfg", dark ? "#15122a" : "#fff"); r.style.colorScheme = dark ? "dark" : "light";
+    if (!W) W = FolioWriter.mount(document.getElementById("wr"), {
+      lang: o.lang, msg: s => send({ t: "toast", s }), close: () => send({ t: "close" }),
+      store: { list: () => ask("list"), get: did => ask("get", { did }), put: d => ask("put", { d }), snap: d => ask("snap", { d }), snaps: did => ask("snaps", { did }) },
+      changed: did => ask("changed", { did }),
+      exportFile: async (blob, name) => { await ask("export", { name, data: await b64(blob) }); },
+      toLibrary: async (blob, did) => ask("library", { did, data: await b64(blob) }),
+    });
+    W.show();
+  },
+};
+window.addEventListener("load", () => send({ t: "ready" }));
+</script></body></html>

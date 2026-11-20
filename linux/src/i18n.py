@@ -151,6 +151,9 @@ EN = {
     "Livre retiré de l’étagère": "Book removed from the shelf", "Sans titre": "Untitled",
     "Astuce : livre debout, tranche bien droite et cadrée serrée. Une photo prise à plat est redressée.": "Tip: stand the book up, keep the spine straight and frame it tightly. A photo taken flat is straightened.",
     "Importez la photo de la tranche de vos livres, numériques ou papier : votre étagère se compose et vous suit sur tous vos appareils. Depuis votre téléphone, vous pouvez la photographier directement.": "Import a photo of the spine of your books, digital or paper: your bookshelf builds itself and follows you on all your devices. From your phone, you can photograph it directly.",
+    # écrire un livre, lecture à voix haute
+    "Écrire un livre": "Write a book", "Mes manuscrits": "My manuscripts", "Lecture à voix haute": "Read aloud",
+    "Exporter en EPUB": "Export as EPUB", "EPUB enregistré": "EPUB saved", "Enregistrement impossible : {e}": "Couldn’t save: {e}",
 }
 
 

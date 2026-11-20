@@ -22,6 +22,7 @@ const app = build(db, {
   allowSignup: process.env.ALLOW_SIGNUP !== "false",
   publicUrl: process.env.PUBLIC_URL || "http://127.0.0.1:8787",
   quotaMB: +(process.env.QUOTA_MB || 2048),
+  ttsDir: process.env.TTS_DIR || path.join(__dirname, "..", "tts"),
   mailer,
 });
 app.listen({ host: process.env.HOST || "0.0.0.0", port: +(process.env.PORT || 8787) })

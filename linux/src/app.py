@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Folio — liseuse EPUB pour Linux (GTK4 / libadwaita / WebKitGTK)."""
+import base64
 import json
 import os
 import queue
@@ -24,6 +25,7 @@ from library import COVERS, DATA, SYNC_GROUPS, Library, synced_keys  # noqa: E40
 import sync as syncmod  # noqa: E402
 from sync import ApiSync, Sync, public_post  # noqa: E402
 from i18n import LANG, T, pct  # noqa: E402
+import drafts as draftsmod  # noqa: E402
 
 syncmod.LANG = LANG            # messages du serveur dans la langue de l'interface
 
@@ -267,6 +269,9 @@ class FolioWindow(Adw.ApplicationWindow):
         self.sync = None           # utilisé par les dialogues du compte (requêtes ponctuelles)
         self.sync_cfg = None       # configuration transmise au thread de synchro
         self.worker = SyncWorker()
+        self.drafts = draftsmod.Drafts()
+        self.writer_ready = False
+        self.draft_wait, self.draft_timer = {}, {}
         self.syncing = False
         self.last_sync = self.last_profile = 0
         self.push_id = self.set_push_id = self.apply_id = 0
@@ -284,6 +289,7 @@ class FolioWindow(Adw.ApplicationWindow):
         self.stack.add_named(self.build_library_page(), "library")
         self.stack.add_named(self.build_reader_page(), "reader")
         self.stack.add_named(self.build_rack_page(), "rack")
+        self.stack.add_named(self.build_writer_page(), "writer")
         self.build_actions()
         self.apply_theme()
         self.refresh_library()
@@ -331,7 +337,10 @@ class FolioWindow(Adw.ApplicationWindow):
         self.sync_btn = Gtk.Button(icon_name="view-refresh-symbolic", tooltip_text=T("Synchroniser"), valign=Gtk.Align.CENTER)
         self.sync_btn.add_css_class("flat"); self.sync_btn.add_css_class("circ")
         self.sync_btn.connect("clicked", lambda *_: self.sync_now())
-        header.pack_end(add); header.pack_end(acc_btn); header.pack_end(self.sync_btn)
+        write = Gtk.Button(icon_name="document-edit-symbolic", tooltip_text=T("Écrire un livre"), valign=Gtk.Align.CENTER)
+        write.add_css_class("flat"); write.add_css_class("circ")
+        write.connect("clicked", lambda *_: self.open_writer())
+        header.pack_end(add); header.pack_end(acc_btn); header.pack_end(self.sync_btn); header.pack_end(write)
         view.add_top_bar(header)
 
         self.search = Gtk.SearchEntry(placeholder_text=T("Rechercher un titre, un auteur…"), hexpand=True)
@@ -1573,7 +1582,7 @@ class FolioWindow(Adw.ApplicationWindow):
         if remote and isinstance(self.sync, ApiSync):
             self.api_try(self.sync.logout)
         self.settings.pop("account", None); self.lib.save_settings(self.settings)
-        self.AVATAR.unlink(missing_ok=True); self.lib.reset_sync_marks()
+        self.AVATAR.unlink(missing_ok=True); self.lib.reset_sync_marks(); self.drafts.forget_state()
         self.init_sync(); self.toast(T("Déconnecté"))
 
     def session_expired(self):
@@ -1683,6 +1692,7 @@ class FolioWindow(Adw.ApplicationWindow):
         api = isinstance(self.sync, ApiSync)
         want_profile = api and (profile or not quiet or time.time() - self.last_profile > 600)
         known_av = (self.settings.get("account") or {}).get("avatar", 0)
+        store = self.drafts
 
         def job(s):                      # thread de synchro
             s.moved.clear()
@@ -1698,11 +1708,17 @@ class FolioWindow(Adw.ApplicationWindow):
             except (OSError, ValueError):
                 pass
             prof = self.fetch_profile(s, known_av) if want_profile else None
-            return changed, set(s.moved), remote, prof, colls
+            try:
+                drafts = draftsmod.sync_all(s, store) if api else []
+            except (OSError, ValueError, KeyError):
+                drafts = []
+            return changed, set(s.moved), remote, prof, colls, drafts
 
         def done(r):                     # retour dans l'interface
             self.sync_finished()
-            changed, moved, remote, prof, colls = r
+            changed, moved, remote, prof, colls, drafts = r
+            for did in drafts:
+                self.wjs(f"Writer.remote({json.dumps(did)})")
             self.apply_remote_settings(*remote)
             if colls and self.stack.get_visible_child_name() == "library":
                 self.collections_changed_remote()
@@ -1820,7 +1836,9 @@ class FolioWindow(Adw.ApplicationWindow):
         self.aa_btn = aa = Gtk.MenuButton(child=aa_lbl, tooltip_text=T("Apparence (taille, police, thème)"),
                                           popover=self.build_settings_popover(), valign=Gtk.Align.CENTER)
         aa.add_css_class("circ")
-        header.pack_end(aa); header.pack_end(self.side_btn); header.pack_end(self.bm_btn)
+        voice = Gtk.Button(icon_name="audio-headphones-symbolic", tooltip_text=T("Lecture à voix haute"), valign=Gtk.Align.CENTER)
+        voice.add_css_class("circ"); voice.connect("clicked", lambda *_: self.js("Folio.voice()"))
+        header.pack_end(aa); header.pack_end(self.side_btn); header.pack_end(self.bm_btn); header.pack_end(voice)
         view.add_top_bar(header)
 
         # WebKit : le livre, le panneau sommaire/notes et la barre de progression sont rendus en HTML
@@ -1902,12 +1920,173 @@ class FolioWindow(Adw.ApplicationWindow):
         if self.web_ready:
             self.web.evaluate_javascript(code, -1)
 
+    # ------------------------------------------------------------------ lecture à voix haute (voix Piper du serveur)
+    def tts_ask(self, m):
+        rid, acc = int(m.get("id") or 0), self.settings.get("account")
+        if not acc:
+            return self.js(f"Folio.reply({rid}, null)")
+
+        def run():                       # hors du thread de l'interface (et sans attendre une synchro en cours)
+            api = ApiSync(None, acc["server"], acc["token"])
+            try:
+                if m["t"] == "tts_voices":
+                    v = api._json("GET", "/api/tts/voices")
+                else:
+                    body = json.dumps({"voice": str(m.get("voice", "")), "text": str(m.get("text", ""))[:1000]}).encode()
+                    v = base64.b64encode(api._req("POST", "/api/tts", body).read()).decode()
+            except Exception:  # noqa: BLE001 — la barre affiche « voix indisponible »
+                v = [] if m["t"] == "tts_voices" else None
+            GLib.idle_add(lambda: self.js(f"Folio.reply({rid}, {json.dumps(v)})") and False)
+        threading.Thread(target=run, daemon=True).start()
+
+    # ------------------------------------------------------------------ écrire un livre (writer/write.js)
+    def build_writer_page(self):
+        view = Adw.ToolbarView(top_bar_style=Adw.ToolbarStyle.FLAT)
+        header = Adw.HeaderBar(title_widget=Gtk.Label())   # le titre est dans la page
+        back = Gtk.Button(icon_name="go-previous-symbolic", tooltip_text=T("Bibliothèque (Échap)"), valign=Gtk.Align.CENTER)
+        back.add_css_class("circ"); back.connect("clicked", lambda *_: self.close_writer())
+        header.pack_start(back)
+        view.add_top_bar(header)
+        self.wweb = WebKit.WebView(hexpand=True, vexpand=True)
+        ws = self.wweb.get_settings()
+        getattr(ws, "set_allow_file_access_from_file_urls", lambda v: None)(True)
+        ws.set_enable_developer_extras(bool(os.environ.get("FOLIO_DEBUG")))
+        self.wweb.set_settings(ws)
+        self.wweb.set_background_color(Gdk.RGBA(alpha=0))
+        ucm = self.wweb.get_user_content_manager()
+        ucm.register_script_message_handler("writer", None)
+        ucm.connect("script-message-received::writer", self.on_writer_message)
+        self.wweb.load_uri(GLib.filename_to_uri(os.path.join(SHARE, "writer", "writer.html")))
+        view.set_content(self.wweb)
+        return view
+
+    def wjs(self, code):
+        if self.writer_ready:
+            self.wweb.evaluate_javascript(code, -1)
+
+    # raccourcis de la fenêtre (Ctrl+F, Ctrl+O, Échap…) coupés pendant l'écriture : l'éditeur a les siens
+    def writer_keys(self, on):
+        for n in ("add", "search", "back", "toc", "bookmark"):
+            a = self.lookup_action(n)
+            if a:
+                a.set_enabled(on)
+
+    def open_writer(self):
+        self.stack.set_visible_child_name("writer")
+        self.writer_keys(False)
+        self.writer_start()
+
+    def writer_start(self):
+        self.wjs(f"Writer.start({json.dumps({'bg': self.settings['bg'], 'fg': self.settings['fg'], 'lang': LANG})})")
+        self.wweb.grab_focus()
+
+    def close_writer(self):
+        self.wjs("Writer.flush()")
+        self.writer_keys(True)
+        self.stack.set_visible_child_name("library")
+        self.refresh_library()
+
+    def on_writer_message(self, _ucm, value):
+        try:
+            m = json.loads(value.to_string())
+        except ValueError:
+            return
+        t, rid = m.get("t"), int(m.get("id") or 0)
+        reply = lambda v: self.wjs(f"Writer.reply({rid}, {json.dumps(v)})")  # noqa: E731
+        try:
+            if t == "ready":
+                self.writer_ready = True
+                if self.stack.get_visible_child_name() == "writer":
+                    self.writer_start()
+            elif t == "list":
+                reply(self.drafts.list())
+            elif t == "get":
+                reply(self.drafts.get(m.get("did")))
+            elif t == "put":
+                self.drafts.put(m["d"]); reply(True)
+            elif t == "snap":
+                self.drafts.snap(m["d"]); reply(True)
+            elif t == "snaps":
+                reply(self.drafts.snaps(m.get("did")))
+            elif t == "changed":
+                self.draft_changed(str(m.get("did")), rid)
+            elif t == "export":
+                self.export_epub(m, reply)
+            elif t == "library":
+                self.draft_to_library(m, reply)
+            elif t == "toast":
+                self.toast(str(m.get("s", "")))
+            elif t == "close":
+                self.close_writer()
+        except (OSError, ValueError, KeyError, TypeError) as e:
+            self.toast(T("Enregistrement impossible : {e}", e=e)); reply(None)
+
+    # envoi au serveur 2 s après la dernière frappe ; l'éditeur reçoit true (synchronisé), false (injoignable) ou null (pas de compte)
+    def draft_changed(self, did, rid):
+        if not isinstance(self.sync, ApiSync) or not draftsmod.DID.match(did):
+            return self.wjs(f"Writer.reply({rid}, null)")
+        self.draft_wait.setdefault(did, []).append(rid)
+        if self.draft_timer.get(did):
+            GLib.source_remove(self.draft_timer[did])
+        self.draft_timer[did] = GLib.timeout_add(2000, lambda: self.draft_push(did))
+
+    def draft_push(self, did):
+        self.draft_timer.pop(did, None)
+        rids, store = self.draft_wait.pop(did, []), self.drafts
+
+        def finish(ok, fresh=False):
+            for r in rids:
+                self.wjs(f"Writer.reply({r}, {json.dumps(ok)})")
+            if fresh:
+                self.wjs(f"Writer.remote({json.dumps(did)})")
+        self.worker.submit(self.sync_cfg, lambda s: draftsmod.push(s, store, did), lambda fresh: finish(True, fresh), lambda e: finish(False))
+        return False
+
+    def export_epub(self, m, reply):
+        data = base64.b64decode(m.get("data") or "")
+        fl = Gio.ListStore.new(Gtk.FileFilter); f = Gtk.FileFilter(name="EPUB"); f.add_pattern("*.epub"); fl.append(f)
+        dlg = Gtk.FileDialog(title=T("Exporter en EPUB"), initial_name=str(m.get("name") or "livre.epub"), filters=fl)
+
+        def done(d, res):
+            try:
+                gf = d.save_finish(res)
+            except GLib.Error:
+                return reply(False)
+            Path(gf.get_path()).write_bytes(data)
+            self.toast(T("EPUB enregistré")); reply(True)
+        dlg.save(self, None, done)
+
+    # le livre ajouté remplace la version précédente du même manuscrit
+    def draft_to_library(self, m, reply):
+        did = str(m.get("did"))
+        if not draftsmod.DID.match(did):
+            return reply(False)
+        tmp = Path(tempfile.gettempdir()) / f"folio-draft-{did}.epub"
+        tmp.write_bytes(base64.b64decode(m.get("data") or ""))
+        try:
+            bid = self.add_files([str(tmp)])
+        finally:
+            tmp.unlink(missing_ok=True)
+        links = self.settings.setdefault("draft_lib", {})
+        prev = links.get(did)
+        if bid and prev and prev != bid and self.lib.book(prev):
+            self.do_remove(prev)
+        if bid:
+            links[did] = bid; self.lib.save_settings(self.settings)
+            if self.sync:
+                self.sync_now(quiet=True)
+        reply(bool(bid))
+
     def on_message(self, _ucm, value):
         try:
             m = json.loads(value.to_string())
         except ValueError:
             return
         t = m.get("t")
+        if t in ("tts_voices", "tts"):
+            return self.tts_ask(m)
+        if t == "login":
+            self.close_book(); return self.account_dialog()
         if t == "ready":
             self.web_ready = True
             if self.pending_open and self.cur:

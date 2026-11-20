@@ -3,7 +3,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const Fastify = require("fastify");
 const QRCode = require("qrcode");
-const { mergeState } = require("./merge");
+const { mergeState, mergeDraft } = require("./merge");
+const { Tts } = require("./tts");
 const S = require("./security");
 const { esc } = require("./mailer");
 const { langOf, t, pick } = require("./i18n");
@@ -60,16 +61,27 @@ const cleanShelf = (a) => (Array.isArray(a) ? a : []).filter((x) => x && SID.tes
   .map((x) => ({ id: x.id, kind: x.kind === "paper" ? "paper" : "book", title: txt(x.title, 300), author: txt(x.author, 200),
     spine: num(x.spine), created: num(x.created), updated: num(x.updated), deleted: x.deleted ? 1 : 0 }))
   .filter((x) => x.kind === "paper" || HASH.test(x.id));
+// Manuscrits : HTML gardé tel quel (jamais affiché par le serveur ; les clients le nettoient avant affichage et export)
+const COVER = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+const cleanDraft = (id, d) => ({ id, title: txt(d.title, 300), author: txt(d.author, 200),
+  lang: /^[a-z]{2,3}(?:-[A-Za-z]{2})?$/.test(d.lang) ? d.lang : "fr", desc: String(d.desc ?? "").slice(0, 4000),
+  cover: d.cover === undefined ? undefined : typeof d.cover === "string" && d.cover.length < 3e6 && COVER.test(d.cover) ? d.cover : "",
+  order: (Array.isArray(d.order) ? d.order : []).filter((x) => CID.test(String(x))).slice(0, 2000),
+  created: num(d.created), updated: num(d.updated), deleted: d.deleted ? 1 : 0,
+  chapters: d.deleted ? [] : (Array.isArray(d.chapters) ? d.chapters : []).filter((c) => c && CID.test(String(c.id))).slice(0, 2000)
+    .map((c) => ({ id: c.id, title: txt(c.title, 300), html: c.deleted ? "" : String(c.html ?? "").slice(0, 4e6),
+      created: num(c.created), updated: num(c.updated), deleted: c.deleted ? 1 : 0 })) });
 function dirSize(d) {
   try { return fs.readdirSync(d).reduce((n, f) => n + fs.statSync(path.join(d, f)).size, 0); } catch { return 0; }
 }
 
-function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, publicUrl = "", mailer, quotaMB = 2048 }) {
+function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, publicUrl = "", mailer, quotaMB = 2048, ttsDir = "" }) {
   const app = Fastify({ bodyLimit: 2 * 1024 * 1024 });
   const key = S.loadKey(dataDir);
   const RL = new S.Limiter();
   const tickets = new Map();             // tickets 2FA en attente : sha256(ticket) → { userId, exp, tries }
   const base = (publicUrl || "").replace(/\/$/, "");
+  const tts = Tts(ttsDir);
 
   app.addContentTypeParser("application/epub+zip", { parseAs: "buffer", bodyLimit: 300 * 1024 * 1024 }, (_r, b, done) => done(null, b));
   app.addContentTypeParser(["image/png", "image/jpeg", "image/webp"], { parseAs: "buffer", bodyLimit: 3 * 1024 * 1024 }, (_r, b, done) => done(null, b));
@@ -541,6 +553,44 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
       fs.writeFileSync(spineFile(req.userId, req.params.id), req.body);
       return { ok: true };
     });
+    // ---------- manuscrits (fusion par chapitre, cf. merge.js) ----------
+    // révision du serveur : chaque envoi l'incrémente, chaque chapitre retient celle de sa dernière modification (r) ;
+    // la réponse ne contient que ce que le client n'a pas encore (chapitres plus récents que ?since=, couverture si elle a changé)
+    const DP = { schema: { params: { type: "object", properties: { id: { type: "string", pattern: CID.source } } } } };
+    api.get("/api/drafts", async (req) => db.draft.findMany({ where: { userId: req.userId }, select: { id: true, rev: true } }));
+    api.get("/api/drafts/:id", DP, async (req, reply) => {
+      const r = await db.draft.findUnique({ where: { userId_id: { userId: req.userId, id: req.params.id } } });
+      return r ? reply.type("application/json").send(r.data) : fail(reply, 404, "bad_request");
+    });
+    api.put("/api/drafts/:id", { ...DP, bodyLimit: 12 * 1048576 }, async (req, reply) => {
+      if (RL.hit(`draft:${req.userId}`, 2400, 3600)) return tooMany(reply);
+      const b = req.body;
+      if (!b || typeof b !== "object" || Array.isArray(b)) return fail(reply, 400, "bad_data");
+      const where = { userId_id: { userId: req.userId, id: req.params.id } };
+      const old = await db.draft.findUnique({ where });
+      if (!old && (await db.draft.count({ where: { userId: req.userId } })) >= 200) return fail(reply, 403, "bad_data");
+      const cur = old ? JSON.parse(old.data) : null, inc = cleanDraft(req.params.id, b), rev = (cur?.rev || 0) + 1;
+      const m = mergeDraft(cur, inc), fresh = new Set(inc.chapters), metaIn = !cur || (inc.updated || 0) > (cur.updated || 0);
+      m.chapters.forEach((c) => { if (fresh.has(c)) c.r = rev; });
+      m.rev = rev; m.mr = metaIn ? rev : cur.mr || 0;
+      const data = JSON.stringify(m);
+      if (data.length > 12 * 1048576) return fail(reply, 413, "too_big");
+      await db.draft.upsert({ where, create: { userId: req.userId, id: req.params.id, data, rev }, update: { data, rev } });
+      const since = Math.max(0, Math.floor(+(req.query || {}).since || 0));
+      return { ...m, cover: m.mr > since && !metaIn ? m.cover : undefined, chapters: m.chapters.filter((c) => c.r > since && !fresh.has(c)) };
+    });
+
+    // ---------- lecture à voix haute (Piper, sur ce serveur) ----------
+    api.get("/api/tts/voices", async () => tts.voices());
+    api.post("/api/tts", async (req, reply) => {
+      const { voice, text } = req.body || {};
+      const s = String(text ?? "").replace(CTRL, " ").trim();
+      if (!tts.has(voice) || !s || s.length > 1000 || !/\p{L}|\p{N}/u.test(s)) return fail(reply, 400, "bad_request");
+      if (RL.hit(`tts:${req.userId}`, 3000, 3600)) return tooMany(reply);
+      try { return reply.type("audio/wav").send(await tts.say(voice, s)); }
+      catch (e) { return fail(reply, e.busy ? 503 : 500, e.busy ? "too_many" : "internal"); }
+    });
+
     api.head("/api/files/:hash", P, async (req, reply) => reply.code(fs.existsSync(file(req)) ? 200 : 404).send());
     api.get("/api/files/:hash", P, async (req, reply) =>
       fs.existsSync(file(req)) ? reply.type("application/epub+zip").header("Content-Disposition", "attachment").send(fs.createReadStream(file(req))) : reply.code(404).send());

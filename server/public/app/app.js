@@ -3,7 +3,7 @@
 const LANG=(()=>{let l;try{l=localStorage.folioLang}catch(e){}return l==="fr"||l==="en"?l:/^fr/i.test(navigator.language||"")?"fr":"en"})();
 document.documentElement.lang=LANG;
 const TX={
-fr:{siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
+fr:{writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
  library:"Bibliothèque",bookmark:"Marque-page",tocNotes:"Sommaire et notes",appearance:"Apparence",customColors:"Couleurs perso",background:"Fond",text:"Texte",font:"Police",bookFont:"Police du livre",
  size:"Taille",lineHeight:"Interligne",margins:"Marges",justify:"Texte justifié",pages:"Pages",scroll:"Défilement",typography:"Typographie",paraSpace:"Espace entre paragraphes",weight:"Graisse",
  letterSpace:"Espacement des lettres",indent:"Retrait de première ligne",indBook:"Livre",indNone:"Aucun",indNormal:"Normal",indWide:"Large",resetLook:"Réinitialiser l’apparence",syncLook:"Synchronisation entre appareils",syncLookTxt:"Décochez ce que cet appareil doit garder pour lui : il ne l’enverra plus et ne recevra plus celui des autres.",sg_colors:"Thème et couleurs",sg_font:"Police",sg_size:"Taille du texte",sg_spacing:"Interligne et typographie",sg_margin:"Marges",sg_layout:"Justification, pages ou défilement",
@@ -53,7 +53,7 @@ fr:{siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks
  confirmRemovePaper:"Retirer « {t} » de l’étagère ?",sortAuthor:"Auteur",sortTitle:"Titre",sortRecent:"Récents",kindBook:"Livre numérique",kindPaper:"Livre papier",
  decoT:"Décorations",decoT:"Decorations",rackTip:"Photographiez la tranche de vos livres, numériques ou papier : votre étagère se compose, et vous suit sur tous vos appareils.",spineTip:"Astuce : livre debout, tranche bien droite et cadrée serrée.",
  fold:"Replier",unfold:"Déplier",useAsCover:"Utiliser comme couverture",coverSet:"Couverture mise à jour",coverReset:"Couverture d’origine rétablie",customCover:"Couverture personnalisée",bookOptions:"Options du livre"},
-en:{siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
+en:{writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
  library:"Library",bookmark:"Bookmark",tocNotes:"Contents and notes",appearance:"Appearance",customColors:"Custom colours",background:"Background",text:"Text",font:"Font",bookFont:"Book’s font",
  size:"Size",lineHeight:"Line spacing",margins:"Margins",justify:"Justified text",pages:"Pages",scroll:"Scrolling",typography:"Typography",paraSpace:"Paragraph spacing",weight:"Weight",
  letterSpace:"Letter spacing",indent:"First-line indent",indBook:"Book",indNone:"None",indNormal:"Normal",indWide:"Wide",resetLook:"Reset appearance",syncLook:"Sync across devices",syncLookTxt:"Untick what this device should keep to itself: it will no longer send it, nor receive the one from your other devices.",sg_colors:"Theme and colours",sg_font:"Font",sg_size:"Text size",sg_spacing:"Line height and typography",sg_margin:"Margins",sg_layout:"Justification, pages or scrolling",
@@ -124,11 +124,13 @@ const msg=s=>{const m=$("msg");m.textContent=s;m.classList.add("on");clearTimeou
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const now=()=>Date.now()/1000;
 // ---------- stockage IndexedDB ----------
-const open=()=>new Promise((ok,ko)=>{const r=indexedDB.open("folio",2);r.onupgradeneeded=()=>{const d=r.result,has=n=>d.objectStoreNames.contains(n);
- if(!has("books"))d.createObjectStore("books",{keyPath:"hash"});if(!has("files"))d.createObjectStore("files");if(!has("spines"))d.createObjectStore("spines")};r.onsuccess=()=>{db=r.result;ok()};r.onerror=ko});
+const open=()=>new Promise((ok,ko)=>{const r=indexedDB.open("folio",3);r.onupgradeneeded=()=>{const d=r.result,has=n=>d.objectStoreNames.contains(n);
+ if(!has("books"))d.createObjectStore("books",{keyPath:"hash"});if(!has("files"))d.createObjectStore("files");if(!has("spines"))d.createObjectStore("spines");
+ if(!has("drafts"))d.createObjectStore("drafts",{keyPath:"id"});if(!has("snaps"))d.createObjectStore("snaps",{autoIncrement:true}).createIndex("id","id")};r.onsuccess=()=>{db=r.result;ok()};r.onerror=ko});
 const tx=(st,m="readonly")=>db.transaction(st,m).objectStore(st),rq=r=>new Promise((ok,ko)=>{r.onsuccess=()=>ok(r.result);r.onerror=ko});
 const getB=h=>rq(tx("books").get(h)),putB=b=>rq(tx("books","readwrite").put(b)),allB=()=>rq(tx("books").getAll()),delB=h=>Promise.all([rq(tx("books","readwrite").delete(h)),rq(tx("files","readwrite").delete(h))]);
 const getSp=id=>rq(tx("spines").get(id)),putSp=(id,b)=>rq(tx("spines","readwrite").put(b,id)),delSp=id=>rq(tx("spines","readwrite").delete(id));
+const getD=id=>rq(tx("drafts").get(id)),putD=d=>rq(tx("drafts","readwrite").put(d)),allD=()=>rq(tx("drafts").getAll());
 const sha1=async buf=>[...new Uint8Array(await crypto.subtle.digest("SHA-1",buf))].map(b=>b.toString(16).padStart(2,"0")).join("");
 async function addBuf(buf){const hash=await sha1(buf);if(await getB(hash))return hash;
  const bk=ePub(buf.slice(0));await bk.ready;const md=await bk.loaded.metadata;let cover=null;try{const u=await bk.coverUrl();if(u)cover=await loadImg(u).then(i=>toBlob(i,600,900))}catch(e){}
@@ -560,7 +562,36 @@ function list(){const L=$("list");if(!cur||!book){L.innerHTML="";return}const sh
   recolor:(cfi,c)=>{const h=cur.highlights.find(x=>x.cfi===cfi);if(h)addHl(cfi,c,h.text);list()},
   copy:(s,m)=>{(navigator.clipboard?navigator.clipboard.writeText(s):Promise.reject()).then(()=>msg(m||t("copied")),()=>msg(t("copyFail")))},
   onTab:x=>{tab=x;list();sh.scrollTop=0}});sh.scrollTop=keep}
-$("bBack").onclick=async()=>{show(null);hideSel();hideImg();$("track").innerHTML="";setPct=()=>{};try{rend.destroy();book.destroy()}catch(e){}rend=book=loc=null;$("rd").classList.remove("on");clearTimeout(pushT);try{await dav?.push(cur)}catch(e){}cur=null;render()};
+$("bBack").onclick=async()=>{voice.stop();show(null);hideSel();hideImg();$("track").innerHTML="";setPct=()=>{};try{rend.destroy();book.destroy()}catch(e){}rend=book=loc=null;$("rd").classList.remove("on");clearTimeout(pushT);try{await dav?.push(cur)}catch(e){}cur=null;render()};
+// ---------- écrire un livre (write.js) ----------
+const DS=()=>jget("folioDraftSync",{}),dsSet=(id,v)=>{const m=DS();m[id]=v;localStorage.folioDraftSync=JSON.stringify(m)};
+// envois d'un même manuscrit l'un après l'autre (2 s après la dernière frappe)
+const drQ={},drT={};
+const queueDraft=id=>drQ[id]=(drQ[id]||Promise.resolve()).catch(()=>{}).then(()=>dav&&dav.pushDraft(id));
+function draftChanged(id){if(!dav)return Promise.resolve(null);return new Promise(ok=>{const q=drT[id]||(drT[id]={cbs:[]});q.cbs.push(ok);clearTimeout(q.t);
+ q.t=setTimeout(()=>{delete drT[id];queueDraft(id).then(()=>true,()=>false).then(r=>q.cbs.forEach(f=>f(r)))},2000)})}
+const SNAPS=20;
+const writer=FolioWriter.mount($("wr"),{lang:LANG,msg,close:()=>{writer.hide();render()},
+ store:{list:allD,get:getD,put:putD,
+  // historique : une version par état différent, les 20 plus récentes
+  async snap(d){const ix=()=>tx("snaps","readwrite").index("id"),keys=await rq(ix().getAllKeys(d.id)),last=keys.length?await rq(tx("snaps").get(keys[keys.length-1])):null,st=FolioWriter.stamp(d);
+   if(last&&last.stamp===st)return;await rq(tx("snaps","readwrite").add({id:d.id,at:Date.now(),stamp:st,d:JSON.parse(JSON.stringify(d))}));
+   for(const k of keys.slice(0,Math.max(0,keys.length+1-SNAPS)))await rq(tx("snaps","readwrite").delete(k))},
+  snaps:async id=>(await rq(tx("snaps").index("id").getAll(id))).reverse()},
+ changed:draftChanged,
+ async exportFile(blob,name){const f=new File([blob],name,{type:"application/epub+zip"});
+  if(document.documentElement.classList.contains("phone")&&navigator.canShare?.({files:[f]})){try{await navigator.share({files:[f],title:name});return}catch(e){if(e.name==="AbortError")return}}
+  const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);msg(t("epubSaved"))},
+ // le livre ajouté remplace la version précédente du même manuscrit
+ async toLibrary(blob,id){const map=jget("folioDraftLib",{}),prev=map[id],h=await addBuf(await blob.arrayBuffer());
+  if(prev&&prev!==h){const b=await getB(prev);if(b){await delB(prev);try{await dav?.push(b,true)}catch(e){}}}
+  map[id]=h;localStorage.folioDraftLib=JSON.stringify(map);render();dav?.syncAll().catch(()=>{});return h}});
+$("bWrite").onclick=()=>writer.show();
+// ---------- lecture à voix haute (voice.js) ----------
+let VOICES=null;
+const voice=FolioVoice.create({root:$("rd"),lang:LANG,get:()=>({book,rend,title:cur?.title,author:cur?.author}),
+ voices:async()=>dav?(VOICES||(VOICES=await dav.ttsVoices())):null,speak:(v,s)=>dav.tts(v,s),login:()=>{$("bBack").click();show("shCfg")}});
+$("bVoice").onclick=()=>voice.open();
 // ---------- synchro via le compte Folio (mêmes données que l'app Linux) ----------
 let dav=null,pushT;
 const pushSoon=()=>{if(!dav)return;clearTimeout(pushT);const b=cur;pushT=setTimeout(()=>dav.push(b).then(()=>refreshCur(false)).catch(()=>{}),3000)};
@@ -608,6 +639,16 @@ function Api(c){const base=(c.server||"").replace(/\/$/,""),h={Authorization:"Be
     if(at[id]===x.spine){if(sent[id]!==x.spine){const b=await getSp(id);if(b){const q=await f(`/api/spines/${id}`,{method:"PUT",headers:{"Content-Type":b.type||"image/jpeg"},body:b});if(q.ok)spSet("folioSpineSent",id,x.spine)}}}
     else{const q=await f(`/api/spines/${id}`);if(q.ok){await putSp(id,await q.blob());spSet("folioSpineAt",id,x.spine);spSet("folioSpineSent",id,x.spine);dropUrl(id);ch=true}}}
    return ch},
+  // manuscrits : on n'envoie que ce qui a changé depuis le dernier envoi réussi, le serveur répond avec ce qui nous manque
+  async pushDraft(id){const d=await getD(id);if(!d)return;const s=DS()[id]||{rev:0,at:0},st=FolioWriter.stamp(d);
+   const body={...d,chapters:d.chapters.filter(c=>(c.updated||0)>s.at)};if(!((d.coverAt||0)>s.at))delete body.cover;
+   const r=await P(`/api/drafts/${id}?since=${s.rev}`,body,"PUT"),cur=await getD(id)||d;
+   await putD(FolioWriter.merge(cur,r));dsSet(id,{rev:r.rev,at:st});if(r.chapters.length||r.cover!==undefined||(r.updated||0)>(cur.updated||0))writer?.remote(id)},
+  async drafts(){const rem=await jf("/api/drafts"),rv=new Map(rem.map(x=>[x.id,x.rev])),loc=await allD();
+   for(const d of loc){const s=DS()[d.id];if(!rv.has(d.id))dsSet(d.id,{rev:0,at:0});if(!rv.has(d.id)||!s||s.rev!==rv.get(d.id)||FolioWriter.stamp(d)>s.at)await queueDraft(d.id)}
+   for(const x of rem)if(!loc.some(d=>d.id===x.id)){const r=await jf(`/api/drafts/${x.id}`);await putD(r);dsSet(x.id,{rev:r.rev,at:FolioWriter.stamp(r)});writer?.remote(x.id)}},
+  ttsVoices:()=>jf("/api/tts/voices"),
+  async tts(voice,text){const r=await f("/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({voice,text})});if(!r.ok)throw new Error(r.status);return r.blob()},
   me:()=>jf("/api/me"),
   setName:name=>jf("/api/me",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({name})}),
   setLang:lang=>jf("/api/me",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({lang})}),
@@ -621,7 +662,7 @@ function Api(c){const base=(c.server||"").replace(/\/$/,""),h={Authorization:"Be
   mfaSetup:password=>P("/api/me/mfa/setup",{password}),mfaEnable:code=>P("/api/me/mfa/enable",{code}),
   mfaDisable:(password,code)=>P("/api/me/mfa/disable",{password,code}),mfaRecovery:(password,code)=>P("/api/me/mfa/recovery",{password,code}),
   async syncAll(){let n=0;await this.settings();loadProfile().catch(()=>{});for(const d of await this.list())if(await this.apply(d.hash,d))n++;for(const b of await allB())await this.push(b);
-   try{await this.collections()}catch(e){}try{if(await this.rack())rackRefresh()}catch(e){}return n}}}
+   try{await this.collections()}catch(e){}try{if(await this.rack())rackRefresh()}catch(e){}try{await this.drafts()}catch(e){console.error(e)}return n}}}
 let ME=null,avUrl=null;
 function paintProfile(){const c=JSON.parse(localStorage.folioAcc||"null"),name=ME?.name||"",init=(name||c?.email||"?")[0].toUpperCase();
  const img=avUrl?`<img src="${avUrl}" alt="">`:"";$("av").innerHTML=img||init;
@@ -651,7 +692,7 @@ $("pseudo").onkeydown=e=>{if(e.key==="Enter")$("pSave").click()};
 $("pwSave").onclick=async()=>{if($("pwNew").value!==$("pwConf").value)return msg(t("pwMismatch"));
  try{await dav.password($("pwCur").value,$("pwNew").value,$("pwCode").value);["pwCur","pwNew","pwConf","pwCode"].forEach(i=>$(i).value="");msg(t("pwChanged"));loadProfile();loadSessions()}catch(x){err(x)}};
 $("logOthers").onclick=async()=>{try{const r=await dav.logoutOthers();msg(t("devicesOut",{n:r.closed}));loadProfile();loadSessions()}catch(x){err(x)}};
-const forget=()=>["folioAcc","folioMe","folioAv","folioSpineSent"].forEach(k=>localStorage.removeItem(k));
+const forget=()=>["folioAcc","folioMe","folioAv","folioSpineSent","folioDraftSync"].forEach(k=>localStorage.removeItem(k));
 $("delAcc").onclick=async()=>{if(!confirm(t("confirmDelAcc")))return;
  try{await dav.remove($("delPw").value,$("delCode").value);forget();initDav();show(null);msg(t("accDeleted"))}catch(x){err(x)}};
 function expired(){if(!localStorage.folioAcc)return;forget();initDav();msg(t("expired"))}

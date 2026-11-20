@@ -65,9 +65,18 @@
   <script src="jszip.min.js"></script>
   <script src="epub.min.js"></script>
   <script src="notes.js"></script>
+  <script src="voice.js"></script>
 <script>
 const Folio = (() => {
   const send = o => window.webkit.messageHandlers.folio.postMessage(JSON.stringify(o));
+  // requêtes à l'app (voix) : réponse par Folio.reply(id, valeur)
+  let rid = 0; const waits = {};
+  const ask = (t, o = {}) => new Promise(ok => { const id = ++rid; waits[id] = ok; send({ t, id, ...o }); });
+  let V = null;
+  const voice = () => (V = V || FolioVoice.create({ root: document.body, lang: document.documentElement.lang,
+    get: () => ({ book, rend: rendition, title }), voices: () => ask("tts_voices"), login: () => send({ t: "login" }),
+    speak: async (v, text) => { const b = await ask("tts", { voice: v, text }); if (!b) throw new Error("tts");
+      return new Blob([Uint8Array.from(atob(b), c => c.charCodeAt(0))], { type: "audio/wav" }); } }));
   const COLORS = { yellow:"#f6d55c", green:"#7bd88f", blue:"#6cb6ff", pink:"#ff8fb1", orange:"#ffa94d", red:"#ff6b6b", purple:"#b197fc", teal:"#4fd1c5" };
   const LAYOUT = ["size","line","margin","font","flow","spread","justify","para","indent","weight","letter"];
   let book, rendition, S = {}, hls = [], bms = [], toc = [], loc = null, cur = "", pct = null, anchor = null,
@@ -239,6 +248,7 @@ const Folio = (() => {
     }
   }
   function close() {
+    if (V) V.stop();
     clearTimeout(timer); hideBar(); panel(false); $("ribbon").classList.remove("on");
     if (rendition) { try { rendition.destroy(); } catch (e) {} rendition = null; }
     if (book) { try { book.destroy(); } catch (e) {} book = null; }
@@ -397,7 +407,7 @@ const Folio = (() => {
     else { document.body.classList.toggle("full"); send({ t:"bars", full: document.body.classList.contains("full") }); }
   }
 
-  return { open, close, settings, go, resume: c => { anchor = c; go(c); }, next, prev, toggleBookmark, setBookmarks, setHighlights, panel,
+  return { open, close, settings, go, voice: () => voice().open(), reply: (id, v) => { const f = waits[id]; delete waits[id]; if (f) f(v); }, resume: c => { anchor = c; go(c); }, next, prev, toggleBookmark, setBookmarks, setHighlights, panel,
            debug: () => ({ book, rendition, loc }) };
 })();
 window.addEventListener("error", e => window.webkit.messageHandlers.folio.postMessage(JSON.stringify({ t:"error", msg:e.message })));

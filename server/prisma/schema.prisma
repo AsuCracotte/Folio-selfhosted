@@ -30,6 +30,7 @@ model User {
   shelf           String  @default("[]")   // étagère : [{id,kind,title,author,spine,created,updated,deleted}]
   sessions  Session[]
   books     BookState[]
+  drafts    Draft[]
   recovery  RecoveryCode[]
   tokens    EmailToken[]
 }
@@ -84,4 +85,15 @@ model BookState {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, hash])
+}
+
+// Manuscrits écrits dans l'éditeur : document JSON (métadonnées + chapitres), fusionné chapitre par chapitre
+model Draft {
+  userId  String
+  id      String
+  data    String
+  rev     Int    @default(0)   // révision, +1 à chaque envoi : les clients ne reçoivent que ce qui a changé depuis la leur
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, id])
 }

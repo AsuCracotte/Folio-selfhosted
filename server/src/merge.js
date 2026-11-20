@@ -23,4 +23,14 @@ function mergeState(cur, inc) {
     cover: (inc.cover?.updated || 0) > (c.cover?.updated || 0) ? inc.cover : c.cover || { updated: 0, custom: false },
   };
 }
-module.exports = { mergeState };
+// Manuscrit : les métadonnées (titre, ordre des chapitres, couverture…) les plus récentes gagnent,
+// puis chaque chapitre est fusionné séparément : deux appareils peuvent écrire deux chapitres différents sans rien perdre.
+// Envois partiels : seuls les chapitres modifiés voyagent, et la couverture absente (undefined) veut dire « inchangée ».
+function mergeDraft(cur, inc) {
+  if (!cur) return inc;
+  const meta = (inc.updated || 0) > (cur.updated || 0) ? { ...inc, cover: inc.cover ?? cur.cover } : cur;
+  const m = new Map(cur.chapters.map((c) => [c.id, c]));
+  for (const c of inc.chapters) { const l = m.get(c.id); if (!l || (l.updated || 0) < (c.updated || 0)) m.set(c.id, c); }
+  return { ...meta, chapters: meta.deleted ? [] : [...m.values()] };
+}
+module.exports = { mergeState, mergeDraft };
