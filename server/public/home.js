@@ -91,7 +91,7 @@
   // ---------- éléments pilotés par le défilement ----------
   const book = $("#book"), cover = $(".cover", book);
   const sync = $("#sync"), read = $("#readText"), trackEl = $("#track"), pctEl = $("#pct"), devNames = $$("#track span");
-  const tilts = $$(".frame.tilt,.duo"), tiltCache = tilts.map(() => ({}));
+  const tilts = $$(".frame.tilt"), tiltCache = tilts.map(() => ({}));
 
   // le texte de la synchro, mot par mot
   const words = (() => {
@@ -157,6 +157,43 @@
   addEventListener("resize", onScroll);
   [title, book, sync, ...tilts].forEach((e) => vis.observe(e));
   onScroll();
+
+  // ---------- atelier : le texte s'écrit, puis la voix le lit (seulement quand la carte est visible) ----------
+  (() => {
+    const en = document.documentElement.lang === "en";
+    const words = (s) => (s.trim() ? s.trim().split(/\s+/).length : 0);
+    const wTxt = $("#wcTxt"), wSt = $("#wcSt"), wN = $("#wcWords"), wSrc = $("#wcSrc").textContent.trim();
+    const count = (s) => { const n = 152 + words(s); wN.textContent = en ? n + " words" : n + " mots"; };
+    const saved = () => { wSt.parentNode.classList.remove("busy"); wSt.textContent = en ? "Saved and synced" : "Enregistré et synchronisé"; };
+    let typed = false;
+    function type() {
+      if (typed) return; typed = true;
+      if (reduce) { wTxt.textContent = wSrc; count(wSrc); saved(); return; }
+      let i = 0; wSt.parentNode.classList.add("busy"); wSt.textContent = en ? "Saving…" : "Enregistrement…";
+      const step = () => { i = Math.min(wSrc.length, i + 1 + (Math.random() < .3)); wTxt.textContent = wSrc.slice(0, i); count(wTxt.textContent);
+        if (i < wSrc.length) setTimeout(step, /[,.;:]/.test(wSrc[i - 1]) ? 260 : 32 + Math.random() * 40); else setTimeout(saved, 700); };
+      step();
+    }
+    count(""); saved();
+
+    const card = $("#lcard"), box = $("#lcTxt"), pp = $("#lcPP");
+    const sents = $("#lcSrc").textContent.trim().match(/[^.!?…]+[.!?…]+[»”"]?\s*/g) || [];
+    box.textContent = ""; const spans = sents.map((s) => { const e = document.createElement("span"); e.textContent = s; box.append(e); return e; });
+    let at = 0, timer = 0, playing = !reduce, seen = false;
+    const paint = () => spans.forEach((e, i) => { e.classList.toggle("on", i === at); e.classList.toggle("done", i < at); });
+    const tick = () => { clearTimeout(timer); if (!playing || !seen) return;
+      timer = setTimeout(() => { at = (at + 1) % spans.length; paint(); tick(); }, 900 + sents[at].length * 55); };
+    const play = (on) => { playing = on; card.classList.toggle("paused", !on); tick(); };
+    pp.onclick = () => play(!playing);
+    $$(".lc-voices button").forEach((b) => b.onclick = () => { $$(".lc-voices button").forEach((x) => x.classList.toggle("on", x === b)); at = 0; paint(); play(true); });
+    paint(); card.classList.toggle("paused", !playing);
+
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.target.id === "wcard" && e.isIntersecting) type();
+      if (e.target === card) { seen = e.isIntersecting; tick(); }
+    }), { threshold: 0.4 });
+    io.observe($("#wcard")); io.observe(card);
+  })();
 
   // ---------- plateforme qui défile (seulement quand elle est visible) ----------
   const roll = $("#roll"), track = roll.firstElementChild;
