@@ -1,7 +1,9 @@
 // Folio pour Windows et macOS : une fenêtre de bureau autour de l'appli web Folio (même interface, même synchro).
-const { app, BrowserWindow, Menu, shell, ipcMain, nativeTheme, systemPreferences } = require("electron");
+const { app, BrowserWindow, Menu, shell, ipcMain, nativeTheme, systemPreferences, net } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
+const crypto = require("node:crypto");
+const { spawn } = require("node:child_process");
 
 // Adresse du lecteur : FOLIO_URL au lancement, sinon celle choisie à la construction (config.json, cf. build.js)
 let built = {};
@@ -96,6 +98,55 @@ function createWindow() {
 }
 
 ipcMain.on("folio:retry", () => win && win.loadURL(SITE));
+
+// ---------- mise à jour de l'appli elle-même ----------
+// Le serveur Folio liste ses installeurs (/api/releases, avec leur SHA-256). Si une version plus récente existe pour ce système,
+// la page propose « Mettre à jour » : téléchargement, vérification de l'empreinte, installation, redémarrage.
+const newer = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
+const PAT = process.platform === "win32" ? /^Folio-Setup-(\d+\.\d+\.\d+)\.exe$/
+  : isMac ? new RegExp(`^Folio-(\\d+\\.\\d+\\.\\d+)-mac-${process.arch}\\.zip$`) : null;
+let found = null;
+async function checkUpdate() {
+  if (!PAT || !app.isPackaged) return null;
+  const r = await net.fetch(ORIGIN + "/api/releases", { cache: "no-store" });
+  if (!r.ok) return null;
+  found = null;
+  for (const x of await r.json()) {
+    const m = PAT.exec(x.name);
+    if (m && /^[0-9a-f]{64}$/.test(x.sha256 || "") && newer(m[1], app.getVersion()) && (!found || newer(m[1], found.version))) found = { ...x, version: m[1] };
+  }
+  return found && { version: found.version, size: found.size };
+}
+async function installUpdate(e) {
+  if (!found) throw new Error("aucune mise à jour");
+  const u = found, dir = fs.mkdtempSync(path.join(app.getPath("temp"), "folio-upd-")), file = path.join(dir, u.name);
+  const r = await net.fetch(ORIGIN + "/dl/" + encodeURIComponent(u.name));
+  if (!r.ok || !r.body) throw new Error("téléchargement " + r.status);
+  const h = crypto.createHash("sha256"), out = fs.createWriteStream(file), reader = r.body.getReader();
+  let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    h.update(value); got += value.length; out.write(value);
+    e.sender.send("folio:progress", u.size ? got / u.size : 0);
+  }
+  await new Promise((ok) => out.end(ok));
+  if (h.digest("hex") !== u.sha256) { fs.rmSync(dir, { recursive: true, force: true }); throw new Error("empreinte invalide"); }
+  if (process.platform === "win32") {
+    // installeur NSIS en silencieux (même dossier que l'installation actuelle), puis relance de Folio
+    spawn(file, ["/S", "--force-run"], { detached: true, stdio: "ignore" }).unref();
+  } else {
+    // macOS : on remplace Folio.app par la nouvelle version une fois l'appli fermée, puis on la rouvre
+    const appDir = path.resolve(path.dirname(process.execPath), "../../..");
+    if (!/\.app$/.test(appDir)) throw new Error("emplacement inattendu");
+    const sh = `while kill -0 ${process.pid} 2>/dev/null; do sleep 0.3; done
+ditto -x -k "$1" "$2/new" && [ -d "$2/new/Folio.app" ] && rm -rf "$3" && mv "$2/new/Folio.app" "$3"; open "$3"; rm -rf "$2"`;
+    spawn("/bin/sh", ["-c", sh, "sh", file, dir, appDir], { detached: true, stdio: "ignore" }).unref();
+  }
+  setTimeout(() => app.quit(), 300);
+}
+ipcMain.handle("folio:checkUpdate", () => checkUpdate().catch(() => null));
+ipcMain.handle("folio:installUpdate", (e) => installUpdate(e));
 
 // menus en français ou en anglais, selon la langue du système
 const M = {

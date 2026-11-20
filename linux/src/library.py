@@ -22,7 +22,7 @@ NS = {
 DEFAULT_SETTINGS = {
     "theme": "clair", "bg": "#fbfbfa", "fg": "#222222",
     "font": "", "size": 19, "line": 1.6, "margin": 48,
-    "justify": False, "flow": "paginated", "spread": False,
+    "justify": False, "flow": "scrolled", "spread": False,
     # para : espace entre paragraphes en em (0 = celui du livre) ; indent : retrait en em (-1 = celui du livre)
     "para": 0, "indent": -1, "weight": 400, "letter": 0,
 }

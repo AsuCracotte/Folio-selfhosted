@@ -624,14 +624,24 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
 
   // ---------- téléchargements des applis (dossier monté en lecture seule) ----------
   const DL = /^Folio[\w.-]*\.(exe|zip|deb|dmg|AppImage)$/;
+  // empreinte SHA-256 de chaque installeur (les applis la vérifient avant de se mettre à jour) ; calculée une fois par fichier
+  const sums = new Map();
+  const sha = (f, st) => {
+    const k = `${f}:${st.mtimeMs}:${st.size}`;
+    if (!sums.has(k)) sums.set(k, new Promise((ok, ko) => {         // en flux : un installeur de 120 Mo ne passe pas en mémoire
+      const h = crypto.createHash("sha256");
+      fs.createReadStream(path.join(downloadsDir, f)).on("data", (d) => h.update(d)).on("end", () => ok(h.digest("hex"))).on("error", ko);
+    }).catch(() => { sums.delete(k); return ""; }));
+    return sums.get(k);
+  };
   const releases = () => {
     if (!downloadsDir || !fs.existsSync(downloadsDir)) return [];
     return fs.readdirSync(downloadsDir).filter((f) => DL.test(f)).map((f) => {
       const st = fs.statSync(path.join(downloadsDir, f));
-      return { name: f, size: st.size, date: st.mtimeMs / 1000 };
+      return { name: f, size: st.size, date: st.mtimeMs / 1000, sha256: sha(f, st) };
     }).sort((a, b) => b.date - a.date);
   };
-  app.get("/api/releases", async () => releases());
+  app.get("/api/releases", async () => Promise.all(releases().map(async (r) => ({ ...r, sha256: await r.sha256 }))));
   app.get("/dl/:file", async (req, reply) => {
     const f = String(req.params.file);
     if (!DL.test(f) || !releases().some((r) => r.name === f)) return reply.code(404).send({ error: t(L(req), "bad_request") });

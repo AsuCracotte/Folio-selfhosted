@@ -3,7 +3,7 @@
 const LANG=(()=>{let l;try{l=localStorage.folioLang}catch(e){}return l==="fr"||l==="en"?l:/^fr/i.test(navigator.language||"")?"fr":"en"})();
 document.documentElement.lang=LANG;
 const TX={
-fr:{writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
+fr:{updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
  library:"Bibliothèque",bookmark:"Marque-page",tocNotes:"Sommaire et notes",appearance:"Apparence",customColors:"Couleurs perso",background:"Fond",text:"Texte",font:"Police",bookFont:"Police du livre",
  size:"Taille",lineHeight:"Interligne",margins:"Marges",justify:"Texte justifié",pages:"Pages",scroll:"Défilement",typography:"Typographie",paraSpace:"Espace entre paragraphes",weight:"Graisse",
  letterSpace:"Espacement des lettres",indent:"Retrait de première ligne",indBook:"Livre",indNone:"Aucun",indNormal:"Normal",indWide:"Large",resetLook:"Réinitialiser l’apparence",syncLook:"Synchronisation entre appareils",syncLookTxt:"Décochez ce que cet appareil doit garder pour lui : il ne l’enverra plus et ne recevra plus celui des autres.",sg_colors:"Thème et couleurs",sg_font:"Police",sg_size:"Taille du texte",sg_spacing:"Interligne et typographie",sg_margin:"Marges",sg_layout:"Justification, pages ou défilement",
@@ -50,10 +50,10 @@ fr:{writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB en
  autoReading:"En cours",autoUnread:"Non lus",autoDone:"Terminés",markedDone:"Rangé dans « Terminés »",markedUnread:"Rangé dans « Non lus »",autoTip:"Catégorie automatique",rack:"Étagère",rackAll:"Tout voir",addPaper:"Livre papier",addPaperT:"Ajouter un livre papier",editSpine:"Sur l’étagère",titleF:"Titre",authorF:"Auteur",
  takePhoto:"Photographier la tranche",camHint:"Placez la tranche du livre dans le cadre",camWidth:"Épaisseur",camNo:"Caméra indisponible : choisissez une photo",cropT:"Recadrer",cropHint:"Ajustez le cadre sur la tranche",useCrop:"Utiliser",importImg:"Importer une image",rotate:"Faire pivoter",removePhoto:"Retirer la photo",openBook:"Ouvrir le livre",removePaper:"Retirer de l’étagère",
  spineSet:"Tranche mise à jour",spinePhotoOff:"Photo retirée",paperAdded:"« {t} » rangé sur l’étagère",paperRemoved:"Livre retiré de l’étagère",needTitle:"Indiquez au moins le titre",
- confirmRemovePaper:"Retirer « {t} » de l’étagère ?",sortAuthor:"Auteur",sortTitle:"Titre",sortRecent:"Récents",kindBook:"Livre numérique",kindPaper:"Livre papier",
+ confirmRemovePaper:"Retirer « {t} » de l’étagère ?",editSpine:"Tranche et infos",sortAuthor:"Auteur",sortTitle:"Titre",sortRecent:"Récents",kindBook:"Livre numérique",kindPaper:"Livre papier",
  decoT:"Décorations",decoT:"Decorations",rackTip:"Photographiez la tranche de vos livres, numériques ou papier : votre étagère se compose, et vous suit sur tous vos appareils.",spineTip:"Astuce : livre debout, tranche bien droite et cadrée serrée.",
  fold:"Replier",unfold:"Déplier",useAsCover:"Utiliser comme couverture",coverSet:"Couverture mise à jour",coverReset:"Couverture d’origine rétablie",customCover:"Couverture personnalisée",bookOptions:"Options du livre"},
-en:{writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
+en:{updWeb:"New version of Folio",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
  library:"Library",bookmark:"Bookmark",tocNotes:"Contents and notes",appearance:"Appearance",customColors:"Custom colours",background:"Background",text:"Text",font:"Font",bookFont:"Book’s font",
  size:"Size",lineHeight:"Line spacing",margins:"Margins",justify:"Justified text",pages:"Pages",scroll:"Scrolling",typography:"Typography",paraSpace:"Paragraph spacing",weight:"Weight",
  letterSpace:"Letter spacing",indent:"First-line indent",indBook:"Book",indNone:"None",indNormal:"Normal",indWide:"Wide",resetLook:"Reset appearance",syncLook:"Sync across devices",syncLookTxt:"Untick what this device should keep to itself: it will no longer send it, nor receive the one from your other devices.",sg_colors:"Theme and colours",sg_font:"Font",sg_size:"Text size",sg_spacing:"Line height and typography",sg_margin:"Margins",sg_layout:"Justification, pages or scrolling",
@@ -99,7 +99,7 @@ en:{writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"
  autoReading:"Reading",autoUnread:"Unread",autoDone:"Finished",markedDone:"Moved to “Finished”",markedUnread:"Moved to “Unread”",autoTip:"Automatic category",rack:"Bookshelf",rackAll:"See all",addPaper:"Paper book",addPaperT:"Add a paper book",editSpine:"On the shelf",titleF:"Title",authorF:"Author",
  takePhoto:"Photograph the spine",camHint:"Fit the book’s spine inside the frame",camWidth:"Thickness",camNo:"Camera unavailable: pick a photo instead",cropT:"Crop",cropHint:"Adjust the frame to the spine",useCrop:"Use",importImg:"Import an image",rotate:"Rotate",removePhoto:"Remove photo",openBook:"Open the book",removePaper:"Remove from the shelf",
  spineSet:"Spine updated",spinePhotoOff:"Photo removed",paperAdded:"“{t}” added to the shelf",paperRemoved:"Book removed from the shelf",needTitle:"Enter at least the title",
- confirmRemovePaper:"Remove “{t}” from the shelf?",sortAuthor:"Author",sortTitle:"Title",sortRecent:"Recent",kindBook:"Ebook",kindPaper:"Paper book",
+ confirmRemovePaper:"Remove “{t}” from the shelf?",editSpine:"Spine and details",sortAuthor:"Author",sortTitle:"Title",sortRecent:"Recent",kindBook:"Ebook",kindPaper:"Paper book",
  decoT:"Decorations",rackTip:"Photograph the spines of your books, digital or paper: your bookshelf builds itself and follows you on all your devices.",spineTip:"Tip: stand the book up, keep the spine straight and frame it tightly.",
  fold:"Collapse",unfold:"Expand",useAsCover:"Use as cover",coverSet:"Cover updated",coverReset:"Original cover restored",customCover:"Custom cover",bookOptions:"Book options"}};
 const t=(k,v={})=>String(TX[LANG][k]??TX.fr[k]??k).replace(/\{(\w+)\}/g,(_,x)=>v[x]??"");
@@ -117,7 +117,7 @@ const SYNC_KEYS=["theme","bg","fg","font","size","line","margin","justify","flow
 // Groupes de réglages qu'on peut choisir de garder sur cet appareil (S.nosync = liste locale, jamais envoyée)
 const SYNC_GROUPS={colors:["theme","bg","fg"],font:["font"],size:["size"],spacing:["line","para","indent","weight","letter"],margin:["margin"],layout:["justify","flow","spread"]};
 const synced=()=>SYNC_KEYS.filter(k=>!Object.entries(SYNC_GROUPS).some(([g,ks])=>(S.nosync||[]).includes(g)&&ks.includes(k)));
-const DEFAULTS={theme:"clair",bg:"#fbfbfa",fg:"#222222",font:"",size:19,line:1.6,margin:28,justify:false,flow:"paginated",spread:false,para:0,indent:-1,weight:400,letter:0};
+const DEFAULTS={theme:"clair",bg:"#fbfbfa",fg:"#222222",font:"",size:19,line:1.6,margin:28,justify:false,flow:"scrolled",spread:false,para:0,indent:-1,weight:400,letter:0};
 let db,S=Object.assign({...DEFAULTS,updated:0},JSON.parse(localStorage.folioS||"{}")),
  cur=null,book,rend,loc,toc=[],pct=null,chapter="",pending=null,tab="toc",timer;
 const msg=s=>{const m=$("msg");m.textContent=s;m.classList.add("on");clearTimeout(msg.t);msg.t=setTimeout(()=>m.classList.remove("on"),2600)};
@@ -183,7 +183,7 @@ function spineEl(x,big){const d=document.createElement("button");d.type="button"
  d.innerHTML=`<span>${esc(w)}</span>`;d.title=x.title+(x.author?" — "+x.author:"");
  if(x.spine)spineUrl(x.id).then(u=>{if(!u)return;const i=new Image();i.onload=()=>{d.classList.add("photo");d.style.backgroundImage=`url("${u}")`;
   d.style.setProperty("--w",Math.round(Math.max(16,Math.min(110,H*i.naturalWidth/i.naturalHeight)))+"px")};i.src=u});
- if(!big)d.onclick=()=>spineMenu(x.id);return d}
+ if(!big)d.onclick=()=>bookView(x);return d}
 // sections repliables (état propre à cet appareil)
 let FOLD=jget("folioFold",{});
 function foldHead(sect,key,...bodies){const h=sect.querySelector("h3"),b=document.createElement("button");b.type="button";b.className="fold";b.innerHTML=ico("chev");
@@ -251,17 +251,51 @@ const DECO_K=["succ","bear","snake","stack","bunny","cat"],DECO_GAP=[6,9,5,8,7,1
 let DECO_ON=localStorage.folioRackDeco!=="0";
 function decoEl(n,big){const k=DECO_K[n%DECO_K.length],[w,h]=DECO[k],z=big?1:.86;const d=document.createElement("div");d.className="slot deco";
  d.innerHTML=`<img src="decor/${k}.svg" width="${Math.round(w*z)}" height="${Math.round(h*z)}" alt="" draggable="false">`;return d}
-async function renderRack(){const items=rackList(await allB()),c=$("rkCase");c.innerHTML="";$("rkCount").textContent=tn(items.length,"books1","booksN");
+// disposition façon vraie bibliothèque : livres debout, quelques couvertures de face, des piles couchées, des décorations
+const SPH=x=>150+hn(x.id)%44;
+function faceEl(x,u){const d=document.createElement("button");d.type="button";d.className="face";d.title=x.title+(x.author?" — "+x.author:"");
+ const i=new Image();i.src=u;i.alt="";i.draggable=false;d.append(i);d.onclick=()=>bookView(x);return d}
+function lieEl(list){const d=document.createElement("div");d.className="slot lie";
+ list.forEach((x,k)=>{const sp=spineEl(x),L=Math.round(SPH(x)*.78),b=document.createElement("div");b.className="lb";
+  b.style.setProperty("--L",L+"px");b.style.setProperty("--o",((hn(x.id)%5)-2)*4+"px");b.append(sp);d.prepend(b)});return d}
+async function renderRack(){const all=await allB(),items=rackList(all),c=$("rkCase");c.innerHTML="";$("rkCount").textContent=tn(items.length,"books1","booksN");
  document.querySelectorAll("#rkSort button").forEach(b=>b.classList.toggle("on",b.dataset.s===(localStorage.folioRackSort||"author")));
  $("rkDeco").classList.toggle("on",DECO_ON);$("rkDeco").setAttribute("aria-pressed",String(DECO_ON));
- let nd=0,next=DECO_GAP[0];
- items.forEach((x,i)=>{if(DECO_ON&&i===next){c.append(decoEl(nd++));next+=DECO_GAP[nd%DECO_GAP.length]}const s=document.createElement("div");s.className="slot";s.append(spineEl(x));c.append(s)});
+ const byH=new Map(all.map(b=>[b.hash,b]));
+ let nd=0,next=DECO_GAP[0],sinceFace=3,sinceLie=4,i=0,n=0;
+ while(i<items.length){const x=items[i],h=hn(x.id),b=x.kind==="book"&&byH.get(x.id),cu=b&&coverUrl(b);
+  if(DECO_ON&&n===next){c.append(decoEl(nd++));next+=DECO_GAP[nd%DECO_GAP.length]}
+  const s=document.createElement("div");s.className="slot";
+  if(cu&&sinceFace>=6&&h%3===0){s.append(faceEl(x,cu));sinceFace=0;i++}
+  else if(sinceLie>=8&&items.length-i>=3&&h%4===1){const k=2+h%2;c.append(lieEl(items.slice(i,i+k)));sinceLie=0;i+=k;n++;continue}
+  else{s.append(spineEl(x));i++}
+  sinceFace++;sinceLie++;n++;c.append(s)}
  const s=document.createElement("div");s.className="slot";const add=document.createElement("button");add.type="button";add.className="spine add";add.title=t("addPaperT");add.innerHTML=ico("plus");add.onclick=()=>spineMenu(null);s.append(add);c.append(s);
  if(DECO_ON&&items.length<4)c.append(decoEl(nd++));
  // plusieurs étages même avec peu de livres : on complète par des étagères décorées
  const tops=new Set([...c.children].map(e=>e.offsetTop)),min=innerWidth<560?4:3;
  for(let r=tops.size;r<min;r++){const row=document.createElement("div");row.className="slot srow";
   if(DECO_ON){row.style.paddingLeft=(8+(r*29)%46)+"%";row.append(decoEl(nd++,true));if(r%2)row.append(decoEl(nd++,true))}c.append(row)}}
+// ---------- un livre de l'étagère, en 3D : la tranche pivote et montre la couverture ----------
+let b3x=null,b3a=0;
+async function bookView(x){b3x=x;const all=await allB(),b=x.kind==="book"&&all.find(z=>z.hash===x.id),cu=b&&coverUrl(b),su=x.spine?await spineUrl(x.id):null;
+ const H=Math.round(Math.min(innerHeight*.46,360)),ld=u=>u?loadImg(u).catch(()=>null):null,[ci,si]=await Promise.all([ld(cu),ld(su)]);
+ const W=Math.round(H*(ci?Math.max(.5,Math.min(.85,ci.naturalWidth/ci.naturalHeight)):.66)),T=Math.round(si?Math.max(H*.07,Math.min(H*.22,H*si.naturalWidth/si.naturalHeight)):Math.min(H*.18,H*.07+String(x.title).length*.5));
+ const e=$("b3"),n=hn(x.id);e.style.cssText=`--W:${W}px;--H:${H}px;--T:${T}px`;e.className="b3";
+ const front=ci?`<img src="${cu}" alt="">`:`<div class="gen sp${n%7}"><b>${esc(x.title||t("untitled"))}</b><i>${esc(x.author)}</i></div>`;
+ const sp=spineEl(x,true);sp.removeAttribute("style");sp.disabled=true;
+ e.innerHTML=`<div class="fc f">${front}</div><div class="fc bk sp${n%7}"></div><div class="fc s"></div><div class="fc e"></div><div class="fc tp"></div><div class="fc bt"></div>`;e.querySelector(".s").append(sp);
+ $("b3T").textContent=x.title||t("untitled");$("b3A").textContent=[x.author,t(x.kind==="book"?"kindBook":"kindPaper"),b&&b.progress>0?pctS(b.progress):""].filter(Boolean).join(" · ");
+ $("b3Open").hidden=x.kind!=="book";$("bk3").hidden=false;b3a=90;b3turn(false);
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{b3a=-24;b3turn(true)}))}
+function b3turn(anim){const e=$("b3");e.style.transition=anim&&!matchMedia("(prefers-reduced-motion:reduce)").matches?"":"none";e.style.transform=`rotateX(4deg) rotateY(${b3a}deg)`}
+function b3close(){if($("bk3").hidden)return;b3a=90;b3turn(true);$("bk3").classList.add("out");setTimeout(()=>{$("bk3").hidden=true;$("bk3").classList.remove("out")},380)}
+$("bk3").onclick=e=>{if(e.target===$("bk3")||e.target.closest("#b3X"))b3close()};
+$("b3Open").onclick=()=>{const x=b3x;$("bk3").hidden=true;openBook(x.id)};$("b3Edit").onclick=()=>{$("bk3").hidden=true;spineMenu(b3x.id)};
+// glisser pour tourner le livre
+(()=>{let x0=null,a0=0;const sc=$("b3s");sc.addEventListener("pointerdown",e=>{x0=e.clientX;a0=b3a;sc.setPointerCapture(e.pointerId);$("b3").style.transition="none"});
+ sc.addEventListener("pointermove",e=>{if(x0==null)return;b3a=Math.max(-180,Math.min(180,a0+(e.clientX-x0)*.6));$("b3").style.transform=`rotateX(4deg) rotateY(${b3a}deg)`});
+ const up=()=>{if(x0==null)return;x0=null;if(Math.abs(b3a)>100)b3a=b3a>0?180:-180;else if(Math.abs(b3a)<70)b3a=-24;b3turn(true)};sc.addEventListener("pointerup",up);sc.addEventListener("pointercancel",up)})();
 function openRack(){$("rack").hidden=false;renderRack()}
 const rackRefresh=()=>{render();if(!$("rack").hidden)renderRack();if($("shSpine").classList.contains("on"))spineFill()};
 $("rkBack").onclick=()=>{$("rack").hidden=true;render()};$("rkDeco").onclick=()=>{DECO_ON=!DECO_ON;localStorage.folioRackDeco=DECO_ON?"1":"0";renderRack()};
@@ -409,8 +443,10 @@ const fontLink=c=>{if(!WEBFONTS.includes(S.font)||c.document.getElementById("wf-
  l.href="https://fonts.googleapis.com/css2?family="+encodeURIComponent(S.font).replace(/%20/g,"+")+":ital,wght@0,300..700;1,300..700&display=swap";c.document.head.appendChild(l)};
 // page faite d'une seule illustration (souvent en position absolue, ce qui casse la pagination) : image centrée sur une page
 const IMGPAGE=".fn-imgpage body,.fn-imgpage body *{position:static !important;height:auto !important;min-height:0 !important;overflow:visible !important;columns:auto !important}.fn-imgpage img{display:block !important;margin:0 auto !important;max-height:calc(100vh - 2.5em) !important;width:auto !important;object-fit:contain}";
+// OpenDyslexic (licence SIL OFL) : servie par Folio, chargée dans le livre seulement si elle est choisie
+const ODF=()=>[["400","normal"],["700","normal"],["400","italic"],["700","italic"]].map(([w,st])=>`@font-face{font-family:"OpenDyslexic";font-weight:${w};font-style:${st};font-display:swap;src:url(${new URL("fonts/od-"+w+"-"+st+".woff2",location.href)}) format("woff2")}`).join("");
 const styleC=c=>{fontLink(c);const d=c.document;let s=d.getElementById("fs");if(!s){s=d.createElement("style");s.id="fs";d.head.appendChild(s)}
- if(d.body&&d.images.length===1&&!d.querySelector("svg")&&(d.body.textContent||"").trim().length<40)d.documentElement.classList.add("fn-imgpage");s.textContent=css()+IMGPAGE};
+ if(d.body&&d.images.length===1&&!d.querySelector("svg")&&(d.body.textContent||"").trim().length<40)d.documentElement.classList.add("fn-imgpage");s.textContent=(S.font==="OpenDyslexic"?ODF():"")+css()+IMGPAGE};
 Object.entries(THEMES).forEach(([k,[b,f]])=>{const d=document.createElement("button");d.className="theme";d.dataset.k=k;d.style.cssText=`background:${b};color:${f}`;d.innerHTML=`<b>Aa</b>${t("th_"+k)}`;d.onclick=()=>{Object.assign(S,{theme:k,bg:b,fg:f});ctl();setS()};$("themes").append(d)});
 $("cBg").oninput=e=>{S.bg=e.target.value;S.theme="perso";ctl();setS()};$("cFg").oninput=e=>{S.fg=e.target.value;S.theme="perso";ctl();setS()};
 const ctl=()=>{$("size").value=S.size;$("line").value=Math.round(S.line*10);$("margin").value=S.margin;$("justify").checked=!!S.justify;
@@ -468,7 +504,7 @@ const unpin=()=>{pinX=null;cancelAnimationFrame(pinF)};
 function place(x){const m=rend?.manager,sec=x&&book?.spine.get(x),v=sec&&m?.views.find(sec);if(!v)return;
  let top=0;try{if(/#|^epubcfi\(/.test(x))top=v.locationOf(x).top||0}catch(e){}
  const o=v.element.offsetTop,want=Math.max(o+1,o+top-4);if(Math.abs(m.container.scrollTop-want)>1)m.container.scrollTop=want}
-function keys(e){if(!rend||!$("rd").classList.contains("on"))return;if(e.key==="ArrowRight"||e.key==="PageDown")rend.next();if(e.key==="ArrowLeft"||e.key==="PageUp")rend.prev();if(e.key==="Escape"){if(document.querySelector(".sheet.on"))show(null);else if($("imgm").style.display==="block")hideImg();else $("bBack").click()}}
+function keys(e){if(e.key==="Escape"&&!$("bk3").hidden)return b3close();if(!rend||!$("rd").classList.contains("on"))return;const pg=S.flow!=="scrolled";if(e.key==="ArrowRight"||e.key==="PageDown")pg?turn(1):rend.next();if(e.key==="ArrowLeft"||e.key==="PageUp")pg?turn(-1):rend.prev();if(e.key==="Escape"){if(document.querySelector(".sheet.on"))show(null);else if($("imgm").style.display==="block")hideImg();else $("bBack").click()}}
 addEventListener("keydown",keys);
 // ---------- illustration du livre → couverture (clic droit, ou appui long au doigt) ----------
 let imgSrc=null;
@@ -487,7 +523,7 @@ addEventListener("pointerdown",e=>{if(!e.target.closest("#imgm"))hideImg()});
 // ---------- gestes tactiles ----------
 const G={at:0},touchy=matchMedia("(hover:none)").matches;
 // tourne la page ; au doigt (ou sur écran tactile) la page glisse comme du papier
-function turn(dir,animate=touchy,fromDrag){const V=$("viewer"),W=V.clientWidth||innerWidth,go=()=>dir>0?rend.next():rend.prev();
+function turn(dir,animate=!matchMedia("(prefers-reduced-motion:reduce)").matches,fromDrag){const V=$("viewer"),W=V.clientWidth||innerWidth,go=()=>dir>0?rend.next():rend.prev();
  if(!animate){V.style.transform="";return go()}
  V.style.transition="transform .18s ease-in";V.style.transform=`translateX(${-dir*W*(fromDrag?1:.25)}px)`;V.style.opacity=fromDrag?"":".4";
  setTimeout(async()=>{try{await go()}catch(e){}V.style.transition="none";V.style.transform=`translateX(${dir*W*.25}px)`;V.style.opacity=".4";void V.offsetWidth; // valide la position de départ, puis glisse jusqu'au centre
@@ -541,9 +577,9 @@ $("bBm").onclick=()=>{if(!loc)return;const ins=cur.bookmarks.filter(b=>!b.delete
 // surlignages
 const sel=$("sel");Object.entries(COLORS).forEach(([n,h])=>{const b=document.createElement("button");b.style.background=h;b.title=n;b.onclick=()=>{if(pending)addHl(pending.cfi,n,pending.text);hideSel()};sel.append(b)});
 const del=document.createElement("button");del.className="x";del.innerHTML=ico("trash");del.title=t("delHl");del.onclick=()=>{if(pending)rmHl(pending.cfi);hideSel()};sel.append(del);
-function showSel(x,y,d){pending=d;del.style.display=d.text?"none":"grid";sel.style.display="flex";sel.style.left=Math.max(8,Math.min(innerWidth-sel.offsetWidth-8,x-sel.offsetWidth/2))+"px";sel.style.top=Math.max(70,y-60)+"px"}
+function showSel(x,y,d){pending=d;del.style.display=d.text?"none":"grid";sel.style.display="flex";sel.style.left=Math.max(8,Math.min(innerWidth-sel.offsetWidth-8,x-sel.offsetWidth/2))+"px";sel.style.top=Math.max(70,Math.min(innerHeight-sel.offsetHeight-16,y+14))+"px"}
 function hideSel(){sel.style.display="none";pending=null}
-function onSel(cfi,c){const r=c.range(cfi),s=r.toString().trim();if(!s)return;const q=r.getBoundingClientRect(),f=c.document.defaultView.frameElement.getBoundingClientRect();showSel(f.left+q.left+q.width/2,f.top+q.top,{cfi,text:s})}
+function onSel(cfi,c){const r=c.range(cfi),s=r.toString().trim();if(!s)return;const q=r.getBoundingClientRect(),f=c.document.defaultView.frameElement.getBoundingClientRect();showSel(f.left+q.left+q.width/2,f.top+q.bottom,{cfi,text:s})}
 function drawHl(h){rend.annotations.highlight(h.cfi,{},e=>showSel(e.clientX,e.clientY,{cfi:h.cfi}),"hl",{fill:COLORS[h.color]||h.color,"fill-opacity":"0.4","mix-blend-mode":"multiply"})}
 function addHl(cfi,color,text){const n=now();let h=cur.highlights.find(x=>x.cfi===cfi);if(h){try{rend.annotations.remove(cfi,"highlight")}catch(e){}Object.assign(h,{color,deleted:0,updated:n})}else cur.highlights.push(h={cfi,color,text,created:n,updated:n,deleted:0});drawHl(h);putB(cur);pushSoon();refreshTrack();rend.getContents().forEach(c=>c.window.getSelection().removeAllRanges())}
 function rmHl(cfi){const h=cur.highlights.find(x=>x.cfi===cfi);if(!h)return;h.deleted=1;h.updated=now();try{rend.annotations.remove(cfi,"highlight")}catch(e){}putB(cur);pushSoon();refreshTrack()}
@@ -745,5 +781,18 @@ async function mailLinks(){const h=new URLSearchParams(location.hash.slice(1)),v
 async function doSync(){if(!dav){show("shCfg");return}const ic=$("bSync").firstElementChild;ic.classList.add("spin");try{const n=await dav.syncAll();await render();msg(n?tn(n,"updated1","updatedN"):t("synced"))}
  catch(e){msg(String(e.message)==="401"?t("expired"):t("syncError"));console.error(e)}finally{ic.classList.remove("spin")}}
 $("bSync").onclick=doSync;
+// ---------- mises à jour ----------
+// le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
+// l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
+const APPV="2.1.0";let updShown=false;
+function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
+ $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
+async function checkUpd(){if(updShown||!navigator.onLine)return;
+ try{const v=(await (await fetch("version.json",{cache:"no-store"})).json()).version;if(v&&v!==APPV)return updBar(t("updWeb")+" ("+v+")",t("updGo"),()=>location.reload())}catch(e){}
+ const D=window.folioDesktop;if(!D?.checkUpdate)return;
+ try{const u=await D.checkUpdate();if(u)updBar(t("updApp",{v:u.version}),t("updGo"),async()=>{$("updGo").disabled=true;
+  D.onProgress?.(p=>$("updT").textContent=t("updGet",{p:Math.round(p*100)+(LANG==="fr"?" %":"%")}));
+  try{await D.installUpdate()}catch(e){$("updT").textContent=t("updFail");$("updGo").disabled=false}})}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpd()});setInterval(checkUpd,3600e3);setTimeout(checkUpd,4000);
 addEventListener("hashchange",mailLinks);
 (async()=>{initDav();outer();mailLinks();await open();render();if(navigator.serviceWorker)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"});if(dav)doSync()})();

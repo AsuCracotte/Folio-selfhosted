@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 """Folio — liseuse EPUB pour Linux (GTK4 / libadwaita / WebKitGTK)."""
 import base64
+import hashlib
 import json
+import re
+import shutil
+import subprocess
 import os
 import queue
 import sys
 import tempfile
 import threading
 import time
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 import gi
@@ -202,6 +208,169 @@ def deco_widget(n, big=False):
     return area
 
 
+def cover_pixbuf(path):
+    try:
+        return GdkPixbuf.Pixbuf.new_from_file(str(path)) if path and os.path.exists(path) else None
+    except GLib.Error:
+        return None
+
+
+class FaceCover(Gtk.DrawingArea):
+    """Livre posé de face sur l'étagère : on voit sa couverture."""
+
+    def __init__(self, item, pb, on_click):
+        super().__init__(valign=Gtk.Align.END, margin_start=6, margin_end=6)
+        self.pb, self.scaled = pb, None
+        h = 184; w = round(min(150, h * pb.get_width() / pb.get_height()))
+        self.set_content_width(w); self.set_content_height(h); self.add_css_class("face")
+        self.set_tooltip_text((item.get("title") or "") + (" — " + item["author"] if item.get("author") else ""))
+        self.set_draw_func(self.draw); self.set_cursor(Gdk.Cursor.new_from_name("pointer"))
+        c = Gtk.GestureClick(); c.connect("released", lambda *_: on_click(item)); self.add_controller(c)
+
+    def draw(self, _a, cr, w, h):
+        if not self.scaled or self.scaled.get_width() != w:
+            self.scaled = self.pb.scale_simple(max(1, w), max(1, h), GdkPixbuf.InterpType.BILINEAR)
+        Gdk.cairo_set_source_pixbuf(cr, self.scaled, 0, 0); cr.paint()
+        g = cairo.LinearGradient(0, 0, 10, 0)                 # pli de la reliure
+        g.add_color_stop_rgba(0, 0, 0, 0, .3); g.add_color_stop_rgba(1, 0, 0, 0, 0); cr.set_source(g); cr.paint()
+
+
+class LyingStack(Gtk.DrawingArea):
+    """Pile de livres couchés : leurs tranches à l'horizontale, légèrement décalées."""
+
+    def __init__(self, items, on_click):
+        super().__init__(valign=Gtk.Align.END, margin_start=8, margin_end=8)
+        self.parts = []
+        for x in items:
+            sp = Spine(x); L = round((150 + hn(x["id"]) % 44) * .78)
+            self.parts.append((sp, L, sp.get_content_width(), ((hn(x["id"]) % 5) - 2) * 4, x))
+        W = max(L + abs(o) * 2 for _s, L, _t, o, _x in self.parts); H = sum(t for _s, _L, t, _o, _x in self.parts)
+        self.set_content_width(W); self.set_content_height(H); self.deco_w = W + 16
+        self.set_draw_func(self.draw); self.set_cursor(Gdk.Cursor.new_from_name("pointer"))
+        c = Gtk.GestureClick(); c.connect("released", lambda _g, _n, _x, y: on_click(self.at(y))); self.add_controller(c)
+
+    def rows(self, h):
+        y = h
+        for sp, L, t, o, x in self.parts:            # le premier livre est en bas de la pile
+            y -= t; yield sp, L, t, o, x, y
+
+    def at(self, y):
+        for _sp, _L, t, _o, x, top in self.rows(self.get_height()):
+            if top <= y <= top + t:
+                return x
+        return self.parts[-1][4]
+
+    def draw(self, _a, cr, w, h):
+        for sp, L, t, o, _x, top in self.rows(h):
+            cr.save(); cr.translate((w - L) / 2 + o, top + t); cr.rotate(-math.pi / 2)
+            sp.draw(None, cr, t, L); cr.restore()
+
+
+class Book3D(Gtk.DrawingArea):
+    """Un livre en 3D (projection orthogonale, faces en Cairo) : il arrive tranche face à nous puis pivote vers sa couverture.
+    Glisser pour le tourner."""
+
+    def __init__(self, item, cover_pb):
+        super().__init__(hexpand=True, vexpand=True, content_height=380)
+        H = 300.0
+        self.front = self.surface_from(cover_pb) if cover_pb else self.gen_cover(item)
+        sp = Spine(item, big=True); sw, sh = sp.get_content_width(), sp.get_content_height()
+        self.spine = cairo.ImageSurface(cairo.FORMAT_ARGB32, sw, sh); sp.draw(None, cairo.Context(self.spine), sw, sh)
+        fw, fh = self.front.get_width(), self.front.get_height()
+        self.H, self.W = H, H * max(.5, min(.85, fw / fh))
+        self.T = H * max(.07, min(.22, sw / sh))
+        self.bg = SPINE_COLORS[hn(item["id"]) % 7][0]
+        self.a, self.t0, self.a0, self.a1 = 90.0, None, 90.0, -24.0
+        self.set_draw_func(self.draw)
+        self.add_tick_callback(self.tick)
+        d = Gtk.GestureDrag(); d.connect("drag-begin", self.drag_begin); d.connect("drag-update", self.drag_update)
+        d.connect("drag-end", self.drag_end); self.add_controller(d)
+        self.set_cursor(Gdk.Cursor.new_from_name("grab"))
+
+    @staticmethod
+    def surface_from(pb):
+        s = cairo.ImageSurface(cairo.FORMAT_ARGB32, pb.get_width(), pb.get_height()); cr = cairo.Context(s)
+        Gdk.cairo_set_source_pixbuf(cr, pb, 0, 0); cr.paint(); return s
+
+    @staticmethod
+    def gen_cover(item):
+        s = cairo.ImageSurface(cairo.FORMAT_ARGB32, 400, 600); cr = cairo.Context(s)
+        bg, fg = SPINE_COLORS[hn(item["id"]) % 7]; c1, c2 = Gdk.RGBA(), Gdk.RGBA(); c1.parse(bg); c2.parse(fg)
+        Gdk.cairo_set_source_rgba(cr, c1); cr.paint()
+        cr.set_source_rgba(c2.red, c2.green, c2.blue, 1)
+        for text, font, y in ((item.get("title") or T("Sans titre"), "Fraunces Medium 30", 230), (item.get("author") or "", "Fraunces Italic 18", 420)):
+            lay = PangoCairo.create_layout(cr); lay.set_font_description(Pango.FontDescription.from_string(font))
+            lay.set_text(text, -1); lay.set_width(320 * Pango.SCALE); lay.set_alignment(Pango.Alignment.CENTER)
+            lay.set_wrap(Pango.WrapMode.WORD_CHAR); cr.move_to(40, y - lay.get_pixel_size()[1] / 2); PangoCairo.show_layout(cr, lay)
+        return s
+
+    def tick(self, _w, clock):
+        if self.t0 is None:
+            return True
+        k = min(1.0, (clock.get_frame_time() / 1e6 - self.t0) / 1.15)
+        self.a = self.a0 + (self.a1 - self.a0) * (1 - (1 - k) ** 3); self.queue_draw()
+        if k >= 1:
+            self.t0 = None
+        return True
+
+    def start(self, to=-24.0):
+        self.a0, self.a1 = self.a, to
+        clock = self.get_frame_clock()
+        self.t0 = clock.get_frame_time() / 1e6 if clock else None
+        if not clock:
+            self.a = to
+
+    def drag_begin(self, *_):
+        self.t0 = None; self.drag_a = self.a
+
+    def drag_update(self, _g, dx, _dy):
+        self.a = max(-180, min(180, self.drag_a + dx * .6)); self.queue_draw()
+
+    def drag_end(self, *_):
+        self.start(180.0 if self.a > 100 else -180.0 if self.a < -100 else -24.0 if abs(self.a) < 70 else self.a)
+
+    def draw(self, _a, cr, w, h):
+        W, H, T = self.W, self.H, self.T
+        th, ph = math.radians(self.a), math.radians(4)
+        ct, st, cp, sp = math.cos(th), math.sin(th), math.cos(ph), math.sin(ph)
+        cx, cy = w / 2, h / 2
+
+        def rot(x, y, z):
+            x2, z2 = x * ct + z * st, -x * st + z * ct
+            return x2, y * cp - z2 * sp, y * sp + z2 * cp
+
+        def proj(p):
+            x, y, _z = rot(*p); return cx + x, cy + y
+        faces = [  # (coin haut-gauche, coin haut-droit, coin bas-gauche, normale, texture)
+            ((-W/2, -H/2, T/2), (W/2, -H/2, T/2), (-W/2, H/2, T/2), (0, 0, 1), self.front),
+            ((-W/2, -H/2, -T/2), (-W/2, -H/2, T/2), (-W/2, H/2, -T/2), (-1, 0, 0), self.spine),
+            ((W/2, -H/2, T/2), (W/2, -H/2, -T/2), (W/2, H/2, T/2), (1, 0, 0), "pages"),
+            ((-W/2, -H/2, -T/2), (W/2, -H/2, -T/2), (-W/2, -H/2, T/2), (0, -1, 0), "pages"),
+            ((W/2, -H/2, -T/2), (-W/2, -H/2, -T/2), (W/2, H/2, -T/2), (0, 0, -1), "back")]
+        # ombre portée
+        cr.save(); cr.translate(cx, cy + H / 2 + 16); cr.scale(max(W, T) * .75, 10); cr.arc(0, 0, 1, 0, 2 * math.pi); cr.restore()
+        cr.set_source_rgba(0, 0, 0, .18); cr.fill()
+        for p00, p10, p01, n, tex in faces:
+            nz = rot(*n)[2]
+            if nz <= 0.001:
+                continue
+            (x0, y0), (x1, y1), (x2, y2) = proj(p00), proj(p10), proj(p01)
+            tw, tht = (tex.get_width(), tex.get_height()) if isinstance(tex, cairo.ImageSurface) else (100, 100)
+            cr.save()
+            cr.transform(cairo.Matrix((x1 - x0) / tw, (y1 - y0) / tw, (x2 - x0) / tht, (y2 - y0) / tht, x0, y0))
+            cr.rectangle(0, 0, tw, tht); cr.clip()
+            if isinstance(tex, cairo.ImageSurface):
+                cr.set_source_surface(tex, 0, 0); cr.get_source().set_filter(cairo.FILTER_GOOD); cr.paint()
+            elif tex == "pages":
+                cr.set_source_rgb(.95, .93, .88); cr.paint(); cr.set_source_rgba(.6, .55, .45, .35); cr.set_line_width(.6)
+                for i in range(0, 100, 3):
+                    cr.move_to(0, i); cr.line_to(100, i); cr.stroke()
+            else:
+                c = Gdk.RGBA(); c.parse(self.bg); Gdk.cairo_set_source_rgba(cr, c); cr.paint()
+            cr.set_source_rgba(0, 0, 0, (1 - nz) * .35); cr.paint()          # lumière de face
+            cr.restore()
+
+
 class Spine(Gtk.DrawingArea):
     """Tranche d'un livre debout : la photo si elle existe, sinon les premiers mots du titre, à la verticale."""
 
@@ -298,6 +467,8 @@ class FolioWindow(Adw.ApplicationWindow):
         self.connect("notify::is-active", lambda *_: self.is_active() and time.time() - self.last_sync > 60
                      and self.sync_now(quiet=True))
         GLib.timeout_add_seconds(120, lambda: (self.sync_now(quiet=True), True)[1])
+        GLib.timeout_add_seconds(8, lambda: self.check_update() and False)
+        GLib.timeout_add_seconds(6 * 3600, lambda: (self.check_update(), True)[1])
 
         drop = Gtk.DropTarget.new(Gdk.FileList, Gdk.DragAction.COPY)
         drop.connect("drop", lambda t, files, x, y: self.add_files([f.get_path() for f in files.get_files()]) or True)
@@ -326,7 +497,8 @@ class FolioWindow(Adw.ApplicationWindow):
         self.menu_who = Gtk.Label(xalign=0, margin_start=10, margin_end=10, margin_top=4, margin_bottom=6, ellipsize=3)
         self.menu_who.add_css_class("dim-label"); self.menu_who.add_css_class("caption"); box.append(self.menu_who)
         for label, cb in ((T("Mon compte…"), self.account_dialog), (T("Dossier de synchronisation…"), self.choose_sync_dir),
-                          (T("Synchroniser maintenant"), lambda: self.sync_now()), (T("Langue…"), self.language_dialog)):
+                          (T("Synchroniser maintenant"), lambda: self.sync_now()), (T("Langue…"), self.language_dialog),
+                          (T("Mises à jour…"), lambda: self.check_update(manual=True)), (T("Site de Folio ↗"), self.open_site)):
             b = Gtk.Button(label=label, halign=Gtk.Align.FILL); b.add_css_class("flat")
             b.get_child().set_xalign(0)
             b.connect("clicked", lambda _b, cb=cb: (pop.popdown(), cb())); box.append(b)
@@ -861,7 +1033,7 @@ class FolioWindow(Adw.ApplicationWindow):
         books = self.lib.books() if books is None else books
         sh = {x["id"]: x for x in self.lib.shelf_items()}
         out = [{"id": b["hash"], "kind": "book", "bid": b["id"], "title": b["title"] or "", "author": b["author"] or "",
-                "at": b["added"] or 0, "spine": (sh.get(b["hash"]) or {}).get("spine", 0)} for b in books]
+                "at": b["added"] or 0, "spine": (sh.get(b["hash"]) or {}).get("spine", 0), "cover": b["cover"] or ""} for b in books]
         out += [{"id": x["id"], "kind": "paper", "title": x["title"] or "", "author": x["author"] or "",
                  "at": x["created"] or 0, "spine": x["spine"]} for x in sh.values() if x["kind"] == "paper"]
         k = self.settings.get("rack_sort", "author")
@@ -886,7 +1058,7 @@ class FolioWindow(Adw.ApplicationWindow):
         while c:
             nxt = c.get_next_sibling(); self.rack_row.remove(c); c = nxt
         for x in items[:60]:
-            self.rack_row.append(Spine(x, on_click=self.spine_dialog))
+            self.rack_row.append(Spine(x, on_click=self.book_view))
         self.rack_row.append(self.spine_add_tile())
         self.rack_count.set_label(T("{n} livres" if len(items) > 1 else "{n} livre", n=len(items)))
         if self.stack.get_visible_child_name() == "rack":
@@ -939,18 +1111,28 @@ class FolioWindow(Adw.ApplicationWindow):
         items = self.rack_items()
         self.case_count.set_label(T("{n} livres" if len(items) > 1 else "{n} livre", n=len(items)))
         on = self.settings.get("rack_deco", True)
-        wids, nd, nxt = [], 0, DECO_GAP[0]
-        for i, x in enumerate(items):
-            if on and i == nxt:
+        # comme une vraie bibliothèque (et comme le site) : livres debout, quelques couvertures de face, des piles couchées
+        wids, nd, nxt, i, n, since_face, since_lie = [], 0, DECO_GAP[0], 0, 0, 3, 4
+        while i < len(items):
+            x, hh = items[i], hn(items[i]["id"])
+            if on and n == nxt:
                 wids.append(deco_widget(nd)); nd += 1; nxt += DECO_GAP[nd % len(DECO_GAP)]
-            wids.append(Spine(x, on_click=self.spine_dialog))
+            pb = cover_pixbuf(x.get("cover")) if since_face >= 6 and hh % 3 == 0 and x["kind"] == "book" else None
+            if pb:
+                wids.append(FaceCover(x, pb, self.book_view)); since_face = 0; i += 1
+            elif since_lie >= 8 and len(items) - i >= 3 and hh % 4 == 1:
+                k = 2 + hh % 2; wids.append(LyingStack(items[i:i + k], self.book_view)); since_lie = 0; i += k; n += 1
+                continue
+            else:
+                wids.append(Spine(x, on_click=self.book_view)); i += 1
+            since_face += 1; since_lie += 1; n += 1
         wids.append(self.spine_add_tile())
         if on and len(items) < 4:
             wids.append(deco_widget(nd)); nd += 1
         inner = w - 32                                          # rembourrage des rangées
         row, used, rows = None, 0, 0
         for wid in wids:
-            ww = wid.get_content_width() if isinstance(wid, Spine) else getattr(wid, "deco_w", 34)
+            ww = wid.get_content_width() + (12 if isinstance(wid, FaceCover) else 0) if isinstance(wid, (Spine, FaceCover)) else getattr(wid, "deco_w", 34)
             if row is None or (used and used + ww + 3 > inner):
                 row, used = Gtk.Box(spacing=3), 0; rows += 1
                 row.add_css_class("shelf-row"); self.case.append(row)
@@ -962,6 +1144,26 @@ class FolioWindow(Adw.ApplicationWindow):
                 d = deco_widget(nd, True); nd += 1; d.set_margin_start(round(inner * (.08 + (r * 29) % 46 / 100))); row.append(d)
                 if r % 2:
                     row.append(deco_widget(nd, True)); nd += 1
+
+    # un livre de l'étagère, en 3D : il pivote de la tranche vers la couverture
+    def book_view(self, item):
+        dlg = Adw.Dialog(content_width=460, content_height=640, title=item.get("title") or T("Sans titre"))
+        tv = Adw.ToolbarView(); tv.add_top_bar(Adw.HeaderBar(show_title=False))
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, margin_start=24, margin_end=24, margin_bottom=24)
+        b3 = Book3D(item, cover_pixbuf(item.get("cover")) if item["kind"] == "book" else None); box.append(b3)
+        t = Gtk.Label(label=item.get("title") or T("Sans titre"), wrap=True, justify=Gtk.Justification.CENTER); t.add_css_class("title-2")
+        sub = [item.get("author") or "", T("Livre numérique") if item["kind"] == "book" else T("Livre papier")]
+        a = Gtk.Label(label=" · ".join(x for x in sub if x), wrap=True, justify=Gtk.Justification.CENTER); a.add_css_class("muted")
+        acts = Gtk.Box(spacing=10, halign=Gtk.Align.CENTER, margin_top=12)
+        if item["kind"] == "book":
+            o = Gtk.Button(label=T("Ouvrir le livre")); o.add_css_class("suggested-action"); o.add_css_class("pill")
+            o.connect("clicked", lambda *_: (dlg.close(), self.open_book(item["bid"]))); acts.append(o)
+        e = Gtk.Button(label=T("Tranche et infos")); e.add_css_class("pill")
+        e.connect("clicked", lambda *_: (dlg.close(), self.spine_dialog(item))); acts.append(e)
+        for wdg in (t, a, acts):
+            box.append(wdg)
+        tv.set_content(box); dlg.set_child(tv); dlg.present(self)
+        GLib.timeout_add(120, lambda: b3.start() and False)
 
     def set_rack_deco(self, on):
         self.settings["rack_deco"] = on; self.lib.save_settings(self.settings)
@@ -1809,6 +2011,87 @@ class FolioWindow(Adw.ApplicationWindow):
             self.worker.submit(self.sync_cfg, lambda s: s.push(bid, removed=True, h=h))
         self.lib.remove_book(bid); self.refresh_library()
 
+    # ------------------------------------------------------------------ mise à jour depuis l'appli
+    # Le serveur Folio liste ses paquets (/api/releases, avec SHA-256) ; le .deb plus récent est téléchargé, vérifié,
+    # puis installé par apt (mot de passe administrateur demandé par le système, via pkexec) et Folio redémarre.
+    @staticmethod
+    def installed_version():
+        try:
+            return Path(SHARE, "VERSION").read_text().strip()
+        except OSError:
+            return ""                   # lancé depuis les sources : pas de mise à jour automatique
+
+    def check_update(self, manual=False):
+        cur = self.installed_version()
+        if not cur:
+            return manual and self.toast(T("Mise à jour : seulement pour Folio installé depuis le paquet .deb"))
+        server = ((self.settings.get("account") or {}).get("server") or DEFAULT_SERVER).rstrip("/")
+        if not server:
+            return manual and self.toast(T("Mise à jour impossible"))
+        vt = lambda v: tuple(int(x) for x in v.split("."))  # noqa: E731
+
+        def run():
+            best = None
+            try:
+                req = urllib.request.Request(server + "/api/releases", headers={"User-Agent": "Folio-Linux/" + cur})
+                for r in json.load(urllib.request.urlopen(req, timeout=20)):
+                    m = re.match(r"^Folio-(\d+\.\d+\.\d+)-linux\.deb$", r.get("name", ""))
+                    if m and re.match(r"^[0-9a-f]{64}$", r.get("sha256", "")) and vt(m[1]) > vt(cur) and (not best or vt(m[1]) > vt(best[0])):
+                        best = (m[1], r)
+            except (OSError, ValueError):
+                best = False
+            GLib.idle_add(lambda: self.update_found(best, server, manual) and False)
+        threading.Thread(target=run, daemon=True).start()
+
+    def update_found(self, best, server, manual):
+        if not best:
+            if manual:
+                self.toast(T("Mise à jour impossible") if best is False else T("Folio est à jour"))
+            return
+        t = Adw.Toast(title=T("Folio {v} est disponible", v=best[0]), button_label=T("Mettre à jour"), timeout=0)
+        t.connect("button-clicked", lambda *_: self.do_update(best[1], server))
+        self.toasts.add_toast(t)
+
+    def do_update(self, rel, server):
+        self.toast(T("Téléchargement de la mise à jour…"))
+        dest = Path(tempfile.mkdtemp(prefix="folio-upd-")) / rel["name"]
+
+        def run():
+            try:
+                h = hashlib.sha256()
+                with urllib.request.urlopen(urllib.request.Request(server + "/dl/" + urllib.parse.quote(rel["name"]),
+                                                                   headers={"User-Agent": "Folio-Linux"}), timeout=60) as r, open(dest, "wb") as f:
+                    while chunk := r.read(1 << 16):
+                        h.update(chunk); f.write(chunk)
+                ok = h.hexdigest() == rel["sha256"]
+            except OSError:
+                ok = False
+            GLib.idle_add(lambda: self.install_update(dest, ok) and False)
+        threading.Thread(target=run, daemon=True).start()
+
+    def install_update(self, deb, ok):
+        if not ok:
+            deb.unlink(missing_ok=True)
+            return self.toast(T("Mise à jour impossible"))
+        os.chmod(deb.parent, 0o755); os.chmod(deb, 0o644)       # lisible par apt (utilisateur _apt)
+        p = Gio.Subprocess.new(["pkexec", "apt-get", "install", "-y", "--allow-downgrades", str(deb)],
+                               Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE)
+
+        def done(proc, res):
+            proc.wait_finish(res); shutil.rmtree(deb.parent, ignore_errors=True)
+            if not proc.get_successful():
+                return self.toast(T("Mise à jour annulée"))
+            # relance de la nouvelle version, puis on ferme celle-ci
+            subprocess.Popen(["sh", "-c", "sleep 1; exec folio"], start_new_session=True)
+            self.get_application().quit()
+        p.wait_async(None, done)
+
+    def open_site(self):
+        url = (self.settings.get("account") or {}).get("server") or DEFAULT_SERVER
+        if not url:
+            return
+        Gtk.UriLauncher(uri=url.rstrip("/") + "/").launch(self, None, None)
+
     def toast(self, text):
         self.toasts.add_toast(Adw.Toast(title=text, timeout=3))
 
@@ -2215,7 +2498,7 @@ class FolioWindow(Adw.ApplicationWindow):
 
         ctx = self.get_pango_context()
         fams = sorted({f.get_name() for f in ctx.list_families()}, key=str.lower)
-        self.fonts = [T("Police du livre")] + fams
+        self.fonts = [T("Police du livre"), "OpenDyslexic"] + [f for f in fams if f != "OpenDyslexic"]   # OpenDyslexic : livrée avec l'appli (dyslexie)
         dd = Gtk.DropDown.new_from_strings(self.fonts)
         dd.set_expression(Gtk.PropertyExpression.new(Gtk.StringObject, None, "string"))
         dd.set_enable_search(True); dd.set_size_request(190, -1)

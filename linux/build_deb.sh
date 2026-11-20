@@ -2,7 +2,7 @@
 # Construit folio-reader_<version>_all.deb  —  usage : ./build_deb.sh
 set -e
 cd "$(dirname "$0")"
-VERSION=2.0.0
+VERSION=2.1.0
 PKG=folio-reader
 ROOT=build/$PKG
 rm -rf build && mkdir -p $ROOT/DEBIAN $ROOT/usr/bin $ROOT/usr/share/folio/reader \
@@ -17,6 +17,8 @@ install -d $ROOT/usr/share/folio/fonts && install -m644 src/fonts/*.ttf $ROOT/us
 install -m644 src/reader/reader.html src/reader/notes.js src/reader/voice.js src/reader/epub.min.js src/reader/jszip.min.js $ROOT/usr/share/folio/reader/
 install -d $ROOT/usr/share/folio/writer && install -m644 src/writer/writer.html src/writer/write.js src/writer/jszip.min.js $ROOT/usr/share/folio/writer/
 printf '#!/bin/sh\nexec python3 /usr/share/folio/app.py "$@"\n' > $ROOT/usr/bin/folio && chmod 755 $ROOT/usr/bin/folio
+echo "$VERSION" > $ROOT/usr/share/folio/VERSION      # version installée : sert à la mise à jour depuis l'appli
+install -d $ROOT/usr/share/folio/reader/fonts && install -m644 src/reader/fonts/*.woff2 $ROOT/usr/share/folio/reader/fonts/
 install -m644 packaging/org.folio.Reader.desktop $ROOT/usr/share/applications/
 install -m644 packaging/org.folio.Reader.svg $ROOT/usr/share/icons/hicolor/scalable/apps/
 install -m644 packaging/copyright $ROOT/usr/share/doc/$PKG/copyright

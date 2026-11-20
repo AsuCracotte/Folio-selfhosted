@@ -45,6 +45,11 @@ h1,h2,h3,h4{font-family:var(--serif);font-weight:500;letter-spacing:-.01em;font-
 .search:focus-within{border-color:var(--fg);color:var(--fg)}
 .search input{flex:1;border:0;background:transparent;padding:10px 0;outline:none;color:var(--fg);font-size:15px}
 main{max-width:1180px;margin:0 auto;padding:6px 28px}
+.site-lnk{display:block;width:max-content;margin:56px auto calc(env(safe-area-inset-bottom) + 18px);font-size:12px;color:var(--muted);opacity:.55;text-decoration:none;letter-spacing:.02em}
+.site-lnk:hover{opacity:1;color:var(--ac)}
+#upd{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 20px);z-index:25;display:flex;align-items:center;gap:10px;max-width:calc(100% - 24px);
+ background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:6px 6px 6px 18px;box-shadow:var(--shadow);font-size:14px}
+#upd[hidden]{display:none}#upd .btn{padding:8px 14px}
 /* reprendre la lecture : la couverture teinte la carte */
 .hero{position:relative;isolation:isolate;overflow:hidden;display:flex;gap:30px;align-items:center;padding:30px 34px;margin:14px 0 40px;border-radius:26px;cursor:pointer;
  background:var(--surface);transition:transform .25s var(--ease)}
@@ -285,6 +290,31 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 .rk-foot{max-width:1180px;margin:0 auto;height:22px;background:var(--wood2);border-radius:0 0 6px 6px;position:relative;box-shadow:0 8px 16px -8px rgba(0,0,0,.4)}
 .rk-foot::before,.rk-foot::after{content:"";position:absolute;bottom:-10px;width:28px;height:10px;background:var(--wood2);border-radius:0 0 4px 4px;filter:brightness(.85)}.rk-foot::before{left:24px}.rk-foot::after{right:24px}
 #rkDeco.on{color:var(--ac);background:var(--tint,color-mix(in srgb,var(--ac) 12%,transparent))}
+/* couvertures de face et piles couchées */
+.case .face{border:0;padding:0;background:none;cursor:pointer;margin:0 6px;transition:transform .25s var(--ease)}.case .face:hover{transform:translateY(-6px)}
+.case .face img{display:block;height:184px;width:auto;max-width:150px;border-radius:2px 4px 4px 2px;box-shadow:inset 3px 0 6px rgba(0,0,0,.25),0 2px 3px rgba(0,0,0,.25),0 10px 18px -8px rgba(0,0,0,.45)}
+.case .slot.lie{flex-direction:column;justify-content:flex-end;align-items:center;margin:0 8px}
+.case .lb{position:relative;width:var(--L);height:var(--w,30px);transform:translateX(var(--o))}
+.case .lb .spine{position:absolute;left:50%;top:50%;width:var(--w);height:var(--L);transform:translate(-50%,-50%) rotate(-90deg)}.case .lb .spine:hover{transform:translate(-50%,-50%) rotate(-90deg)}
+#bk3{position:fixed;inset:0;z-index:35;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:20px;
+ background:color-mix(in srgb,var(--bg) 55%,transparent);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);animation:fadeIn .3s ease}
+#bk3[hidden]{display:none}#bk3.out{opacity:0;transition:opacity .35s}@keyframes fadeIn{from{opacity:0}}
+#b3X{position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:14px}
+.b3s{perspective:1400px;touch-action:none;cursor:grab;padding:10px 40px}
+.b3{position:relative;width:var(--W);height:var(--H);transform-style:preserve-3d;transition:transform 1.15s cubic-bezier(.2,.75,.15,1)}
+.b3 .fc{position:absolute;backface-visibility:hidden;overflow:hidden}
+.b3 .f,.b3 .bk{inset:0;transform:translateZ(calc(var(--T)/2))}.b3 .bk{transform:rotateY(180deg) translateZ(calc(var(--T)/2))}
+.b3 .f{border-radius:2px 5px 5px 2px;box-shadow:inset 4px 0 8px rgba(0,0,0,.25)}.b3 .f img{width:100%;height:100%;object-fit:cover;display:block}
+.b3 .s,.b3 .e{top:0;height:var(--H);width:var(--T);left:calc((var(--W) - var(--T))/2)}
+.b3 .s{transform:rotateY(-90deg) translateZ(calc(var(--W)/2))}.b3 .s .spine{width:100%;height:100%;border-radius:0;transform:none;cursor:default;box-shadow:none}
+.b3 .e{transform:rotateY(90deg) translateZ(calc(var(--W)/2));background:repeating-linear-gradient(90deg,#f3eee2 0 2px,#ddd5c3 2px 3px)}
+.b3 .tp,.b3 .bt{left:0;width:var(--W);height:var(--T);top:calc((var(--H) - var(--T))/2);background:repeating-linear-gradient(0deg,#f3eee2 0 2px,#ddd5c3 2px 3px)}
+.b3 .tp{transform:rotateX(90deg) translateZ(calc(var(--H)/2))}.b3 .bt{transform:rotateX(-90deg) translateZ(calc(var(--H)/2))}
+.b3 .gen{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:14%;text-align:center;color:#f4efe8}
+.b3 .gen.sp3{color:#3a2a12}.b3 .gen b{font:500 22px/1.2 var(--serif)}.b3 .gen i{font:italic 15px var(--serif);opacity:.85}
+.b3i{text-align:center;max-width:440px}.b3i h3{margin:0 0 6px;font-size:24px}.b3i p{margin:0 0 16px;color:var(--muted);font-family:var(--serif);font-style:italic}
+.b3i .acts{justify-content:center}.b3i .acts .btn{flex:none}
+@media (prefers-reduced-motion:reduce){.b3{transition:none}}
 #rack{--wood:#c9a57a;--wood2:#b48c5f}:root.dark #rack{--wood:#6b5038;--wood2:#57402c}
 .rk-tip{max-width:1180px;margin:24px auto 0;padding:0 28px}
 .sp-top{display:flex;gap:22px;align-items:flex-end;margin-bottom:6px}
@@ -361,7 +391,9 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  </div>
  <div class="search" id="sbox"><svg class="i"><use href="#i-search"/></svg><input id="q" type="search" data-tp="searchPh" autocomplete="off"></div></header>
  <button id="mobileFab"><svg class="i"><use href="#i-phone"/></svg><span data-t="onMobile"></span></button>
- <main><div id="hero"></div><div id="colsWrap"></div><div id="rackWrap"></div><div class="sect" id="sect"></div><div id="grid"></div></main>
+ <main><div id="hero"></div><div id="colsWrap"></div><div id="rackWrap"></div><div class="sect" id="sect"></div><div id="grid"></div>
+  <a class="site-lnk" href="/" target="_blank" rel="noopener" data-tt="siteLink"><span data-t="backSite"></span> ↗</a></main>
+ <div id="upd" hidden><span id="updT"></span><button class="btn pri" id="updGo"></button><button class="ib" id="updX" data-tt="close"><svg class="i"><use href="#i-x"/></svg></button></div>
 </div>
 <div class="drop" data-t="dropHere"></div>
 <div id="rack" hidden><header class="rk-head"><button class="ib" id="rkBack" data-tt="library"><svg class="i"><use href="#i-back"/></svg></button><h2 data-t="rack"></h2><span id="rkCount"></span>
@@ -378,13 +410,16 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <div id="view"><div id="viewer"></div><div id="ribbon" class="fn-ribbon"></div><div id="pinch"></div></div>
  <div id="foot"><span id="chap"></span><div id="track"></div><span id="pct"></span></div></div>
 <div id="wr"></div>
+<div id="bk3" hidden><button class="ib" id="b3X" data-tt="close"><svg class="i"><use href="#i-x"/></svg></button>
+ <div class="b3s" id="b3s"><div class="b3" id="b3"></div></div>
+ <div class="b3i"><h3 id="b3T"></h3><p id="b3A"></p><div class="acts"><button class="btn pri" id="b3Open"><svg class="i"><use href="#i-book"/></svg><span data-t="openBook"></span></button><button class="btn" id="b3Edit"><svg class="i"><use href="#i-cam"/></svg><span data-t="editSpine"></span></button></div></div></div>
 <div id="ptr"><svg class="i"><use href="#i-sync"/></svg></div>
 <div id="scrim"></div>
 <div class="sheet" id="shSet"><div class="grab"></div><h3 data-t="appearance"></h3>
  <div class="themes" id="themes"></div>
  <div class="group">
   <div class="row"><label data-t="customColors"></label><div class="colors"><input type="color" id="cBg" data-tt="background"><input type="color" id="cFg" data-tt="text"></div></div>
-  <div class="row"><label data-t="font"></label><select id="font"><option value="" data-t="bookFont"></option><option>Georgia</option><option>Palatino Linotype</option><option>Times New Roman</option><option>Literata</option><option>Merriweather</option><option>Lora</option><option>Source Serif 4</option><option>Atkinson Hyperlegible</option><option>Arial</option><option>Verdana</option><option>Courier New</option></select></div>
+  <div class="row"><label data-t="font"></label><select id="font"><option value="" data-t="bookFont"></option><option value="OpenDyslexic" data-t="dysFont"></option><option>Georgia</option><option>Palatino Linotype</option><option>Times New Roman</option><option>Literata</option><option>Merriweather</option><option>Lora</option><option>Source Serif 4</option><option>Atkinson Hyperlegible</option><option>Arial</option><option>Verdana</option><option>Courier New</option></select></div>
  </div>
  <div class="group">
   <div class="row"><label for="size" data-t="size"></label><div class="ctl"><input type="range" id="size" min="12" max="40"><output id="oSize"></output></div></div>
@@ -518,5 +553,5 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <label class="field" id="authCodeF"><span data-t="mfaOrRecovery"></span><input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="11"></label>
  <div class="acts"><button class="btn pri" id="authOk" data-t="confirm"></button><button class="btn ghost" id="authNo" data-t="cancel"></button></div></div>
 <div id="sel"></div><div id="imgm"><button id="imgCover"><svg class="i"><use href="#i-image"/></svg><span data-t="useAsCover"></span></button></div><div id="msg"></div>
-<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="write.js?v=2.0.0"></script><script src="voice.js?v=2.0.0"></script><script src="app.js?v=2.0.0"></script>
+<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="write.js?v=2.1.0"></script><script src="voice.js?v=2.1.0"></script><script src="app.js?v=2.1.0"></script>
 </body></html>

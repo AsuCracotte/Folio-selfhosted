@@ -154,6 +154,11 @@ EN = {
     # écrire un livre, lecture à voix haute
     "Écrire un livre": "Write a book", "Mes manuscrits": "My manuscripts", "Lecture à voix haute": "Read aloud",
     "Exporter en EPUB": "Export as EPUB", "EPUB enregistré": "EPUB saved", "Enregistrement impossible : {e}": "Couldn’t save: {e}",
+    "Mises à jour…": "Updates…", "Site de Folio ↗": "Folio website ↗", "Folio est à jour": "Folio is up to date",
+    "Folio {v} est disponible": "Folio {v} is available", "Mettre à jour": "Update", "Mise à jour impossible": "Update failed",
+    "Mise à jour annulée": "Update cancelled", "Téléchargement de la mise à jour…": "Downloading the update…",
+    "Mise à jour : seulement pour Folio installé depuis le paquet .deb": "Updates: only for Folio installed from the .deb package",
+    "Tranche et infos": "Spine and details",
 }
 
 

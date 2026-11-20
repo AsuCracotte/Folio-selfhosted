@@ -9,4 +9,12 @@ ipcRenderer.on("folio:file", (_e, { name, data }) => {
   window.dispatchEvent(new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true }));
 });
 
-contextBridge.exposeInMainWorld("folioDesktop", { retry: () => ipcRenderer.send("folio:retry") });
+let onProg = null;
+ipcRenderer.on("folio:progress", (_e, p) => onProg && onProg(p));
+contextBridge.exposeInMainWorld("folioDesktop", {
+  retry: () => ipcRenderer.send("folio:retry"),
+  // mise à jour de l'appli : version proposée par le serveur Folio, puis installation (l'appli redémarre)
+  checkUpdate: () => ipcRenderer.invoke("folio:checkUpdate"),
+  installUpdate: () => ipcRenderer.invoke("folio:installUpdate"),
+  onProgress: (f) => { onProg = typeof f === "function" ? f : null; },
+});
