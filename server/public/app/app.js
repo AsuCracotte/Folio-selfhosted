@@ -46,7 +46,7 @@ fr:{facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",ca
  deleteColTip:"Supprimer une collection ne supprime pas ses livres.",confirmDelCol:"Supprimer la collection « {t} » ? Les livres restent dans votre bibliothèque.",colDeleted:"Collection supprimée",
  addToColT:"Ajouter à « {t} »",done:"Terminé",ok:"OK",inCols:"Dans {n} collection(s)",noCols:"Aucune collection pour l’instant.",colCreated:"Collection « {t} » créée",
  cover:"Couverture",chooseImage:"Choisir une image…",origCover:"Couverture d’origine",coverTip:"Astuce : dans un livre, faites un clic droit (ou un appui long sur téléphone) sur une illustration pour en faire la couverture.",
- removeBook:"Retirer de la bibliothèque",readStatus:"Lecture",markDone:"Marquer comme terminé",markUnread:"Marquer comme non lu",
+ removeBook:"Retirer de la bibliothèque",renameBookQ:"Nouveau titre du livre",renamed:"Livre renommé",readStatus:"Lecture",markDone:"Marquer comme terminé",markUnread:"Marquer comme non lu",
  autoReading:"En cours",autoUnread:"Non lus",autoDone:"Terminés",markedDone:"Rangé dans « Terminés »",markedUnread:"Rangé dans « Non lus »",autoTip:"Catégorie automatique",rack:"Étagère",rackAll:"Tout voir",addPaper:"Livre papier",addPaperT:"Ajouter un livre papier",editSpine:"Sur l’étagère",titleF:"Titre",authorF:"Auteur",
  takePhoto:"Photographier la tranche",camHint:"Placez la tranche du livre dans le cadre",camWidth:"Épaisseur",camNo:"Caméra indisponible : choisissez une photo",cropT:"Recadrer",cropHint:"Ajustez le cadre sur la tranche",useCrop:"Utiliser",importImg:"Importer une image",rotate:"Faire pivoter",removePhoto:"Retirer la photo",openBook:"Ouvrir le livre",removePaper:"Retirer de l’étagère",
  spineSet:"Tranche mise à jour",spinePhotoOff:"Photo retirée",paperAdded:"« {t} » rangé sur l’étagère",paperRemoved:"Livre retiré de l’étagère",needTitle:"Indiquez au moins le titre",
@@ -95,7 +95,7 @@ en:{facesT:"Cover and back (3D view)",faceFront:"Cover",faceBack:"Back",camFront
  deleteColTip:"Deleting a collection doesn’t delete its books.",confirmDelCol:"Delete the collection “{t}”? The books stay in your library.",colDeleted:"Collection deleted",
  addToColT:"Add to “{t}”",done:"Done",ok:"OK",inCols:"In {n} collection(s)",noCols:"No collections yet.",colCreated:"Collection “{t}” created",
  cover:"Cover",chooseImage:"Choose an image…",origCover:"Original cover",coverTip:"Tip: in a book, right-click (or long-press on a phone) an illustration to make it the cover.",
- removeBook:"Remove from library",readStatus:"Reading",markDone:"Mark as finished",markUnread:"Mark as unread",
+ removeBook:"Remove from library",renameBookQ:"New title for the book",renamed:"Book renamed",readStatus:"Reading",markDone:"Mark as finished",markUnread:"Mark as unread",
  autoReading:"Reading",autoUnread:"Unread",autoDone:"Finished",markedDone:"Moved to “Finished”",markedUnread:"Moved to “Unread”",autoTip:"Automatic category",rack:"Bookshelf",rackAll:"See all",addPaper:"Paper book",addPaperT:"Add a paper book",editSpine:"On the shelf",titleF:"Title",authorF:"Author",
  takePhoto:"Photograph the spine",camHint:"Fit the book’s spine inside the frame",camWidth:"Thickness",camNo:"Camera unavailable: pick a photo instead",cropT:"Crop",cropHint:"Adjust the frame to the spine",useCrop:"Use",importImg:"Import an image",rotate:"Rotate",removePhoto:"Remove photo",openBook:"Open the book",removePaper:"Remove from the shelf",
  spineSet:"Spine updated",spinePhotoOff:"Photo removed",paperAdded:"“{t}” added to the shelf",paperRemoved:"Book removed from the shelf",needTitle:"Enter at least the title",
@@ -281,7 +281,7 @@ async function renderRack(){const all=await allB(),items=rackList(all),c=$("rkCa
   if(DECO_ON){row.style.paddingLeft=(8+(r*29)%46)+"%";row.append(decoEl(nd++,true));if(r%2)row.append(decoEl(nd++,true))}c.append(row)}}
 // ---------- un livre de l'étagère, en 3D : la tranche pivote et montre la couverture ----------
 let b3x=null,b3a=0;
-async function bookView(x){b3x=x;const all=await allB(),b=x.kind==="book"&&all.find(z=>z.hash===x.id),su=x.spine?await spineUrl(x.id):null,
+async function bookView(x){b3x=x;const b=x.kind==="book"&&await getB(x.id),su=x.spine?await spineUrl(x.id):null,
  cu=b?coverUrl(b):x.front?await spineUrl(fkey(x.id,"front")):null,bu=x.back?await spineUrl(fkey(x.id,"back")):null;
  const H=Math.round(Math.min(innerHeight*.46,360)),ld=u=>u?loadImg(u).catch(()=>null):null,[ci,si]=await Promise.all([ld(cu),ld(su)]);
  const W=Math.round(H*(ci?Math.max(.5,Math.min(.85,ci.naturalWidth/ci.naturalHeight)):.66)),T=Math.round(si?Math.max(H*.07,Math.min(H*.22,H*si.naturalWidth/si.naturalHeight)):Math.min(H*.18,H*.07+String(x.title).length*.5));
@@ -297,9 +297,11 @@ function b3close(){if($("bk3").hidden)return;b3a=90;b3turn(true);$("bk3").classL
 $("bk3").onclick=e=>{if(e.target===$("bk3")||e.target.closest("#b3X"))b3close()};
 $("b3Open").onclick=()=>{const x=b3x;$("bk3").hidden=true;openBook(x.id)};$("b3Edit").onclick=()=>{$("bk3").hidden=true;spineMenu(b3x.id)};
 // glisser pour tourner le livre
-(()=>{let x0=null,a0=0;const sc=$("b3s");sc.addEventListener("pointerdown",e=>{x0=e.clientX;a0=b3a;sc.setPointerCapture(e.pointerId);$("b3").style.transition="none"});
- sc.addEventListener("pointermove",e=>{if(x0==null)return;b3a=Math.max(-180,Math.min(180,a0+(e.clientX-x0)*.6));$("b3").style.transform=`rotateX(4deg) rotateY(${b3a}deg)`});
- const up=()=>{if(x0==null)return;x0=null;if(Math.abs(b3a)>100)b3a=b3a>0?180:-180;else if(Math.abs(b3a)<70)b3a=-24;b3turn(true)};sc.addEventListener("pointerup",up);sc.addEventListener("pointercancel",up)})();
+// une seule mise à jour par image affichée, et pas de sélection ni de glisser-déposer d'image pendant le geste
+(()=>{let x0=null,a0=0,raf=0;const sc=$("b3s");sc.addEventListener("pointerdown",e=>{e.preventDefault();x0=e.clientX;a0=b3a;sc.setPointerCapture(e.pointerId);$("b3").style.transition="none"});
+ sc.addEventListener("pointermove",e=>{if(x0==null)return;b3a=Math.max(-180,Math.min(180,a0+(e.clientX-x0)*.6));
+  raf||=requestAnimationFrame(()=>{raf=0;$("b3").style.transform=`rotateX(4deg) rotateY(${b3a}deg)`})});
+ const up=()=>{if(x0==null)return;x0=null;cancelAnimationFrame(raf);raf=0;if(Math.abs(b3a)>100)b3a=b3a>0?180:-180;else if(Math.abs(b3a)<70)b3a=-24;b3turn(true)};sc.addEventListener("pointerup",up);sc.addEventListener("pointercancel",up)})();
 function openRack(){$("rack").hidden=false;renderRack()}
 const rackRefresh=()=>{render();if(!$("rack").hidden)renderRack();if($("shSpine").classList.contains("on"))spineFill()};
 $("rkBack").onclick=()=>{$("rack").hidden=true;render()};$("rkDeco").onclick=()=>{DECO_ON=!DECO_ON;localStorage.folioRackDeco=DECO_ON?"1":"0";renderRack()};
@@ -425,6 +427,8 @@ $("bkDel").onclick=async()=>{const b=await getB(menuHash);if(!b)return;if(!confi
 async function markStatus(hash,st){const b=cur&&cur.hash===hash?cur:await getB(hash);if(!b)return;
  if(st==="done")b.progress=1;else{b.progress=0;b.cfi="";delete b.lastRead}b.posUpdated=now();await putB(b);show(null);render();
  msg(t(st==="done"?"markedDone":"markedUnread"));if(dav)dav.push(b).catch(()=>{})}
+$("bkRename").onclick=async()=>{const b=await getB(menuHash);if(!b)return;const name=await ask(t("renameBookQ"),b.title);
+ if(!name||name===b.title)return bookMenu(b.hash);Object.assign(b,{title:name.slice(0,300),nameUpdated:now()});await putB(b);render();msg(t("renamed"));if(dav)dav.push(b).catch(()=>{})};
 $("bkDone").onclick=()=>menuHash&&markStatus(menuHash,"done");$("bkUnread").onclick=()=>menuHash&&markStatus(menuHash,"unread");
 async function pickBooks(id){const c=colById(id);if(!c)return;$("pickTitle").textContent=t("addToColT",{t:c.name});const L=$("pickList");L.innerHTML="";
  const all=(await allB()).sort((a,b)=>a.title.localeCompare(b.title,LANG));
@@ -657,7 +661,7 @@ const pushSoon=()=>{if(!dav)return;clearTimeout(pushT);const b=cur;pushT=setTime
 async function refreshCur(follow){if(!cur||!rend)return;const n=await getB(cur.hash);if(!n)return;
  const moved=follow&&n.cfi&&n.cfi!==cur.cfi&&(n.posUpdated||0)>(cur.posUpdated||0);
  cur.highlights.forEach(h=>{try{rend.annotations.remove(h.cfi,"highlight")}catch(e){}});
- Object.assign(cur,{bookmarks:n.bookmarks,highlights:n.highlights,customCover:n.customCover,coverCustom:n.coverCustom,coverUpdated:n.coverUpdated,coverSent:n.coverSent});if(moved)Object.assign(cur,{cfi:n.cfi,progress:n.progress,posUpdated:n.posUpdated});
+ Object.assign(cur,{title:n.title,nameUpdated:n.nameUpdated,bookmarks:n.bookmarks,highlights:n.highlights,customCover:n.customCover,coverCustom:n.coverCustom,coverUpdated:n.coverUpdated,coverSent:n.coverSent});if(moved)Object.assign(cur,{cfi:n.cfi,progress:n.progress,posUpdated:n.posUpdated});
  cur.highlights.filter(h=>!h.deleted).forEach(drawHl);refreshTrack();if(moved){anchor=n.cfi;rend.display(n.cfi);msg(t("resumedOther"))}}
 async function autoSync(){if(!dav||document.hidden)return;try{if(cur&&rend){clearTimeout(pushT);await dav.push(cur);await dav.settings();await refreshCur(true)}else{await dav.syncAll();render()}}catch(e){console.error(e)}}
 document.addEventListener("visibilitychange",autoSync);setInterval(autoSync,120000);
@@ -671,13 +675,14 @@ function Api(c){const base=(c.server||"").replace(/\/$/,""),h={Authorization:"Be
   async apply(hash,d){if(d.removed){if(await getB(hash)){await delB(hash);return true}return false}
    let b=await getB(hash);if(!b){const r=await f(`/api/files/${hash}`);if(!r.ok)return false;await addBuf(await r.arrayBuffer());b=await getB(hash);if(!b)return false}
    let ch=false;const p=d.position||{};if((p.updated||0)>(b.posUpdated||0)){Object.assign(b,{cfi:p.cfi||"",progress:p.progress||0,posUpdated:p.updated});if(!p.cfi&&!p.progress)delete b.lastRead;ch=true}
+   const nm=d.name||{};if((nm.updated||0)>(b.nameUpdated||0)&&nm.title){Object.assign(b,{title:nm.title,nameUpdated:nm.updated});ch=true}
    const cv=d.cover||{};if((cv.updated||0)>(b.coverUpdated||0)){
     if(!cv.custom){Object.assign(b,{customCover:null,coverCustom:false,coverUpdated:cv.updated,coverSent:true});ch=true}
     else{const r=await f(`/api/covers/${hash}`);if(r.ok){Object.assign(b,{customCover:await r.blob(),coverCustom:true,coverUpdated:cv.updated,coverSent:true});ch=true}}}
    const[bm,c1]=merge(b.bookmarks,d.bookmarks),[hl,c2]=merge(b.highlights,d.highlights);b.bookmarks=bm;b.highlights=hl;if(ch||c1||c2){await putB(b);return true}return false},
   async push(b,removed){if(!b)return;const hash=b.hash,J={"Content-Type":"application/json"};
    if(removed){await f(`/api/books/${hash}`,{method:"PUT",headers:J,body:JSON.stringify({removed:now()})});return}
-   const m=await jf(`/api/books/${hash}`,{method:"PUT",headers:J,body:JSON.stringify({title:b.title,author:b.author,position:{cfi:b.cfi,progress:b.progress||0,updated:b.posUpdated||0},
+   const m=await jf(`/api/books/${hash}`,{method:"PUT",headers:J,body:JSON.stringify({title:b.title,author:b.author,name:{title:b.nameUpdated?b.title:"",updated:b.nameUpdated||0},position:{cfi:b.cfi,progress:b.progress||0,updated:b.posUpdated||0},
     cover:{updated:b.coverUpdated||0,custom:!!b.coverCustom},bookmarks:b.bookmarks,highlights:b.highlights})});
    if(b.coverCustom&&b.customCover&&!b.coverSent){const r=await f(`/api/covers/${hash}`,{method:"PUT",headers:{"Content-Type":b.customCover.type||"image/jpeg"},body:b.customCover});
     if(r.ok){b.coverSent=true;const x=await getB(hash);if(x&&x.coverUpdated===b.coverUpdated){x.coverSent=true;await putB(x)}}}
@@ -807,7 +812,7 @@ $("bSync").onclick=doSync;
 // ---------- mises à jour ----------
 // le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
 // l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
-const APPV="2.2.0";let updShown=false;
+const APPV="2.3.0";let updShown=false;
 function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
  $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
 async function checkUpd(){if(updShown||!navigator.onLine)return;

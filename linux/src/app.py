@@ -289,10 +289,21 @@ class Book3D(Gtk.DrawingArea):
         fw, fh = self.front.get_width(), self.front.get_height()
         self.H, self.W = H, H * max(.5, min(.85, fw / fh))
         self.T = H * max(.07, min(.22, sw / sh))
-        self.bg = SPINE_COLORS[hn(item["id"]) % 7][0]
-        self.a, self.t0, self.a0, self.a1 = 90.0, None, 90.0, -24.0
+        # textures réduites une fois à la taille affichée (×2 pour les écrans HiDPI) : une photo de 12 Mpx
+        # n'est plus rééchantillonnée à chaque image de l'animation
+        S = 2
+        self.front = self.fit(self.front, self.W * S, H * S)
+        self.spine = self.fit(self.spine, self.T * S, H * S)
+        if self.back != "back":
+            self.back = self.fit(self.back, self.W * S, H * S)
+        c = Gdk.RGBA(); c.parse(SPINE_COLORS[hn(item["id"]) % 7][0]); self.bg = c
+        self.pages = cairo.ImageSurface(cairo.FORMAT_ARGB32, 100, 100); pc = cairo.Context(self.pages)
+        pc.set_source_rgb(.95, .93, .88); pc.paint(); pc.set_source_rgba(.6, .55, .45, .35); pc.set_line_width(.6)
+        for i in range(0, 100, 3):
+            pc.move_to(0, i); pc.line_to(100, i)
+        pc.stroke()
+        self.a, self.t0, self.a0, self.a1, self.tick_id = 90.0, None, 90.0, -24.0, None
         self.set_draw_func(self.draw)
-        self.add_tick_callback(self.tick)
         d = Gtk.GestureDrag(); d.connect("drag-begin", self.drag_begin); d.connect("drag-update", self.drag_update)
         d.connect("drag-end", self.drag_end); self.add_controller(d)
         self.set_cursor(Gdk.Cursor.new_from_name("grab"))
@@ -301,6 +312,16 @@ class Book3D(Gtk.DrawingArea):
     def surface_from(pb):
         s = cairo.ImageSurface(cairo.FORMAT_ARGB32, pb.get_width(), pb.get_height()); cr = cairo.Context(s)
         Gdk.cairo_set_source_pixbuf(cr, pb, 0, 0); cr.paint(); return s
+
+    @staticmethod
+    def fit(src, w, h):
+        w, h = max(1, round(w)), max(1, round(h))
+        if src.get_width() <= w and src.get_height() <= h:
+            return src
+        s = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h); cr = cairo.Context(s)
+        cr.scale(w / src.get_width(), h / src.get_height()); cr.set_source_surface(src, 0, 0)
+        cr.get_source().set_filter(cairo.FILTER_GOOD); cr.paint()
+        return s
 
     @staticmethod
     def gen_cover(item):
@@ -315,23 +336,27 @@ class Book3D(Gtk.DrawingArea):
         return s
 
     def tick(self, _w, clock):
-        if self.t0 is None:
-            return True
         k = min(1.0, (clock.get_frame_time() / 1e6 - self.t0) / 1.15)
         self.a = self.a0 + (self.a1 - self.a0) * (1 - (1 - k) ** 3); self.queue_draw()
         if k >= 1:
-            self.t0 = None
-        return True
+            self.tick_id = None
+            return GLib.SOURCE_REMOVE        # au repos, plus aucune image n'est redessinée
+        return GLib.SOURCE_CONTINUE
+
+    def stop(self):
+        if self.tick_id:
+            self.remove_tick_callback(self.tick_id); self.tick_id = None
 
     def start(self, to=-24.0):
-        self.a0, self.a1 = self.a, to
+        self.stop(); self.a0, self.a1 = self.a, to
         clock = self.get_frame_clock()
-        self.t0 = clock.get_frame_time() / 1e6 if clock else None
         if not clock:
-            self.a = to
+            self.a = to; self.queue_draw(); return
+        self.t0 = clock.get_frame_time() / 1e6
+        self.tick_id = self.add_tick_callback(self.tick)
 
     def drag_begin(self, *_):
-        self.t0 = None; self.drag_a = self.a
+        self.stop(); self.drag_a = self.a
 
     def drag_update(self, _g, dx, _dy):
         self.a = max(-180, min(180, self.drag_a + dx * .6)); self.queue_draw()
@@ -369,14 +394,12 @@ class Book3D(Gtk.DrawingArea):
             cr.save()
             cr.transform(cairo.Matrix((x1 - x0) / tw, (y1 - y0) / tw, (x2 - x0) / tht, (y2 - y0) / tht, x0, y0))
             cr.rectangle(0, 0, tw, tht); cr.clip()
+            if tex == "pages":
+                tex = self.pages
             if isinstance(tex, cairo.ImageSurface):
-                cr.set_source_surface(tex, 0, 0); cr.get_source().set_filter(cairo.FILTER_GOOD); cr.paint()
-            elif tex == "pages":
-                cr.set_source_rgb(.95, .93, .88); cr.paint(); cr.set_source_rgba(.6, .55, .45, .35); cr.set_line_width(.6)
-                for i in range(0, 100, 3):
-                    cr.move_to(0, i); cr.line_to(100, i); cr.stroke()
+                cr.set_source_surface(tex, 0, 0); cr.get_source().set_filter(cairo.FILTER_BILINEAR); cr.paint()
             else:
-                c = Gdk.RGBA(); c.parse(self.bg); Gdk.cairo_set_source_rgba(cr, c); cr.paint()
+                Gdk.cairo_set_source_rgba(cr, self.bg); cr.paint()
             cr.set_source_rgba(0, 0, 0, (1 - nz) * .35); cr.paint()          # lumière de face
             cr.restore()
 
@@ -757,9 +780,9 @@ class FolioWindow(Adw.ApplicationWindow):
     def collections_changed_remote(self):
         self.fill_collections(); self.apply_filter()
 
-    def ask_text(self, heading, text, ok, cb):
+    def ask_text(self, heading, text, ok, cb, placeholder=None, max_length=80):
         d = Adw.AlertDialog(heading=heading)
-        e = Gtk.Entry(text=text, max_length=80, activates_default=True, placeholder_text=T("Nom de la collection"))
+        e = Gtk.Entry(text=text, max_length=max_length, activates_default=True, placeholder_text=placeholder or T("Nom de la collection"))
         d.set_extra_child(e)
         d.add_response("cancel", T("Annuler")); d.add_response("ok", ok)
         d.set_response_appearance("ok", Adw.ResponseAppearance.SUGGESTED); d.set_default_response("ok")
@@ -844,6 +867,8 @@ class FolioWindow(Adw.ApplicationWindow):
         if st != "unread":
             item(T("Marquer comme non lu"), "view-refresh-symbolic", lambda: self.mark_status(bid, "unread"))
         box.append(Gtk.Separator(margin_top=4, margin_bottom=4))
+        item(T("Renommer…"), "document-edit-symbolic", lambda: self.ask_text(T("Renommer le livre"), b["title"], T("Renommer"),
+                                                                       lambda name: self.rename_book(bid, name), T("Titre du livre"), 300))
         item(T("Changer la couverture…"), "image-x-generic-symbolic", lambda: self.pick_cover(bid))
         if b["custom_cover"]:
             item(T("Couverture d’origine"), "edit-undo-symbolic", lambda: self.set_cover(bid, None))
@@ -877,6 +902,19 @@ class FolioWindow(Adw.ApplicationWindow):
                 return self.toast(T("Image illisible : {e}", e=e.message))
             self.set_cover(bid, bytes(buf))
         Gtk.FileDialog(title=T("Choisir une couverture"), filters=fl).open(self, None, picked)
+
+    def rename_book(self, bid, title):
+        b = self.lib.book(bid)
+        if not b or title == b["title"]:
+            return
+        self.lib.rename_book(bid, title)
+        if self.cur and self.cur["id"] == bid:
+            self.cur = self.lib.book(bid)
+        self.toast(T("Livre renommé"))
+        if self.stack.get_visible_child_name() == "library":
+            self.refresh_library()
+        if self.sync:
+            self.worker.submit(self.sync_cfg, lambda s: s.push(bid, force=False))
 
     def set_cover(self, bid, data):
         self.lib.set_custom_cover(bid, data)

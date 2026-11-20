@@ -56,6 +56,7 @@ EN = {
     "Collections": "Collections", "Nouvelle collection": "New collection", "Nouvelle collection…": "New collection…",
     "Nom de la collection": "Collection name", "Créer": "Create", "Renommer": "Rename", "Renommer…": "Rename…",
     "Renommer la collection": "Rename collection", "Supprimer la collection": "Delete collection",
+    "Renommer le livre": "Rename book", "Titre du livre": "Book title", "Livre renommé": "Book renamed",
     "Supprimer la collection « {t} » ?": "Delete the collection “{t}”?",
     "Les livres restent dans votre bibliothèque.": "The books stay in your library.", "Supprimer": "Delete",
     "Collection « {t} » créée": "Collection “{t}” created", "Collection supprimée": "Collection deleted",

@@ -12,9 +12,12 @@ function mergeState(cur, inc) {
   if (inc.removed) return { hash: inc.hash, removed: inc.removed };
   const c = cur && !cur.removed ? cur : { position: {}, bookmarks: [], highlights: [] };
   const newer = (inc.position?.updated || 0) > (c.position?.updated || 0);
+  // titre renommé par l'utilisateur : le plus récent gagne ; les anciens clients n'envoient que le titre du fichier
+  const name = (inc.name?.updated || 0) > (c.name?.updated || 0) ? inc.name : c.name || { title: "", updated: 0 };
   return {
     hash: inc.hash,
-    title: inc.title || c.title || "",
+    title: name.title || inc.title || c.title || "",
+    name,
     author: inc.author || c.author || "",
     position: newer ? inc.position : c.position || { cfi: "", progress: 0, updated: 0 },
     bookmarks: items(c.bookmarks, inc.bookmarks),

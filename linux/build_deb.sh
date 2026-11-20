@@ -2,7 +2,7 @@
 # Construit folio-reader_<version>_all.deb  —  usage : ./build_deb.sh
 set -e
 cd "$(dirname "$0")"
-VERSION=2.2.0
+VERSION=2.3.0
 PKG=folio-reader
 ROOT=build/$PKG
 rm -rf build && mkdir -p $ROOT/DEBIAN $ROOT/usr/bin $ROOT/usr/share/folio/reader \

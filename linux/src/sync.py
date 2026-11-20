@@ -178,6 +178,9 @@ class Sync:
                 return changed
             row = self.lib.book(bid); changed.add(bid)
         bid, pos = row["id"], d.get("position") or {}
+        nm = d.get("name") or {}
+        if (nm.get("updated") or 0) > (row["name_updated"] or 0) and nm.get("title"):   # renommé sur un autre appareil
+            self.lib.rename_book(bid, nm["title"], nm["updated"]); changed.add(bid)
         cv = d.get("cover") or {}
         if (cv.get("updated") or 0) > (row["cover_updated"] or 0):     # couverture changée sur un autre appareil
             if not cv.get("custom"):
@@ -205,6 +208,7 @@ class Sync:
         return {"hash": h, "title": b["title"], "author": b["author"],
                 "position": {"cfi": b["cfi"], "progress": b["progress"] or 0, "updated": b["pos_updated"] or 0},
                 "cover": {"updated": b["cover_updated"] or 0, "custom": bool(b["custom_cover"])},
+                "name": {"title": b["title"] if b["name_updated"] else "", "updated": b["name_updated"] or 0},
                 "bookmarks": self._items("bookmarks", bid, ["cfi", "label"]),
                 "highlights": self._items("highlights", bid, ["cfi", "color", "text"])}
 
@@ -221,7 +225,8 @@ class Sync:
             remote = json.loads(self._file(h).read_text())
         except (OSError, ValueError):
             pass
-        if remote.get("position", {}).get("updated", 0) > (b["pos_updated"] or 0):
+        if (remote.get("position", {}).get("updated", 0) > (b["pos_updated"] or 0)
+                or (remote.get("name") or {}).get("updated", 0) > (b["name_updated"] or 0)):
             self.pull()          # l'autre appareil est plus récent : on fusionne d'abord
             b = self.lib.book(bid)
         self._write(h, self._state(bid, h))

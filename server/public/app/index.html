@@ -281,6 +281,7 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 #rkCount{color:var(--muted);font-size:13px;flex:1}
 .rk-head .seg{min-width:260px}
 /* meuble : montants et fronton en bois, fond plus sombre, une planche toutes les 240 px (dessinée en fond) */
+.case{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.case img{-webkit-user-drag:none}
 .case{--back:color-mix(in srgb,var(--fg) 5%,var(--bg));max-width:1180px;margin:18px auto 0;padding:0 18px;display:flex;flex-wrap:wrap;gap:0 3px;
  border:14px solid var(--wood);border-bottom:0;border-radius:12px 12px 0 0;box-shadow:inset 0 10px 18px -8px rgba(0,0,0,.25),inset 12px 0 16px -12px rgba(0,0,0,.3),inset -12px 0 16px -12px rgba(0,0,0,.3),0 20px 40px -24px rgba(0,0,0,.35);
  background:linear-gradient(transparent 214px,var(--wood) 214px,var(--wood) 217px,var(--wood2) 217px,var(--wood2) 228px,rgba(0,0,0,.16) 228px,transparent 238px) 0 0/100% 240px repeat-y,var(--back)}
@@ -297,11 +298,15 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 .case .lb{position:relative;width:var(--L);height:var(--w,30px);transform:translateX(var(--o))}
 .case .lb .spine{position:absolute;left:50%;top:50%;width:var(--w);height:var(--L);transform:translate(-50%,-50%) rotate(-90deg)}.case .lb .spine:hover{transform:translate(-50%,-50%) rotate(-90deg)}
 #bk3{position:fixed;inset:0;z-index:35;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:20px;
- background:color-mix(in srgb,var(--bg) 55%,transparent);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);animation:fadeIn .3s ease}
-#bk3[hidden]{display:none}#bk3.out{opacity:0;transition:opacity .35s}@keyframes fadeIn{from{opacity:0}}
+ user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+/* flou sur un calque à part : le livre qui tourne ne force pas à recalculer le flou de tout l'écran */
+#bk3::before{content:"";position:absolute;inset:0;z-index:-1;background:color-mix(in srgb,var(--bg) 62%,transparent);
+ backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#bk3::before,#bk3>*{animation:fadeIn .3s ease}#bk3 img{-webkit-user-drag:none;pointer-events:none}
+#bk3[hidden]{display:none}#bk3.out::before,#bk3.out>*{opacity:0;transition:opacity .35s}@keyframes fadeIn{from{opacity:0}}
 #b3X{position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:14px}
 .b3s{perspective:1400px;touch-action:none;cursor:grab;padding:10px 40px}
-.b3{position:relative;width:var(--W);height:var(--H);transform-style:preserve-3d;transition:transform 1.15s cubic-bezier(.2,.75,.15,1)}
+.b3{position:relative;width:var(--W);height:var(--H);transform-style:preserve-3d;will-change:transform;transition:transform 1.15s cubic-bezier(.2,.75,.15,1)}
 .b3 .fc{position:absolute;backface-visibility:hidden;overflow:hidden}
 .b3 .f,.b3 .bk{inset:0;transform:translateZ(calc(var(--T)/2))}.b3 .bk{transform:rotateY(180deg) translateZ(calc(var(--T)/2))}
 .b3 .f{border-radius:2px 5px 5px 2px;box-shadow:inset 4px 0 8px rgba(0,0,0,.25)}.b3 .f img{width:100%;height:100%;object-fit:cover;display:block}
@@ -451,7 +456,7 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <div class="lbl" data-t="collections"></div>
  <div id="bkCols"></div>
  <div class="lbl" data-t="readStatus"></div>
- <div class="acts" style="margin-top:4px"><button class="btn" id="bkDone"><svg class="i"><use href="#i-check"/></svg><span data-t="markDone"></span></button><button class="btn" id="bkUnread"><svg class="i"><use href="#i-book"/></svg><span data-t="markUnread"></span></button></div>
+ <div class="acts" style="margin-top:4px"><button class="btn" id="bkRename"><svg class="i"><use href="#i-pen"/></svg><span data-t="rename"></span></button><button class="btn" id="bkDone"><svg class="i"><use href="#i-check"/></svg><span data-t="markDone"></span></button><button class="btn" id="bkUnread"><svg class="i"><use href="#i-book"/></svg><span data-t="markUnread"></span></button></div>
  <div class="lbl" data-t="cover"></div>
  <div class="acts" style="margin-top:4px"><label class="btn"><svg class="i"><use href="#i-image"/></svg><span data-t="chooseImage"></span><input type="file" id="bkCoverFile" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label><button class="btn ghost" id="bkCoverReset" data-t="origCover"></button></div>
  <p class="mut" style="margin-top:10px;font-size:13px" data-t="coverTip"></p>
@@ -487,7 +492,7 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <div class="acts" style="flex-direction:column"><button class="btn" id="colAdd"><svg class="i"><use href="#i-plus"/></svg><span data-t="addToCol"></span></button><button class="btn" id="colRename"><svg class="i"><use href="#i-pen"/></svg><span data-t="rename"></span></button><button class="btn ghost danger" id="colDelete"><svg class="i"><use href="#i-trash"/></svg><span data-t="deleteCol"></span></button></div>
  <p class="mut center" style="margin-top:12px;font-size:13px" data-t="deleteColTip"></p></div>
 <div class="sheet" id="shAsk"><div class="grab"></div><h3 id="askTitle"></h3>
- <label class="field"><input type="text" id="askIn" maxlength="80"></label>
+ <label class="field"><input type="text" id="askIn" maxlength="300"></label>
  <div class="acts"><button class="btn pri" id="askOk" data-t="ok"></button><button class="btn ghost" id="askNo" data-t="cancel"></button></div></div>
 <div class="sheet" id="shMobile"><div class="grab"></div><h3 data-t="mobileT"></h3>
  <p class="mut" data-t="mobileTxt"></p>
@@ -562,5 +567,5 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <label class="field" id="authCodeF"><span data-t="mfaOrRecovery"></span><input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="11"></label>
  <div class="acts"><button class="btn pri" id="authOk" data-t="confirm"></button><button class="btn ghost" id="authNo" data-t="cancel"></button></div></div>
 <div id="sel"></div><div id="imgm"><button id="imgCover"><svg class="i"><use href="#i-image"/></svg><span data-t="useAsCover"></span></button></div><div id="msg"></div>
-<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="write.js?v=2.2.0"></script><script src="voice.js?v=2.2.0"></script><script src="app.js?v=2.2.0"></script>
+<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="write.js?v=2.3.0"></script><script src="voice.js?v=2.3.0"></script><script src="app.js?v=2.3.0"></script>
 </body></html>

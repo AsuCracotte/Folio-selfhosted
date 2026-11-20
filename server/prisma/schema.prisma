@@ -80,6 +80,8 @@ model BookState {
   bookmarks  String   @default("[]")
   highlights String   @default("[]")
   coverUpdated Float  @default(0)        // couverture choisie par l'utilisateur (le plus récent gagne)
+  nameTitle    String @default("")        // titre choisi par l'utilisateur (renommer)
+  nameUpdated  Float  @default(0)
   coverCustom  Boolean @default(false)
   updatedAt  DateTime @updatedAt
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)

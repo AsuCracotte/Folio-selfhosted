@@ -91,7 +91,7 @@
   // ---------- éléments pilotés par le défilement ----------
   const book = $("#book"), cover = $(".cover", book);
   const sync = $("#sync"), read = $("#readText"), trackEl = $("#track"), pctEl = $("#pct"), devNames = $$("#track span");
-  const tilt = $(".frame.tilt");
+  const tilts = $$(".frame.tilt,.stage"), tiltCache = tilts.map(() => ({}));
 
   // le texte de la synchro, mot par mot
   const words = (() => {
@@ -111,7 +111,7 @@
     const vh = innerHeight, sy = scrollY, max = document.documentElement.scrollHeight - vh;
     const rBook = visible.has(book) ? book.getBoundingClientRect() : null;
     const rSync = visible.has(sync) ? sync.getBoundingClientRect() : null;
-    const rTilt = visible.has(tilt) ? tilt.getBoundingClientRect() : null;
+    const rTilts = tilts.map((e) => (visible.has(e) ? e.getBoundingClientRect() : null));
 
     // 2) écritures
     setVar(ribbon, misc, "--p", clamp(sy / Math.max(1, max)).toFixed(3));
@@ -143,7 +143,7 @@
       if (dev !== lastDev) { lastDev = dev; devNames.forEach((d, i) => d.classList.toggle("on", i === dev)); }
     }
 
-    if (rTilt) setVar(tilt, misc, "--t", reduce ? "0" : clamp((rTilt.top - vh * 0.25) / (vh * 0.6)).toFixed(3));
+    rTilts.forEach((r, i) => { if (r) setVar(tilts[i], tiltCache[i], "--t", reduce ? "0" : clamp((r.top - vh * 0.25) / (vh * 0.6)).toFixed(3)); });
     return false;
   }
 
@@ -155,7 +155,7 @@
   const onScroll = () => { tasks.add(scrollTask); request(); };
   addEventListener("scroll", onScroll, { passive: true });
   addEventListener("resize", onScroll);
-  [title, book, sync, tilt].forEach((e) => vis.observe(e));
+  [title, book, sync, ...tilts].forEach((e) => vis.observe(e));
   onScroll();
 
   // ---------- plateforme qui défile (seulement quand elle est visible) ----------

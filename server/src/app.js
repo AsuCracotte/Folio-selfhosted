@@ -22,6 +22,7 @@ function toState(r) {
   return { hash: r.hash, title: r.title, author: r.author,
     position: { cfi: r.cfi, progress: r.progress, updated: r.posUpdated },
     cover: { updated: r.coverUpdated || 0, custom: !!r.coverCustom },
+    name: { title: r.nameTitle || "", updated: r.nameUpdated || 0 },
     bookmarks: JSON.parse(r.bookmarks), highlights: JSON.parse(r.highlights) };
 }
 const normEmail = (e) => String(e || "").normalize("NFKC").trim().toLowerCase();
@@ -477,14 +478,15 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
       const where = { userId_hash: { userId: req.userId, hash } };
       const old = await db.bookState.findUnique({ where });
       const cover = b.cover && typeof b.cover === "object" ? { updated: num(b.cover.updated), custom: !!b.cover.custom } : undefined;
+      const name = b.name && typeof b.name === "object" ? { title: txt(b.name.title, 500), updated: num(b.name.updated) } : undefined;
       const m = mergeState(old ? toState(old) : null, { ...b, hash, bookmarks: cleanItems(b.bookmarks), highlights: cleanItems(b.highlights),
-        title: String(b.title || "").slice(0, 500), author: String(b.author || "").slice(0, 300), cover });
+        title: String(b.title || "").slice(0, 500), author: String(b.author || "").slice(0, 300), cover, name });
       const data = m.removed
         ? { removed: m.removed, bookmarks: "[]", highlights: "[]", coverUpdated: 0, coverCustom: false }
         : { title: m.title, author: m.author, cfi: String(m.position.cfi || "").slice(0, 2000), progress: Number(m.position.progress) || 0,
             posUpdated: Number(m.position.updated) || 0, removed: null,
             bookmarks: JSON.stringify(m.bookmarks), highlights: JSON.stringify(m.highlights),
-            coverUpdated: m.cover.updated, coverCustom: m.cover.custom };
+            coverUpdated: m.cover.updated, coverCustom: m.cover.custom, nameTitle: m.name.title, nameUpdated: m.name.updated };
       await db.bookState.upsert({ where, create: { userId: req.userId, hash, ...data }, update: data });
       if (m.removed) fs.rmSync(path.join(dataDir, "files", req.userId, `${hash}.epub`), { force: true });
       if (m.removed || !m.cover.custom) fs.rmSync(coverFile(req.userId, hash), { force: true });

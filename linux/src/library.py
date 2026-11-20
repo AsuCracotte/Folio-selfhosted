@@ -107,7 +107,8 @@ class Library:
                         ("highlights", ("updated REAL", "deleted INTEGER DEFAULT 0")),
                         ("books", ("pos_updated REAL", "synced TEXT", "uploaded INTEGER DEFAULT 0",
                                    # couverture choisie par l'utilisateur (fichier à part ; la plus récente gagne)
-                                   "custom_cover TEXT DEFAULT ''", "cover_updated REAL DEFAULT 0", "cover_sent INTEGER DEFAULT 1")),
+                                   "custom_cover TEXT DEFAULT ''", "cover_updated REAL DEFAULT 0", "cover_sent INTEGER DEFAULT 1",
+                                   "name_updated REAL DEFAULT 0")),   # titre renommé par l'utilisateur (le plus récent gagne)
                         # étagère : photos de la couverture et du dos (vue 3D), comme la tranche
                         ("shelf", ("front REAL DEFAULT 0", "back REAL DEFAULT 0", "front_at REAL DEFAULT 0", "front_sent REAL DEFAULT 0",
                                    "back_at REAL DEFAULT 0", "back_sent REAL DEFAULT 0"))):
@@ -235,6 +236,10 @@ class Library:
         """Chemin de la couverture affichée : celle choisie par l'utilisateur, sinon celle du livre."""
         c = b["custom_cover"] if "custom_cover" in b.keys() else ""
         return c if c and os.path.exists(c) else b["cover"]
+
+    def rename_book(self, bid, title, updated=None):
+        self.db.execute("UPDATE books SET title=?, name_updated=? WHERE id=?", (title[:300], updated or time.time(), bid))
+        self.db.commit()
 
     def set_custom_cover(self, bid, data, updated=None, sent=False):
         """data = octets JPEG/PNG, ou None pour revenir à la couverture d'origine."""
