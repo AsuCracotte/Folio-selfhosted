@@ -40,8 +40,11 @@ window.FolioVoice = (() => {
     const bar = document.createElement("div"); bar.className = "fv"; bar.hidden = true; host.root.append(bar);
     const au = new Audio(); au.preservesPitch = true;
     let on = false, playing = false, paused = null, voices = null, voice = "", speed = 1, pos = null, cache = new Map(), gen = 0, url = null;
-    try { const p = JSON.parse(localStorage.folioVoice || "{}"); speed = +p.speed || 1; voice = p.voice || ""; } catch (e) {}
-    const savePref = () => { try { localStorage.folioVoice = JSON.stringify({ voice, speed }); } catch (e) {} };
+    // voix retenue par langue du livre (une voix française pour les livres en français, une anglaise pour les autres…) ;
+    // l'hôte peut garder les réglages lui-même (appli Linux), sinon ils vont dans ce navigateur
+    let byLang = {}, bl = L;
+    try { const p = (host.prefs ? host.prefs() : JSON.parse(localStorage.folioVoice || "{}")) || {}; speed = +p.speed || 1; voice = p.voice || ""; byLang = { ...(p.byLang || {}) }; } catch (e) {}
+    const savePref = () => { const p = { voice, speed, byLang }; try { host.savePrefs ? host.savePrefs(p) : (localStorage.folioVoice = JSON.stringify(p)); } catch (e) {} };
 
     // ---- texte du livre : blocs (paragraphes, titres…) découpés en morceaux de phrases ----
     const R = () => host.get().rend, B = () => host.get().book;
@@ -197,8 +200,11 @@ window.FolioVoice = (() => {
       url = URL.createObjectURL(blob); au.src = url; au.playbackRate = speed;
       // paragraphe suivant : courte respiration (les silences des moteurs sont retirés côté serveur) ; même paragraphe : enchaîné
       au.onended = () => { if (g !== gen || !playing) return; const n = step(pos, 1);
-        if (n && !n.cross && n.b === pos.b) playAt(n); else setTimeout(() => { if (g === gen && playing) playAt(n); }, 160); };
-      try { await au.play(); } catch (e) { playing = false; paint(); }
+        if (n && !n.cross && n.b === pos.b) playAt(n); else setTimeout(() => { if (g === gen && playing) playAt(n); }, 90); };
+      // morceau illisible : on passe au suivant plutôt que de rester bloqué
+      au.onerror = () => { if (g === gen && playing) playAt(step(pos, 1)); };
+      // lecture refusée par le navigateur (pas encore de geste) : en pause ; toute autre erreur : morceau suivant, sans s'arrêter
+      try { await au.play(); } catch (e) { if (g !== gen) return; if (e.name === "NotAllowedError") { playing = false; paint(); } else playAt(step(pos, 1)); }
     }
     function stopAudio() { gen++; au.pause(); au.removeAttribute("src"); try { au.load(); } catch (e) {} }
 
@@ -220,10 +226,11 @@ window.FolioVoice = (() => {
         bar.querySelector(".x").onclick = () => api.stop(); return;
       }
       if (!voices.length) { bar.innerHTML = `<span class="msg">${t("noVoices")}</span><button class="x">${ic("x")}</button>`; bar.querySelector(".x").onclick = () => api.stop(); return; }
-      const bl = String(B()?.packaging?.metadata?.language || L).slice(0, 2).toLowerCase();
-      // voix choisie si elle parle la langue du livre, sinon une voix naturelle (femme d'abord) de cette langue
-      if (!voices.some((v) => v.id === voice && v.lang === bl))
-        voice = (voices.find((v) => v.lang === bl && v.hd && v.g === "f") || voices.find((v) => v.lang === bl) || voices.find((v) => v.id === voice) || voices[0]).id;
+      bl = String(B()?.packaging?.metadata?.language || L).slice(0, 2).toLowerCase();
+      // la voix choisie pour cette langue ; à défaut la dernière choisie si elle parle cette langue, sinon une voix naturelle (femme d'abord)
+      const has = (id) => id && voices.some((v) => v.id === id);
+      voice = has(byLang[bl]) ? byLang[bl] : voices.some((v) => v.id === voice && v.lang === bl) ? voice
+        : (voices.find((v) => v.lang === bl && v.hd && v.g === "f") || voices.find((v) => v.lang === bl) || voices.find((v) => v.id === voice) || voices[0]).id;
       const groups = [];
       for (const v of voices) { const k = v.lang + (v.hd ? "1" : "0"); let g = groups.find((x) => x.k === k); if (!g) groups.push(g = { k, label: `${t(v.lang)} — ${t(v.hd ? "natural" : "local")}`, list: [] }); g.list.push(v); }
       bar.innerHTML = `<button class="pv" title="${t("prev")}">${ic("prev", true)}</button><button class="pp"></button><button class="nx" title="${t("next")}">${ic("next", true)}</button>
@@ -232,7 +239,7 @@ window.FolioVoice = (() => {
 <span class="st"></span><button class="x" title="${t("close")}">${ic("x")}</button>`;
       const vo = bar.querySelector(".vo"), sp = bar.querySelector(".sp");
       vo.value = voice; sp.value = String(speed); if (sp.value !== String(speed)) { speed = 1; sp.value = "1"; }
-      vo.onchange = () => { voice = vo.value; savePref(); cache.clear(); if (playing) playAt(pos); };
+      vo.onchange = () => { voice = byLang[bl] = vo.value; savePref(); cache.clear(); if (playing) playAt(pos); };
       sp.onchange = () => { speed = +sp.value; au.playbackRate = speed; savePref(); };
       bar.querySelector(".pp").onclick = () => api.toggle();
       bar.querySelector(".pv").onclick = () => { if (pos) { playing = true; paint(); playAt(step(pos, -1)); } };

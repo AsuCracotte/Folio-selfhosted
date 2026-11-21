@@ -1,6 +1,8 @@
 // Voix neuronales Microsoft Azure Speech (API officielle, clé AZURE_TTS_KEY + région AZURE_TTS_REGION dans .env) :
 // Denise, Henri, Vivienne, Rémy… très naturelles, ~0,3 s par phrase ; offre gratuite de 500 000 caractères par mois.
 // Le texte lu est envoyé à Microsoft. Audio en WAV, silences retirés avant la mise en cache.
+// Par défaut Azure laisse 1 s de silence entre deux phrases : on le ramène à une respiration (mesuré : ~0,2 s).
+const PAUSES = '<mstts:silence type="Sentenceboundary-exact" value="200ms"/><mstts:silence type="Semicolon-exact" value="150ms"/>';
 const { trimWav } = require("./trim");
 const { TtsCache } = require("./ttscache");
 
@@ -29,11 +31,11 @@ function AzureTts(key, region, cacheDir) {
 
   function say(id, text) {
     const name = id.slice(2), lc = name.split("-").slice(0, 2).join("-");
-    return cached(id, text, async () => {
+    return cached(id + "#p2", text, async () => {   // #p2 : l'audio d'avant (pauses de 1 s) n'est plus servi
       const r = await fetch(`${base}/v1`, {
         method: "POST", signal: AbortSignal.timeout(20e3),
         headers: { "Ocp-Apim-Subscription-Key": key, "Content-Type": "application/ssml+xml", "X-Microsoft-OutputFormat": "riff-24khz-16bit-mono-pcm", "User-Agent": "folio" },
-        body: `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${lc}"><voice name="${name}">${esc(text)}</voice></speak>`,
+        body: `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="${lc}"><voice name="${name}">${PAUSES}${esc(text)}</voice></speak>`,
       });
       if (!r.ok) throw new Error("azure " + r.status);
       const data = trimWav(Buffer.from(await r.arrayBuffer()));

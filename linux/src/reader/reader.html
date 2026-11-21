@@ -75,6 +75,7 @@ const Folio = (() => {
   let V = null;
   const voice = () => (V = V || FolioVoice.create({ root: document.body, lang: document.documentElement.lang,
     get: () => ({ book, rend: rendition, title }), voices: () => ask("tts_voices"), login: () => send({ t: "login" }),
+    prefs: () => S.voice_pref || {}, savePrefs: p => send({ t: "voice_pref", p }),     // gardés dans les réglages de l'appli
     speak: async (v, text) => { const r = await ask("tts", { voice: v, text }); if (!r) throw new Error("tts");
       return new Blob([Uint8Array.from(atob(r.data), c => c.charCodeAt(0))], { type: r.type }); } }));
   const COLORS = { yellow:"#f6d55c", green:"#7bd88f", blue:"#6cb6ff", pink:"#ff8fb1", orange:"#ffa94d", red:"#ff6b6b", purple:"#b197fc", teal:"#4fd1c5" };

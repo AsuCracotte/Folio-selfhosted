@@ -2816,6 +2816,16 @@ class FolioWindow(Adw.ApplicationWindow):
         t = m.get("t")
         if t in ("tts_voices", "tts"):
             return self.tts_ask(m)
+        if t == "voice_pref":                           # voix choisie (par langue) et vitesse, retenues d'une ouverture à l'autre
+            p = m.get("p") if isinstance(m.get("p"), dict) else {}
+            by = p.get("byLang") if isinstance(p.get("byLang"), dict) else {}
+            try:
+                speed = min(2.0, max(.5, float(p.get("speed") or 1)))
+            except (TypeError, ValueError):
+                speed = 1.0
+            self.settings["voice_pref"] = {"voice": str(p.get("voice") or "")[:80], "speed": speed,
+                                           "byLang": {str(k)[:5]: str(v)[:80] for k, v in list(by.items())[:10]}}
+            return self.lib.save_settings(self.settings)
         if t == "login":
             self.close_book(); return self.account_dialog()
         if t == "ready":
