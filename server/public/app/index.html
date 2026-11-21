@@ -286,15 +286,14 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  border:14px solid var(--wood);border-bottom:0;border-radius:12px 12px 0 0;box-shadow:inset 0 10px 18px -8px rgba(0,0,0,.25),inset 12px 0 16px -12px rgba(0,0,0,.3),inset -12px 0 16px -12px rgba(0,0,0,.3),0 20px 40px -24px rgba(0,0,0,.35);
  background:linear-gradient(transparent 214px,var(--wood) 214px,var(--wood) 217px,var(--wood2) 217px,var(--wood2) 228px,rgba(0,0,0,.16) 228px,transparent 238px) 0 0/100% 240px repeat-y,var(--back)}
 .case .slot{height:240px;padding-bottom:26px;display:flex;align-items:flex-end}
-/* décorations : arrangeables (mode édition), photos dans un cadre, modèles 3D ; filtres de la bibliothèque */
-.rk-tools{max-width:1180px;margin:14px auto 0;padding:0 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.rk-tools[hidden]{display:none}.rk-tools p{flex:1;min-width:200px;margin:0;font-size:13.5px}
-#rkEdit.on,#rkDeco.on{color:var(--ac)}
-.case{position:relative}#rack.editing .case .slot:not(.deco){opacity:.55}
-.case .slot.deco.ed{cursor:grab;touch-action:none}.case .slot.deco.ed img{outline:2px dashed color-mix(in srgb,var(--ac) 55%,transparent);outline-offset:5px;border-radius:6px}
-.case .slot.deco.sel img{outline:2px solid var(--ac)}.case .slot.deco.drag{z-index:5;opacity:.85;cursor:grabbing;pointer-events:none}
+/* décorations : on les glisse à tout moment, photos dans un cadre, modèles 3D ; filtres de la bibliothèque */
+
+.case{position:relative}.case .slot.deco{cursor:grab}.case .slot.deco img{transition:transform .2s var(--ease)}.case .slot.deco:hover img{transform:translateY(-3px)}
+.case .slot.deco.sel img{outline:2px solid var(--ac);outline-offset:5px;border-radius:6px}.case .slot.deco.lift img{transform:scale(1.06)}
+.case .slot.deco.drag{z-index:5;opacity:.85;cursor:grabbing;pointer-events:none}.case .slot.deco.drag img{transform:none}
+.case .slot.deco.sep{padding-left:2px;padding-right:2px}.case .slot.deco.free{position:absolute;bottom:0;height:auto;translate:-50% 0}
 .case .slot.deco.ph img{border:5px solid #f7f2e8;outline:3px solid #8a6a45;box-shadow:0 3px 8px rgba(0,0,0,.25);border-radius:1px}
-.case .slot.deco.ph.ed img{outline:3px solid #8a6a45}.case .slot.deco.ph.sel img{outline:3px solid var(--ac)}
-.case .slot.deco.m3{cursor:pointer}.case .slot.deco.m3.ed{cursor:grab}
+.case .slot.deco.ph.sel img{outline:3px solid var(--ac)}
 #rkDrop{position:fixed;width:3px;border-radius:2px;background:var(--ac);z-index:40;pointer-events:none}#rkDrop[hidden]{display:none}
 .deco-bar{position:absolute;z-index:20;display:flex;align-items:center;gap:2px;padding:4px;border-radius:99px;background:var(--card);box-shadow:var(--shadow);border:1px solid var(--line)}
 .deco-bar[hidden]{display:none}.deco-bar button{width:34px;height:34px;border:0;border-radius:50%;background:none;color:var(--fg);font:600 18px var(--sans);display:grid;place-items:center;cursor:pointer}
@@ -303,13 +302,13 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 .dk-grid button{height:92px;border:1px solid var(--line);border-radius:14px;background:var(--soft);display:grid;place-items:center;cursor:pointer;padding:8px}
 .dk-grid button:hover{border-color:var(--ac)}.dk-grid img{max-width:100%;max-height:72px}.dk-tip{font-size:13px;margin:10px 0 0}
 #m3{position:fixed;inset:0;z-index:35;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:20px;user-select:none;-webkit-user-select:none}
-#m3::before{content:"";position:absolute;inset:0;z-index:-1;background:color-mix(in srgb,var(--bg) 62%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#m3::before{content:"";position:absolute;inset:0;z-index:-1;background:color-mix(in srgb,var(--bg) 90%,transparent)}
 #m3[hidden]{display:none}#m3X{position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:14px}#m3c{touch-action:none;cursor:grab}#m3 .b3i p{margin:0}
 .fbtn{position:relative}.fbtn.on{color:var(--ac)}.fbtn i{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--ac)}
 .flist .kicker{margin:14px 4px 4px}.flist .citem b{white-space:normal}.flist .citem small{margin-left:auto;color:var(--muted)}
 .fhint{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;color:var(--muted);font-size:14px}
 .case .slot.deco{padding:0 12px 26px}.case .slot.deco img{display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))}
-.case .slot.srow{flex-basis:100%;gap:22%;overflow:hidden;min-width:0}.case .slot.srow .deco{height:auto;padding-bottom:0}
+.case .slot.srow{flex-basis:100%;min-width:0;position:relative}
 .rk-foot{max-width:1180px;margin:0 auto;height:22px;background:var(--wood2);border-radius:0 0 6px 6px;position:relative;box-shadow:0 8px 16px -8px rgba(0,0,0,.4)}
 .rk-foot::before,.rk-foot::after{content:"";position:absolute;bottom:-10px;width:28px;height:10px;background:var(--wood2);border-radius:0 0 4px 4px;filter:brightness(.85)}.rk-foot::before{left:24px}.rk-foot::after{right:24px}
 #rkDeco.on{color:var(--ac);background:var(--tint,color-mix(in srgb,var(--ac) 12%,transparent))}
@@ -321,9 +320,8 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 .case .lb .spine{position:absolute;left:50%;top:50%;width:var(--w);height:var(--L);transform:translate(-50%,-50%) rotate(-90deg)}.case .lb .spine:hover{transform:translate(-50%,-50%) rotate(-90deg)}
 #bk3{position:fixed;inset:0;z-index:35;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:20px;
  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-/* flou sur un calque à part : le livre qui tourne ne force pas à recalculer le flou de tout l'écran */
-#bk3::before{content:"";position:absolute;inset:0;z-index:-1;background:color-mix(in srgb,var(--bg) 62%,transparent);
- backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+/* voile sans flou : un flou d'arrière-plan est recalculé à chaque image et coûte la moitié du temps d'une rotation */
+#bk3::before{content:"";position:absolute;inset:0;z-index:-1;background:color-mix(in srgb,var(--bg) 90%,transparent)}
 #bk3::before,#bk3>*{animation:fadeIn .3s ease}#bk3 img{-webkit-user-drag:none;pointer-events:none}
 #bk3[hidden]{display:none}#bk3.out::before,#bk3.out>*{opacity:0;transition:opacity .35s}@keyframes fadeIn{from{opacity:0}}
 #b3X{position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:14px}
@@ -355,7 +353,7 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 .sp-f{flex:1;min-width:0}.sp-f .kicker{margin:0 2px 4px}
 .field input:disabled{opacity:.75;background:var(--surface)}
 @media (max-width:560px){.plank{padding-left:16px;padding-right:16px;margin-left:-16px;margin-right:-16px}.rk-head{padding-left:14px;padding-right:14px}.case,.rk-tip{padding:0 14px}
- .rk-head .seg{order:5;flex-basis:100%;min-width:0}#rkAdd span{display:none}.sp-top{flex-direction:column;align-items:stretch}#spPrev{justify-content:center}}
+ .rk-head .seg{order:5;flex-basis:100%;min-width:0}#rkAdd span,#rkDecoAdd span{display:none}.sp-top{flex-direction:column;align-items:stretch}#spPrev{justify-content:center}}
 
 /* prise de vue et recadrage de la tranche */
 .shoot{position:fixed;inset:0;z-index:80;background:#0d0c10;color:#fff;display:flex;flex-direction:column;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -432,11 +430,9 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
 <div class="drop" data-t="dropHere"></div>
 <div id="rack" hidden><header class="rk-head"><button class="ib" id="rkBack" data-tt="library"><svg class="i"><use href="#i-back"/></svg></button><h2 data-t="rack"></h2><span id="rkCount"></span>
  <div class="seg" id="rkSort"><button data-s="author" data-t="sortAuthor"></button><button data-s="title" data-t="sortTitle"></button><button data-s="recent" data-t="sortRecent"></button></div>
- <button class="ib" id="rkDeco" data-tt="decoT"><svg class="i"><use href="#i-leaf"/></svg></button><button class="ib" id="rkEdit" data-tt="decoEdit"><svg class="i"><use href="#i-pen"/></svg></button><button class="btn pri" id="rkAdd" data-tt="addPaperT"><svg class="i"><use href="#i-plus"/></svg><span data-t="addPaper"></span></button></header>
- <div class="rk-tools" id="rkTools" hidden><button class="btn pri" id="rkDecoAdd"><svg class="i"><use href="#i-plus"/></svg><span data-t="decoAdd"></span></button>
-  <p class="mut" data-t="decoHelp"></p><button class="btn" id="rkDone" data-t="done"></button></div>
+ <button class="btn" id="rkDecoAdd" data-tt="decoAdd"><svg class="i"><use href="#i-leaf"/></svg><span data-t="decoBtn"></span></button><button class="btn pri" id="rkAdd" data-tt="addPaperT"><svg class="i"><use href="#i-plus"/></svg><span data-t="addPaper"></span></button></header>
  <div class="case" id="rkCase"><div class="deco-bar" id="rkDB" hidden><button data-a="l" data-tt="dLeft"><svg class="i"><use href="#i-back"/></svg></button><button data-a="r" data-tt="dRight"><svg class="i fl"><use href="#i-back"/></svg></button>
-  <i></i><button data-a="s" data-tt="dSmall">−</button><button data-a="b" data-tt="dBig">+</button><i></i><button data-a="x" data-tt="dDel"><svg class="i"><use href="#i-trash"/></svg></button></div></div><div id="rkDrop" hidden></div><div class="rk-foot" id="rkFoot"></div><p class="mut rk-tip" data-t="rackTip"></p></div>
+  <i></i><button data-a="s" data-tt="dSmall">−</button><button data-a="b" data-tt="dBig">+</button><i></i><button data-a="x" data-tt="dDel"><svg class="i"><use href="#i-trash"/></svg></button><button data-a="v" data-tt="dView" hidden><svg class="i"><use href="#i-cube"/></svg></button></div></div><div id="rkDrop" hidden></div><div class="rk-foot" id="rkFoot"></div><p class="mut rk-tip" data-t="rackTip"></p></div>
 <div id="rd"><div id="top">
   <button class="ib" id="bBack" data-tt="library"><svg class="i"><use href="#i-back"/></svg></button>
   <div class="tt"><div id="ttl"></div><div id="chapTop"></div></div>
@@ -489,10 +485,11 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <p class="mut" style="margin-top:10px;font-size:13px" data-t="coverTip"></p>
  <div class="acts"><button class="btn ghost danger" id="bkDel"><svg class="i"><use href="#i-trash"/></svg><span data-t="removeBook"></span></button></div>
 </div>
-<div class="sheet" id="shDeco"><div class="grab"></div><h3 data-t="decoAdd"></h3><div class="dk-grid" id="dkGrid"></div>
+<div class="sheet" id="shDeco"><div class="grab"></div><h3 data-t="decoAdd"></h3><div class="dk-grid" id="dkGrid"></div><div class="lbl" data-t="decoSeps"></div><div class="dk-grid sep" id="dkSep"></div>
  <div class="acts"><label class="btn"><svg class="i"><use href="#i-image"/></svg><span data-t="decoPhoto"></span><input type="file" id="dkPhoto" accept="image/*" hidden></label>
   <label class="btn"><svg class="i"><use href="#i-cube"/></svg><span data-t="deco3d"></span><input type="file" id="dk3d" accept=".glb,model/gltf-binary" hidden></label></div>
- <p class="mut dk-tip" data-t="deco3dTip"></p></div>
+ <p class="mut dk-tip" data-t="deco3dTip"></p><p class="mut dk-tip" data-t="decoHelp"></p>
+ <div class="acts"><button class="btn ghost" id="dkHide" type="button"></button></div></div>
 <div class="sheet" id="shFilt"><div class="grab"></div><h3 data-t="filters"></h3><div id="fList" class="flist"></div>
  <div class="acts"><button class="btn" id="fReset" data-t="fReset"></button></div></div>
 <div id="m3" hidden><button class="ib" id="m3X" data-tt="close"><svg class="i"><use href="#i-x"/></svg></button><canvas id="m3c"></canvas>
@@ -602,5 +599,5 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px;
  <label class="field" id="authCodeF"><span data-t="mfaOrRecovery"></span><input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="11"></label>
  <div class="acts"><button class="btn pri" id="authOk" data-t="confirm"></button><button class="btn ghost" id="authNo" data-t="cancel"></button></div></div>
 <div id="sel"></div><div id="imgm"><button id="imgCover"><svg class="i"><use href="#i-image"/></svg><span data-t="useAsCover"></span></button></div><div id="msg"></div>
-<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="write.js?v=2.4.1"></script><script src="voice.js?v=2.4.1"></script><script src="glb.js?v=2.4.1"></script><script src="app.js?v=2.4.1"></script>
+<script src="jszip.min.js"></script><script src="epub.min.js"></script><script src="notes.js"></script><script src="write.js?v=2.5.0"></script><script src="voice.js?v=2.5.0"></script><script src="glb.js?v=2.5.0"></script><script src="app.js?v=2.5.0"></script>
 </body></html>

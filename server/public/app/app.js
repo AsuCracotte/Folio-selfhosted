@@ -3,12 +3,13 @@
 const LANG=(()=>{let l;try{l=localStorage.folioLang}catch(e){}return l==="fr"||l==="en"?l:/^fr/i.test(navigator.language||"")?"fr":"en"})();
 document.documentElement.lang=LANG;
 const TX={
-fr:{decoEdit:"Arranger l’étagère",decoAdd:"Ajouter une décoration",decoHelp:"Glissez une décoration pour la déplacer ; touchez-la pour changer sa taille ou la retirer.",
+fr:{decoBtn:"Décorer",decoAdd:"Ajouter une décoration",decoSeps:"Serre-livres",decoHide:"Masquer les décorations",decoShow:"Afficher les décorations",dView:"Voir en 3D",
+decoHelp:"Glissez une décoration pour la déplacer, même sur une étagère vide (au doigt : appuyez un instant, puis glissez). Touchez-la pour changer sa taille ou la retirer.",
 decoPhoto:"Votre photo",deco3d:"Un modèle 3D (.glb)",deco3dTip:"Photo : posée dans un cadre. Modèle 3D : fichier glTF binaire (.glb), 20 Mo max. ; touchez-le sur l’étagère pour le voir tourner.",
 modelBig:"Modèle trop lourd (20 Mo max.)",badModel:"Ce modèle 3D ne peut pas être affiché",noModel:"Modèle 3D indisponible hors connexion",model3d:"Modèle 3D",m3Tip:"Glissez pour le faire tourner",
 dLeft:"Vers la gauche",dRight:"Vers la droite",dSmall:"Plus petite",dBig:"Plus grande",dDel:"Retirer",
 dk_succ:"Succulente",dk_snake:"Sansevière",dk_stack:"Pile de livres",dk_bear:"Ourson",dk_bunny:"Lapin",dk_cat:"Chat",dk_lamp:"Lampe",dk_globe:"Globe",dk_candle:"Bougie",
-dk_hourglass:"Sablier",dk_vase:"Bouquet",dk_cactus:"Cactus",dk_mug:"Tasse",dk_clock:"Réveil",dk_owl:"Chouette",dk_frame:"Tableau",
+dk_hourglass:"Sablier",dk_vase:"Bouquet",dk_cactus:"Cactus",dk_mug:"Tasse",dk_clock:"Réveil",dk_owl:"Chouette",dk_frame:"Tableau",dk_bookend:"Serre-livre en métal",dk_brass:"Serre-livre en laiton",dk_marble:"Serre-livre en marbre",dk_divider:"Intercalaire",
 filters:"Filtres",fShow:"Afficher les livres",fUnread:"Pas encore commencés",fReading:"En cours de lecture",fDone:"Terminés",fCols:"Collections",
 fInCol:"Masquer les livres rangés dans une collection",fHideCol:"Masquer « {t} »",fReset:"Tout afficher",hidden1:"{n} livre masqué par les filtres",hiddenN:"{n} livres masqués par les filtres",
 showAll:"Filtres",allHidden:"Tous les livres sont masqués par les filtres.",facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",camFront:"Cadrez la couverture du livre",camBack:"Cadrez le dos du livre (4e de couverture)",photoSaved:"Photo enregistrée",updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",updOld:"Une nouvelle version de l’appli Folio est disponible",updDl:"Télécharger",updCheck:"Rechercher une mise à jour",updNone:"Folio {v} est à jour",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
@@ -61,12 +62,13 @@ showAll:"Filtres",allHidden:"Tous les livres sont masqués par les filtres.",fac
  confirmRemovePaper:"Retirer « {t} » de l’étagère ?",editSpine:"Tranche et infos",sortAuthor:"Auteur",sortTitle:"Titre",sortRecent:"Récents",kindBook:"Livre numérique",kindPaper:"Livre papier",
  decoT:"Décorations",decoT:"Decorations",rackTip:"Photographiez la tranche de vos livres, numériques ou papier : votre étagère se compose, et vous suit sur tous vos appareils.",spineTip:"Astuce : livre debout, tranche bien droite et cadrée serrée.",
  fold:"Replier",unfold:"Déplier",useAsCover:"Utiliser comme couverture",coverSet:"Couverture mise à jour",coverReset:"Couverture d’origine rétablie",customCover:"Couverture personnalisée",bookOptions:"Options du livre"},
-en:{decoEdit:"Arrange the bookshelf",decoAdd:"Add a decoration",decoHelp:"Drag a decoration to move it; tap it to resize or remove it.",
+en:{decoBtn:"Decorate",decoAdd:"Add a decoration",decoSeps:"Bookends",decoHide:"Hide decorations",decoShow:"Show decorations",dView:"View in 3D",
+decoHelp:"Drag a decoration to move it, even onto an empty shelf (with a finger: press for a moment, then drag). Tap it to resize or remove it.",
 decoPhoto:"Your photo",deco3d:"A 3D model (.glb)",deco3dTip:"Photo: placed in a frame. 3D model: binary glTF file (.glb), 20 MB max.; tap it on the shelf to watch it turn.",
 modelBig:"Model too large (20 MB max.)",badModel:"This 3D model can’t be displayed",noModel:"3D model unavailable offline",model3d:"3D model",m3Tip:"Drag to turn it",
 dLeft:"Move left",dRight:"Move right",dSmall:"Smaller",dBig:"Larger",dDel:"Remove",
 dk_succ:"Succulent",dk_snake:"Snake plant",dk_stack:"Book stack",dk_bear:"Teddy bear",dk_bunny:"Bunny",dk_cat:"Cat",dk_lamp:"Lamp",dk_globe:"Globe",dk_candle:"Candle",
-dk_hourglass:"Hourglass",dk_vase:"Bouquet",dk_cactus:"Cactus",dk_mug:"Mug",dk_clock:"Alarm clock",dk_owl:"Owl",dk_frame:"Painting",
+dk_hourglass:"Hourglass",dk_vase:"Bouquet",dk_cactus:"Cactus",dk_mug:"Mug",dk_clock:"Alarm clock",dk_owl:"Owl",dk_frame:"Painting",dk_bookend:"Metal bookend",dk_brass:"Brass bookend",dk_marble:"Marble bookend",dk_divider:"Divider",
 filters:"Filters",fShow:"Show books",fUnread:"Not started yet",fReading:"Currently reading",fDone:"Finished",fCols:"Collections",
 fInCol:"Hide books already in a collection",fHideCol:"Hide “{t}”",fReset:"Show everything",hidden1:"{n} book hidden by filters",hiddenN:"{n} books hidden by filters",
 showAll:"Filters",allHidden:"All books are hidden by the filters.",facesT:"Cover and back (3D view)",faceFront:"Cover",faceBack:"Back",camFront:"Fit the book’s cover in the frame",camBack:"Fit the back cover in the frame",photoSaved:"Photo saved",updWeb:"New version of Folio",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",updOld:"A new version of the Folio app is available",updDl:"Download",updCheck:"Check for updates",updNone:"Folio {v} is up to date",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
@@ -286,9 +288,13 @@ $("q").oninput=()=>render();
 // décorations : dessins (decor/*.svg, partagés avec l'appli Linux), photos ou modèles 3D (.glb). Ce sont des éléments de l'étagère
 // (kind "deco", synchronisés) : pos = place parmi les livres triés (2.5 = entre le 3e et le 4e), size = échelle
 const DECO={succ:[70,100],snake:[60,150],stack:[92,96],bear:[80,92],bunny:[64,112],cat:[74,80],lamp:[70,128],globe:[74,112],candle:[52,100],
- hourglass:[56,104],vase:[70,134],cactus:[64,120],mug:[70,76],clock:[70,84],owl:[64,90],frame:[76,96]};
+ hourglass:[56,104],vase:[70,134],cactus:[64,120],mug:[70,76],clock:[70,84],owl:[64,90],frame:[76,96],bookend:[40,124],brass:[48,120],marble:[44,98],divider:[22,150]};
+const DECO_SEP=["bookend","brass","marble","divider"];   // serre-livres : entre les livres, sans marge
+// pos ≥ FREE : posée librement sur une étagère vide, sous les livres (k = laquelle, fx = où, de 0 à 1)
+const FREE=1e4,freeK=p=>Math.floor((p-FREE)/1000),freeX=p=>(p-FREE)%1000/999,
+ freePos=(k,fx)=>FREE+Math.min(40,Math.max(0,k))*1000+Math.round(Math.min(.97,Math.max(.03,fx))*999);
 const DECO_K=["succ","bear","snake","stack","bunny","cat"],DECO_GAP=[6,9,5,8,7,10];
-let DECO_ON=localStorage.folioRackDeco!=="0",RK_EDIT=false,rkSel=null;
+let DECO_ON=localStorage.folioRackDeco!=="0",rkSel=null;
 const decos=()=>RACK.filter(x=>x.kind==="deco"&&!x.deleted).sort((a,b)=>a.pos-b.pos);
 // premier passage : les décorations d'avant deviennent de vrais objets ; ids fixes et date très ancienne,
 // pour que deux appareils ne les créent pas en double et que ce qui est déjà sur le serveur l'emporte
@@ -296,12 +302,12 @@ function decoDefaults(n){if(RACK.some(x=>x.kind==="deco"))return;let g=DECO_GAP[
  const add=pos=>{RACK.push({id:"decodef"+k,kind:"deco",deco:DECO_K[k%DECO_K.length],pos,size:1,title:"",spine:0,model:0,created:1,updated:1,deleted:0});k++};
  while(g<=n&&k<12){add(g-.5);g+=DECO_GAP[k%DECO_GAP.length]}
  for(let j=0;n<12&&j<3;j++)add(n+.5+j);saveRack()}
-function decoEl(x){const d=document.createElement("div");d.className="slot deco";d.dataset.p=x.pos;d.dataset.id=x.id;const z=.86*(x.size||1);
+function decoEl(x){const d=document.createElement("div");d.className="slot deco"+(DECO_SEP.includes(x.deco)?" sep":"");d.dataset.id=x.id;const z=.86*(x.size||1);
+ if(x.pos>=FREE){d.classList.add("free");d.style.left=freeX(x.pos)*100+"%"}else d.dataset.p=x.pos;
  if(x.deco&&DECO[x.deco]){const[w,h]=DECO[x.deco];d.innerHTML=`<img src="decor/${x.deco}.svg" width="${Math.round(w*z)}" height="${Math.round(h*z)}" alt="" draggable="false">`}
  else{d.classList.add(x.model?"m3":"ph");const i=new Image();i.alt="";i.draggable=false;i.style.height=Math.round((x.model?134:96)*(x.size||1))+"px";
   if(x.spine)spineUrl(x.id).then(u=>{if(u)i.src=u});d.append(i);d.title=x.title||""}
- if(RK_EDIT){d.classList.add("ed");if(rkSel===x.id)d.classList.add("sel");decoDrag(d,x)}else if(x.model)d.onclick=()=>modelView(x);
- return d}
+ if(rkSel===x.id)d.classList.add("sel");decoDrag(d,x);return d}
 const RKDB=$("rkDB");
 // place entre deux éléments de l'étagère (livre : son rang ; décoration : sa pos)
 const pOf=e=>+e.dataset.p;
@@ -310,31 +316,50 @@ const rkEls=self=>[...$("rkCase").children].filter(e=>e!==self&&e.dataset.p!=nul
 function setDeco(id,patch){const x=rackGet(id);if(!x)return;Object.assign(x,patch,{updated:now()});saveRack();renderRack()}
 function decoStep(id,dir){const all=[...$("rkCase").children].filter(e=>e.dataset.p!=null),k=all.findIndex(e=>e.dataset.id===id);if(k<0)return;
  const rest=all.filter((_,j)=>j!==k),t=Math.max(0,Math.min(rest.length,k+dir));if(t===k&&dir)return;setDeco(id,{pos:between(rest[t-1],rest[t])})}
-// glisser une décoration (mode édition) : un trait montre où elle sera posée ; un simple appui la sélectionne
-function dropAt(cx,cy,self){const els=rkEls(self);let best=null,bd=1e9;
+// glisser une décoration, à tout moment : un trait montre où elle sera posée ; un simple appui la sélectionne.
+// Au doigt, il faut d'abord appuyer un instant : un glissement rapide fait défiler la page comme d'habitude
+function dropAt(cx,cy,self){
+ for(const row of $("rkCase").querySelectorAll(".srow")){const r=row.getBoundingClientRect();
+  if(cy>=r.top&&cy<=r.bottom)return{pos:freePos(+row.dataset.k,(cx-r.left)/r.width),x:Math.max(r.left+4,Math.min(r.right-4,cx)),r}}
+ const els=rkEls(self);let best=null,bd=1e9;
  els.forEach((e,j)=>{const r=e.getBoundingClientRect(),dy=cy<r.top?r.top-cy:cy>r.bottom?cy-r.bottom:0,dx=cx<r.left?r.left-cx:cx>r.right?cx-r.right:0,dd=dy*4+dx;
   if(dd<bd){bd=dd;best={j,r,after:cx>r.left+r.width/2}}});
  if(!best)return null;const j=best.after?best.j+1:best.j;return{pos:between(els[j-1],els[j]),x:best.after?best.r.right+1:best.r.left-2,r:best.r}}
-function decoDrag(d,x){d.onpointerdown=e=>{if(e.button)return;e.preventDefault();const x0=e.clientX,y0=e.clientY,line=$("rkDrop");let moved=false,tg=null;d.setPointerCapture(e.pointerId);
- d.onpointermove=ev=>{const dx=ev.clientX-x0,dy=ev.clientY-y0;if(!moved&&Math.hypot(dx,dy)<6)return;moved=true;d.classList.add("drag");$("rkDB").hidden=true;
-  d.style.transform=`translate(${dx}px,${dy}px)`;tg=dropAt(ev.clientX,ev.clientY,d);line.hidden=!tg;if(tg)Object.assign(line.style,{left:tg.x+"px",top:tg.r.top+"px",height:tg.r.height+"px"})};
- const end=()=>{d.onpointermove=d.onpointerup=d.onpointercancel=null;line.hidden=true;
-  if(!moved){rkSel=rkSel===x.id?null:x.id;renderRack();return}d.style.transform="";tg?setDeco(x.id,{pos:tg.pos}):renderRack()};
- d.onpointerup=end;d.onpointercancel=end}}
+function decoSel(id){rkSel=id;document.querySelectorAll("#rkCase .deco.sel").forEach(e=>e.classList.remove("sel"));
+ if(id)$("rkCase").querySelector(`.deco[data-id="${id}"]`)?.classList.add("sel");decoBar()}
+function decoDrag(d,x){let armed=false;d.oncontextmenu=e=>e.preventDefault();
+ d.addEventListener("touchmove",e=>{if(armed)e.preventDefault()},{passive:false});
+ d.onpointerdown=e=>{if(e.button)return;const touch=e.pointerType==="touch",x0=e.clientX,y0=e.clientY,line=$("rkDrop"),rk=$("rack"),st0=rk.scrollTop,maxS=rk.scrollHeight-rk.clientHeight;let moved=false,tg=null,hold=0,cx=x0,cy=y0,raf=0;armed=!touch;
+  if(touch)hold=setTimeout(()=>{armed=true;d.classList.add("lift");navigator.vibrate?.(8)},300);else e.preventDefault();
+  d.setPointerCapture(e.pointerId);
+  const stop=()=>{clearTimeout(hold);cancelAnimationFrame(raf);armed=false;d.classList.remove("lift");d.onpointermove=d.onpointerup=d.onpointercancel=null;line.hidden=true};
+  const place=()=>{d.style.transform=`translate(${cx-x0}px,${cy-y0+rk.scrollTop-st0}px)`;tg=dropAt(cx,cy,d);line.hidden=!tg;if(tg)Object.assign(line.style,{left:tg.x+"px",top:tg.r.top+"px",height:tg.r.height+"px"})};
+  // près du haut ou du bas de l'écran, l'étagère défile toute seule
+  const edge=()=>{const v=cy>innerHeight-70?12:cy<150?-12:0;raf=0;if(!v||!moved)return;const t=rk.scrollTop;rk.scrollTop=Math.max(0,Math.min(maxS,t+v));if(rk.scrollTop===t)return;place();raf=requestAnimationFrame(edge)};
+  d.onpointermove=ev=>{cx=ev.clientX;cy=ev.clientY;if(!moved&&Math.hypot(cx-x0,cy-y0)<6)return;
+   if(!armed){stop();return}
+   moved=true;d.classList.add("drag");RKDB.hidden=true;place();raf||=requestAnimationFrame(edge)};
+  d.onpointerup=()=>{const m=moved;stop();if(!m)return decoSel(rkSel===x.id?null:x.id);d.style.transform="";rkSel=null;tg?setDeco(x.id,{pos:tg.pos}):renderRack()};
+  d.onpointercancel=()=>{const m=moved;stop();if(m){d.style.transform="";renderRack()}}}}
+addEventListener("pointerdown",e=>{if(rkSel&&!e.target.closest("#rkCase .deco,#rkDB"))decoSel(null)});
 // barre de la décoration sélectionnée : déplacer, taille, supprimer
 function decoBar(){const bar=RKDB;$("rkCase").append(bar);const el=rkSel&&$("rkCase").querySelector(`.deco[data-id="${rkSel}"]`);bar.hidden=!el;if(!el)return;
+ bar.querySelector("[data-a=v]").hidden=!rackGet(rkSel)?.model;
  const c=$("rkCase"),r=el.getBoundingClientRect(),cr=c.getBoundingClientRect();bar.style.left=Math.max(4,Math.min(cr.width-bar.offsetWidth-4,r.left-cr.left+r.width/2-bar.offsetWidth/2))+"px";const top=r.top-cr.top-bar.offsetHeight-8;bar.style.top=(top>4?top:r.bottom-cr.top+30)+"px"}
 $("rkDB").onclick=e=>{const b=e.target.closest("button"),x=rkSel&&rackGet(rkSel);if(!b||!x)return;const a=b.dataset.a;
- if(a==="l"||a==="r")decoStep(x.id,a==="l"?-1:1);else if(a==="s"||a==="b")setDeco(x.id,{size:Math.round(Math.max(.5,Math.min(2,(x.size||1)+(a==="b"?.15:-.15)))*100)/100});
+ if(a==="v")modelView(x);
+ else if((a==="l"||a==="r")&&x.pos>=FREE)setDeco(x.id,{pos:freePos(freeK(x.pos),freeX(x.pos)+(a==="l"?-.06:.06))});
+ else if(a==="l"||a==="r")decoStep(x.id,a==="l"?-1:1);else if(a==="s"||a==="b")setDeco(x.id,{size:Math.round(Math.max(.5,Math.min(2,(x.size||1)+(a==="b"?.15:-.15)))*100)/100});
  else if(a==="x"){rkSel=null;setDeco(x.id,{deleted:1})}};
-function rkTools(){$("rack").classList.toggle("editing",RK_EDIT);$("rkTools").hidden=!RK_EDIT;$("rkEdit").classList.toggle("on",RK_EDIT);$("rkEdit").setAttribute("aria-pressed",String(RK_EDIT))}
-$("rkEdit").onclick=()=>{RK_EDIT=!RK_EDIT;rkSel=null;if(RK_EDIT&&!DECO_ON){DECO_ON=true;localStorage.folioRackDeco="1"}renderRack()};$("rkDone").onclick=()=>{RK_EDIT=false;rkSel=null;renderRack()};
 // ajouter : un dessin, une photo, ou un modèle 3D (aperçu calculé ici, fichier synchronisé)
 const newDecoPos=()=>Math.min(0,...decos().map(d=>d.pos))-.5;
 async function addDeco(id,base,img){if(img)await setPhoto(id,"spine",img,base);else{const x=rackItem(id,base);Object.assign(x,base,{deleted:0,updated:now()});saveRack()}
- show(null);DECO_ON=true;localStorage.folioRackDeco="1";RK_EDIT=true;rkSel=id;await renderRack();$("rack").scrollTop=0}
-$("rkDecoAdd").onclick=()=>{const g=$("dkGrid");g.innerHTML="";Object.keys(DECO).forEach(k=>{const b=document.createElement("button");b.type="button";b.title=t("dk_"+k);
-  b.innerHTML=`<img src="decor/${k}.svg" alt="">`;b.onclick=()=>addDeco(newId(),{kind:"deco",deco:k,pos:newDecoPos(),size:1,title:"",model:0});g.append(b)});show("shDeco")};
+ show(null);DECO_ON=true;localStorage.folioRackDeco="1";rkSel=id;await renderRack();$("rack").scrollTop=0}
+$("rkDecoAdd").onclick=()=>{const fill=(g,ks)=>{g.innerHTML="";ks.forEach(k=>{const b=document.createElement("button");b.type="button";b.title=b.ariaLabel=t("dk_"+k);
+  b.innerHTML=`<img src="decor/${k}.svg" alt="">`;b.onclick=()=>addDeco(newId(),{kind:"deco",deco:k,pos:newDecoPos(),size:1,title:"",model:0});g.append(b)})};
+ fill($("dkGrid"),Object.keys(DECO).filter(k=>!DECO_SEP.includes(k)));fill($("dkSep"),DECO_SEP);dkHide();show("shDeco")};
+const dkHide=()=>{$("dkHide").textContent=t(DECO_ON?"decoHide":"decoShow")};
+$("dkHide").onclick=()=>{DECO_ON=!DECO_ON;localStorage.folioRackDeco=DECO_ON?"1":"0";dkHide();renderRack()};
 $("dkPhoto").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
  try{await addDeco(newId(),{kind:"deco",deco:"",pos:newDecoPos(),size:1,model:0,title:f.name.replace(/\.[a-z0-9]+$/i,"").slice(0,120)},await fileToCover(f))}catch(x){msg(t("badImage"))}};
 $("dk3d").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;if(f.size>20*1048576)return msg(t("modelBig"));
@@ -362,9 +387,8 @@ function lieEl(list){const d=document.createElement("div");d.className="slot lie
  list.forEach((x,k)=>{const sp=spineEl(x),L=Math.round(SPH(x)*.78),b=document.createElement("div");b.className="lb";
   b.style.setProperty("--L",L+"px");b.style.setProperty("--o",((hn(x.id)%5)-2)*4+"px");b.append(sp);d.prepend(b)});return d}
 async function renderRack(){const all=await allB(),items=rackList(all),c=$("rkCase");c.innerHTML="";$("rkCount").textContent=tn(items.length,"books1","booksN");
- c.append(RKDB);if(DECO_ON)decoDefaults(items.length);const ds=DECO_ON?decos():[];let dj=0;const putD=lim=>{while(dj<ds.length&&ds[dj].pos<lim)c.append(decoEl(ds[dj++]))};rkTools();
+ c.append(RKDB);if(DECO_ON)decoDefaults(items.length);const all_=DECO_ON?decos():[],ds=all_.filter(d=>d.pos<FREE),fr=all_.filter(d=>d.pos>=FREE);let dj=0;const putD=lim=>{while(dj<ds.length&&ds[dj].pos<lim)c.append(decoEl(ds[dj++]))};
  document.querySelectorAll("#rkSort button").forEach(b=>b.classList.toggle("on",b.dataset.s===(localStorage.folioRackSort||"author")));
- $("rkDeco").classList.toggle("on",DECO_ON);$("rkDeco").setAttribute("aria-pressed",String(DECO_ON));
  const byH=new Map(all.map(b=>[b.hash,b]));
  let sinceFace=3,sinceLie=4,i=0,n=0;
  while(i<items.length){const x=items[i],h=hn(x.id),b=x.kind==="book"&&byH.get(x.id),cu=b&&coverUrl(b);
@@ -377,10 +401,11 @@ async function renderRack(){const all=await allB(),items=rackList(all),c=$("rkCa
  putD(items.length-.25);
  const s=document.createElement("div");s.className="slot";s.dataset.p=items.length-.25;const add=document.createElement("button");add.type="button";add.className="spine add";add.title=t("addPaperT");add.innerHTML=ico("plus");add.onclick=()=>spineMenu(null);s.append(add);c.append(s);
  putD(Infinity);
- // plusieurs étages même avec peu de livres : on complète par des étagères décorées
- const tops=new Set([...c.children].filter(e=>e!==RKDB).map(e=>e.offsetTop)),min=innerWidth<560?4:3;
- for(let r=tops.size;r<min;r++){const row=document.createElement("div");row.className="slot srow";
-  c.append(row)}
+ // sous les livres, toujours au moins une étagère vide, où l'on pose ce qu'on veut, où on veut
+ const tops=new Set([...c.children].filter(e=>e!==RKDB).map(e=>e.offsetTop)),min=innerWidth<560?4:3,
+  nk=Math.max(min-tops.size,1,...fr.map(d=>freeK(d.pos)+1));
+ for(let k=0;k<nk;k++){const row=document.createElement("div");row.className="slot srow";row.dataset.k=k;
+  fr.filter(d=>freeK(d.pos)===k).forEach(d=>row.append(decoEl(d)));c.append(row)}
  requestAnimationFrame(decoBar)}
 // ---------- un livre de l'étagère, en 3D : la tranche pivote et montre la couverture ----------
 let b3x=null,b3a=0;
@@ -407,7 +432,7 @@ $("b3Open").onclick=()=>{const x=b3x;$("bk3").hidden=true;openBook(x.id)};$("b3E
  const up=()=>{if(x0==null)return;x0=null;cancelAnimationFrame(raf);raf=0;if(Math.abs(b3a)>100)b3a=b3a>0?180:-180;else if(Math.abs(b3a)<70)b3a=-24;b3turn(true)};sc.addEventListener("pointerup",up);sc.addEventListener("pointercancel",up)})();
 function openRack(){$("rack").hidden=false;renderRack()}
 const rackRefresh=()=>{render();if(!$("rack").hidden)renderRack();if($("shSpine").classList.contains("on"))spineFill()};
-$("rkBack").onclick=()=>{$("rack").hidden=true;render()};$("rkDeco").onclick=()=>{DECO_ON=!DECO_ON;localStorage.folioRackDeco=DECO_ON?"1":"0";renderRack()};
+$("rkBack").onclick=()=>{$("rack").hidden=true;render()};
 let rkRz;addEventListener("resize",()=>{clearTimeout(rkRz);rkRz=setTimeout(()=>{if(!$("rack").hidden)renderRack()},200)});$("rkAdd").onclick=()=>spineMenu(null);
 document.querySelectorAll("#rkSort button").forEach(b=>b.onclick=()=>{localStorage.folioRackSort=b.dataset.s;renderRack()});
 // fiche d'un livre de l'étagère (id null = nouveau livre papier)
@@ -802,7 +827,11 @@ function Api(c){const base=(c.server||"").replace(/\/$/,""),h={Authorization:"Be
   // collections : envoi des nôtres, le serveur renvoie la fusion
   async collections(){const r=await P("/api/collections",{collections:COLS},"PUT");const before=JSON.stringify(COLS);COLS=r;localStorage.folioCols=JSON.stringify(COLS);return JSON.stringify(r)!==before},
   // étagère : on envoie la nôtre, le serveur renvoie la fusion ; puis photos à envoyer / à récupérer
-  async rack(){const before=JSON.stringify(RACK),r=await P("/api/shelf",{items:RACK},"PUT");RACK=r;localStorage.folioRack=JSON.stringify(RACK);let ch=JSON.stringify(r)!==before;
+  async rack(){const before=JSON.stringify(RACK),upd=new Map(RACK.map(x=>[x.id,x.updated])),r=await P("/api/shelf",{items:RACK},"PUT");
+   // ce qui a été ajouté ou modifié ici pendant la requête n'est pas dans la réponse : on le garde, il repartira au prochain envoi
+   const late=RACK.filter(x=>upd.get(x.id)!==x.updated);RACK=r;
+   for(const x of late){const i=RACK.findIndex(y=>y.id===x.id);if(i<0)RACK.push(x);else if((RACK[i].updated||0)<=x.updated)RACK[i]=x}
+   localStorage.folioRack=JSON.stringify(RACK);if(late.length)saveRack();let ch=JSON.stringify(r)!==before;
    const at=spMap("folioSpineAt"),sent=spMap("folioSpineSent");
    for(const x of RACK)for(const fc of FACES){const id=fkey(x.id,fc),ts=x[fc]||0,u=`/api/spines/${x.id}${fc==="spine"?"":"?face="+fc}`;
     if(x.deleted||!ts){if(at[id]){await delSp(id);spSet("folioSpineAt",id,0);dropUrl(id);ch=true}continue}
@@ -924,7 +953,7 @@ $("bSync").onclick=doSync;
 // ---------- mises à jour ----------
 // le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
 // l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
-const APPV="2.4.1";let updShown=false;
+const APPV="2.5.0";let updShown=false;
 function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
  $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
 const D=window.folioDesktop;
