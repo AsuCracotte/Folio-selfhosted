@@ -416,6 +416,7 @@ const Folio = (() => {
     if ($("panel").classList.contains("on")) { panel(false); return; }
     const w = e.view, sel = w && w.getSelection && String(w.getSelection());
     if (sel || (e.target && e.target.closest && e.target.closest("a"))) return;
+    if (V && V.on) return;          // lecture à voix haute : un appui choisit l'endroit où lire (voice.js)
     const fr = w.frameElement.getBoundingClientRect(), x = (fr.left + e.clientX) / innerWidth;
     if (S.flow !== "scrolled" && x < .25) prev();
     else if (S.flow !== "scrolled" && x > .75) next();

@@ -58,6 +58,13 @@ function Tts(dir) {
     voices: () => ok.map(({ id, lang, g }) => ({ id, lang, g })),
     has: (id) => ok.some((v) => v.id === id),
     // une phrase à la fois (Piper n'en traite qu'une) ; file d'attente bornée pour ne pas saturer le Pi
+    // ouverture d'un livre : le modèle de la voix est chargé d'avance (le premier chargement prend plusieurs secondes sur le Pi)
+    warm(id) {
+      const v = ok.find((x) => x.id === id);
+      if (!v || queued || (proc && model === v.model)) return false;
+      start(v.model); clearTimeout(idle); idle = setTimeout(stop, IDLE); idle.unref?.();
+      return true;
+    },
     say(id, text) {
       const v = ok.find((x) => x.id === id);
       if (queued >= MAX_WAIT) return Promise.reject(Object.assign(new Error("busy"), { busy: true }));

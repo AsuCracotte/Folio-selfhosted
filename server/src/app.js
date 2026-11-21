@@ -7,6 +7,7 @@ const { mergeState, mergeDraft } = require("./merge");
 const { trimWav } = require("./trim");
 const { Tts } = require("./tts");
 const { GoogleTts } = require("./gtts");
+const { AzureTts } = require("./azuretts");
 const S = require("./security");
 const { esc } = require("./mailer");
 const { langOf, t, pick } = require("./i18n");
@@ -87,13 +88,15 @@ function dirSize(d) {
   try { return fs.readdirSync(d).reduce((n, f) => n + fs.statSync(path.join(d, f)).size, 0); } catch { return 0; }
 }
 
-function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, publicUrl = "", mailer, quotaMB = 2048, ttsDir = "", googleKey = "", ttsDailyChars = 200000 }) {
+function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, publicUrl = "", mailer, quotaMB = 2048, ttsDir = "", googleKey = "", azureKey = "", azureRegion = "", ttsDailyChars = 200000 }) {
   const app = Fastify({ bodyLimit: 2 * 1024 * 1024 });
   const key = S.loadKey(dataDir);
   const RL = new S.Limiter();
   const tickets = new Map();             // tickets 2FA en attente : sha256(ticket) → { userId, exp, tries }
   const base = (publicUrl || "").replace(/\/$/, "");
   const tts = Tts(ttsDir), gtts = GoogleTts(googleKey, path.join(dataDir, "tts-cache"));
+  const atts = AzureTts(azureKey, azureRegion, path.join(dataDir, "tts-cache"));
+  const cloud = [gtts, atts];                       // voix en ligne, dans l'ordre de la liste
   const ttsUse = new Map();            // caractères envoyés à Google aujourd'hui, par compte (protège la facture)
 
   app.addContentTypeParser("application/epub+zip", { parseAs: "buffer", bodyLimit: 300 * 1024 * 1024 }, (_r, b, done) => done(null, b));
@@ -622,18 +625,21 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
 
     // ---------- lecture à voix haute (Piper, sur ce serveur) ----------
     // voix naturelles de Google si une clé est configurée, puis les voix Piper calculées sur ce serveur (secours, hors connexion de Google)
-    api.get("/api/tts/voices", async () => [...(await gtts.voices().catch((e) => { console.error("[tts]", e.message); return []; })), ...tts.voices()]);
+    api.get("/api/tts/voices", async () => [
+      ...(await Promise.all(cloud.map((c) => c.voices().catch((e) => { console.error("[tts]", e.message); return []; })))).flat(), ...tts.voices()]);
+    api.post("/api/tts/warm", async (req) => ({ ok: tts.warm(String((req.body || {}).voice || "")) }));
     api.post("/api/tts", async (req, reply) => {
       const { voice, text } = req.body || {};
       const s = String(text ?? "").replace(CTRL, " ").trim();
       if (!s || s.length > 1000 || !/\p{L}|\p{N}/u.test(s)) return fail(reply, 400, "bad_request");
       if (RL.hit(`tts:${req.userId}`, 3000, 3600)) return tooMany(reply);
-      if (await gtts.has(voice)) {
+      for (const c of cloud) {
+        if (!(await c.has(voice))) continue;
         const day = new Date().toISOString().slice(0, 10), u = ttsUse.get(req.userId);
         const used = u && u.day === day ? u.n : 0;
         if (used + s.length > ttsDailyChars) return tooMany(reply);
         try {
-          const r = await gtts.say(voice, s);
+          const r = await c.say(voice, s);
           if (!r.cached) ttsUse.set(req.userId, { day, n: used + s.length });
           return reply.type("audio/wav").send(r.data);
         } catch (e) { console.error("[tts]", e.message); return fail(reply, 502, "internal"); }

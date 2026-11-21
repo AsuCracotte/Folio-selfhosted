@@ -5,13 +5,13 @@ window.FolioVoice = (() => {
   const TX = {
     fr: { listen: "Lecture à voix haute", play: "Lire", pause: "Pause", prev: "Phrase précédente", next: "Phrase suivante", close: "Arrêter la lecture",
       voice: "Voix", speed: "Vitesse", loading: "Préparation de la voix…", needAccount: "La lecture à voix haute utilise les voix de votre serveur Folio : connectez-vous à votre compte.",
-      login: "Se connecter", noVoices: "Aucune voix installée sur votre serveur Folio.", fail: "Voix indisponible pour le moment", end: "Fin du livre",
+      login: "Se connecter", noVoices: "Aucune voix installée sur votre serveur Folio.", fail: "Voix indisponible pour le moment", end: "Fin du livre", tap: "Touchez un paragraphe pour lire à partir de là",
       fr: "Français", en: "English", f: "femme", m: "homme", natural: "voix naturelles", local: "voix de secours (Piper)",
       siwis: "Élise", jessica: "Jessica", pierre: "Pierre", tom: "Tom", gilles: "Gilles", lessac: "Linda", kristin: "Kristin", ryan: "Ryan", northern: "Oliver",
       d_siwis: "claire", d_jessica: "douce", d_pierre: "posé", d_tom: "chaleureux", d_gilles: "grave", d_lessac: "expressive", d_kristin: "douce", d_ryan: "neutre", d_northern: "chaleureux, accent anglais" },
     en: { listen: "Read aloud", play: "Play", pause: "Pause", prev: "Previous sentence", next: "Next sentence", close: "Stop reading",
       voice: "Voice", speed: "Speed", loading: "Preparing the voice…", needAccount: "Read aloud uses the voices of your Folio server: sign in to your account.",
-      login: "Sign in", noVoices: "No voice installed on your Folio server.", fail: "Voice unavailable right now", end: "End of the book",
+      login: "Sign in", noVoices: "No voice installed on your Folio server.", fail: "Voice unavailable right now", end: "End of the book", tap: "Tap a paragraph to read from there",
       fr: "Français", en: "English", f: "woman", m: "man", natural: "natural voices", local: "backup voices (Piper)",
       siwis: "Élise", jessica: "Jessica", pierre: "Pierre", tom: "Tom", gilles: "Gilles", lessac: "Linda", kristin: "Kristin", ryan: "Ryan", northern: "Oliver",
       d_siwis: "clear", d_jessica: "soft", d_pierre: "calm", d_tom: "warm", d_gilles: "deep", d_lessac: "expressive", d_kristin: "soft", d_ryan: "neutral", d_northern: "warm, British accent" },
@@ -25,7 +25,7 @@ window.FolioVoice = (() => {
 .fv-i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.fv-i.fill{fill:currentColor;stroke:none}
 .fv select{border:0;background:var(--soft);color:inherit;border-radius:999px;padding:8px 10px;font:inherit;min-width:0;max-width:220px}
 .fv .msg{padding:0 10px;max-width:340px;line-height:1.35;font-size:13px}.fv .msg button{display:inline;width:auto;height:auto;border-radius:999px;padding:6px 12px;margin-left:6px;background:var(--ac);color:var(--acfg);font-weight:600}
-.fv .st{font-size:12px;color:var(--muted);padding:0 6px;white-space:nowrap}
+.fv .st{font-size:12px;color:var(--muted);padding:0 6px;white-space:nowrap}.fv .st:not(:empty){position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis;padding:6px 12px;border-radius:99px;background:var(--card,#fff);color:var(--fg,#222);box-shadow:0 4px 14px rgba(0,0,0,.15)}
 .fv.busy .pp{animation:fvp 1s ease-in-out infinite}@keyframes fvp{50%{opacity:.55}}
 @media (max-width:600px){.fv{bottom:calc(env(safe-area-inset-bottom) + 50px)}.fv select{max-width:46vw}.fv .sp{display:none}}`;
   const BLOCK = "p,h1,h2,h3,h4,h5,h6,li,blockquote,dd,dt,figcaption,pre,td,th,div";
@@ -93,7 +93,35 @@ window.FolioVoice = (() => {
       }
       return { sec: p.sec + (by > 0 ? 1 : -1), b: by > 0 ? 0 : -1, k: 0, cross: true };
     }
-    // départ : la phrase où commence la page affichée
+    // départ : le premier morceau de phrase réellement visible à l'écran (défilement ou pages) ; à défaut, la position du lecteur
+    function seen() {
+      const r = R(), V = r?.manager?.container?.getBoundingClientRect(); if (!V) return null;
+      for (const c of r.getContents()) {
+        const f = c.window.frameElement?.getBoundingClientRect(); if (!f) continue;
+        const bs = blocks(c.document);
+        for (let b = 0; b < bs.length; b++) {
+          const q = bs[b].getBoundingClientRect();
+          if (f.top + q.bottom <= V.top + 8 || f.top + q.top >= V.bottom - 8 || f.left + q.right <= V.left || f.left + q.left >= V.right) continue;
+          const ch = chunks(bs[b].textContent);
+          let k = ch.findIndex(([s, e]) => { const x = rangeOf(bs[b], s, e)?.getClientRects()[0]; return x && f.top + x.top >= V.top - 2 && f.left + x.left >= V.left - 2 && f.left + x.left < V.right; });
+          return { sec: c.sectionIndex, b, k: Math.max(0, k) };
+        }
+      }
+      return null;
+    }
+    // un paragraphe touché pendant la lecture : on lit à partir de la phrase touchée
+    let hooked = null, hinted = false;
+    function onTap(e) {
+      if (!on || !voices?.length) return;
+      const doc = e.target?.ownerDocument, c = (R()?.getContents() || []).find((x) => x.document === doc); if (!c) return;
+      if (String(c.window.getSelection?.() || "").trim() || e.target.closest?.("a")) return;
+      const bs = blocks(doc), el = e.target.closest?.(BLOCK), b = bs.indexOf(el); if (b < 0) return;
+      let k = 0;
+      try { const cr = doc.caretRangeFromPoint?.(e.clientX, e.clientY); if (cr && el.contains(cr.startContainer)) {
+        const pre = doc.createRange(); pre.setStart(el, 0); pre.setEnd(cr.startContainer, cr.startOffset); const off = pre.toString().length;
+        k = Math.max(0, chunks(el.textContent).findIndex(([, x]) => x > off)); } } catch (err) {}
+      paused = null; playing = true; paint(); playAt({ sec: c.sectionIndex, b, k });
+    }
     function here() {
       const r = R(), l = r?.currentLocation?.(); if (!l?.start) return null;
       const c = contentsOf(l.start.index) || r.getContents()[0]; if (!c) return null;
@@ -163,7 +191,7 @@ window.FolioVoice = (() => {
       try { blob = await fetchAudio(p); }
       catch (e) { try { cache.delete(key(p)); blob = await fetchAudio(p); } catch (e2) { if (g === gen) { playing = false; bar.classList.remove("busy"); paint(); status(t("fail")); } return; } }
       if (g !== gen || !playing) return;
-      bar.classList.remove("busy"); status("");
+      bar.classList.remove("busy"); status(hinted ? "" : t("tap")); if (!hinted) { hinted = true; setTimeout(() => status(""), 6000); }
       mark(it); prefetch(p);
       if (url) URL.revokeObjectURL(url);
       url = URL.createObjectURL(blob); au.src = url; au.playbackRate = speed;
@@ -222,7 +250,11 @@ window.FolioVoice = (() => {
       get on() { return on; },
       get pos() { return pos; },
       // ouvre la barre et lit depuis la page affichée ; rappelé : lecture / pause
-      open() { if (on) return api.toggle(); on = true; bar.hidden = false; pos = null; render(); },
+      open() {
+        if (on) return api.toggle(); on = true; bar.hidden = false; pos = null; hinted = false;
+        const r = R(); if (r && r !== hooked) { r.on("click", onTap); hooked = r; }
+        render();
+      },
       toggle() {
         if (!on) return api.open();
         if (!voices || !voices.length) return;
@@ -234,7 +266,7 @@ window.FolioVoice = (() => {
         if (pos && paused && paused === R()?.currentLocation?.()?.start?.cfi && au.currentTime > 0 && !au.ended) {
           const g = ++gen; au.onended = () => { if (g === gen && playing) playAt(step(pos, 1)); }; au.play().catch(() => {}); paused = null; return;
         }
-        paused = null; playAt(here() || pos || { sec: 0, b: 0, k: 0 });
+        paused = null; playAt(seen() || here() || pos || { sec: 0, b: 0, k: 0 });
       },
       stop() { on = false; playing = false; stopAudio(); unmark(); bar.hidden = true; pos = null; cache.clear(); if ("mediaSession" in navigator) navigator.mediaSession.metadata = null; },
     };

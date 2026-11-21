@@ -66,7 +66,8 @@ HTTPS is required for phones to install the web app.
 | `QUOTA_MB` | `2048` | Storage per account |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | — | Outgoing email (port 465 = TLS, otherwise STARTTLS) |
 | `GOOGLE_TTS_KEY` | — | Optional: natural read-aloud voices (Google Cloud Text-to-Speech, Chirp 3 HD). The text being read is sent to Google; without a key, the local Piper voices are used |
-| `GOOGLE_TTS_DAILY_CHARS` | `200000` | Characters per account and per day sent to Google (protects your bill; phrases already spoken are cached) |
+| `AZURE_TTS_KEY`, `AZURE_TTS_REGION` | — | Optional: natural read-aloud voices from Microsoft Azure Speech (Denise, Henri, Vivienne…; free tier 500,000 characters/month). Region as shown in the Azure portal, e.g. `westeurope`. The text being read is sent to Microsoft |
+| `GOOGLE_TTS_DAILY_CHARS` | `200000` | Characters per account and per day sent to Google or Microsoft (protects your bill; phrases already spoken are cached) |
 | `TUNNEL_TOKEN` | — | Only for the `tunnel` profile |
 | `FOLIO_SECRET` | — | Optional, replaces `data/secret.key` (encrypts 2FA secrets) |
 

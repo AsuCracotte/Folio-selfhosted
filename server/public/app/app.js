@@ -605,6 +605,8 @@ const cur_cfi=()=>cur.cfi; // = début de la page lue, ou la position exacte re�
  b.onclick=()=>{try{b.dataset.l?localStorage.folioLang=b.dataset.l:localStorage.removeItem("folioLang")}catch(e){}if(dav)dav.setLang(b.dataset.l||LANG).catch(()=>{});location.reload()}})})();
 // ---------- lecteur ----------
 async function openBook(hash){if(dav&&!VOICES)dav.ttsVoices().then(v=>VOICES=v,()=>{});  // liste des voix prête avant le premier clic
+ // voix locale (Piper) choisie la dernière fois : son modèle est chargé pendant qu'on commence à lire
+ if(dav?.ttsWarm){const v=jget("folioVoice",{}).voice;if(v&&!/^[ga]:/.test(v))dav.ttsWarm(v).catch(()=>{})}
 try{await dav?.pullOne?.(hash)}catch(e){}cur=await getB(hash);if(!cur)return;cur.lastRead=Date.now();await putB(cur);
  const buf=await rq(tx("files").get(hash));$("rd").classList.add("on");$("rd").classList.remove("full");$("ttl").textContent=cur.title;$("chapTop").textContent=cur.author;outer();
  book=ePub(buf);toc=[];book.loaded.navigation.then(n=>{(function w(it,l){it.forEach(i=>{const s=book.spine.get(i.href);toc.push({label:i.label.trim(),href:i.href,l,idx:s?s.index:-1});i.subitems&&w(i.subitems,l+1)})})(n.toc,0)});
@@ -621,6 +623,7 @@ function build(cfi){anchor=cfi||null;if(rend){try{rend.destroy()}catch(e){}$("vi
  rend.hooks.content.register(c=>{styleC(c);gestures(c);imgMenu(c);["wheel","touchstart","mousedown","keydown"].forEach(e=>c.document.addEventListener(e,unpin,{passive:true}))});
  rend.on("relocated",l=>{loc=l;hideSel();hideImg();report()});rend.on("selected",onSel);
  rend.on("click",e=>{if(sel.style.display==="flex"){hideSel();return}if($("imgm").style.display==="block"){hideImg();return}if(Date.now()-G.at<450)return;const w=e.view;if(String(w?.getSelection?.()||"")||e.target.closest?.("a"))return;
+  if(voice.on)return;  // lecture à voix haute : un appui choisit l'endroit où lire (voice.js)
   const x=(w.frameElement.getBoundingClientRect().left+e.clientX)/innerWidth;if(S.flow!=="scrolled"&&x<.25)turn(-1);else if(S.flow!=="scrolled"&&x>.75)turn(1);else toggleBars()});
  rend.on("keydown",keys);cur.highlights.filter(h=>!h.deleted).forEach(drawHl);return rend.display(cfi||undefined)}
 // epub.js continue ensuite d'insérer ou de redimensionner des chapitres au-dessus (images, chapitres préchargés) et la cible glisse :
@@ -820,6 +823,7 @@ function Api(c){const base=(c.server||"").replace(/\/$/,""),h={Authorization:"Be
    for(const d of loc){const s=DS()[d.id];if(!rv.has(d.id))dsSet(d.id,{rev:0,at:0});if(!rv.has(d.id)||!s||s.rev!==rv.get(d.id)||FolioWriter.stamp(d)>s.at)await queueDraft(d.id)}
    for(const x of rem)if(!loc.some(d=>d.id===x.id)){const r=await jf(`/api/drafts/${x.id}`);await putD(r);dsSet(x.id,{rev:r.rev,at:FolioWriter.stamp(r)});writer?.remote(x.id)}},
   ttsVoices:()=>jf("/api/tts/voices"),
+  ttsWarm:voice=>P("/api/tts/warm",{voice}),
   async tts(voice,text){const r=await f("/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({voice,text})});if(!r.ok)throw new Error(r.status);return r.blob()},
   me:()=>jf("/api/me"),
   setName:name=>jf("/api/me",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({name})}),
@@ -920,7 +924,7 @@ $("bSync").onclick=doSync;
 // ---------- mises à jour ----------
 // le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
 // l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
-const APPV="2.4.0";let updShown=false;
+const APPV="2.4.1";let updShown=false;
 function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
  $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
 const D=window.folioDesktop;
