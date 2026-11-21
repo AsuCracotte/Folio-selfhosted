@@ -3,7 +3,15 @@
 const LANG=(()=>{let l;try{l=localStorage.folioLang}catch(e){}return l==="fr"||l==="en"?l:/^fr/i.test(navigator.language||"")?"fr":"en"})();
 document.documentElement.lang=LANG;
 const TX={
-fr:{facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",camFront:"Cadrez la couverture du livre",camBack:"Cadrez le dos du livre (4e de couverture)",photoSaved:"Photo enregistrée",updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",updOld:"Une nouvelle version de l’appli Folio est disponible",updDl:"Télécharger",updCheck:"Rechercher une mise à jour",updNone:"Folio {v} est à jour",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
+fr:{decoEdit:"Arranger l’étagère",decoAdd:"Ajouter une décoration",decoHelp:"Glissez une décoration pour la déplacer ; touchez-la pour changer sa taille ou la retirer.",
+decoPhoto:"Votre photo",deco3d:"Un modèle 3D (.glb)",deco3dTip:"Photo : posée dans un cadre. Modèle 3D : fichier glTF binaire (.glb), 20 Mo max. ; touchez-le sur l’étagère pour le voir tourner.",
+modelBig:"Modèle trop lourd (20 Mo max.)",badModel:"Ce modèle 3D ne peut pas être affiché",noModel:"Modèle 3D indisponible hors connexion",model3d:"Modèle 3D",m3Tip:"Glissez pour le faire tourner",
+dLeft:"Vers la gauche",dRight:"Vers la droite",dSmall:"Plus petite",dBig:"Plus grande",dDel:"Retirer",
+dk_succ:"Succulente",dk_snake:"Sansevière",dk_stack:"Pile de livres",dk_bear:"Ourson",dk_bunny:"Lapin",dk_cat:"Chat",dk_lamp:"Lampe",dk_globe:"Globe",dk_candle:"Bougie",
+dk_hourglass:"Sablier",dk_vase:"Bouquet",dk_cactus:"Cactus",dk_mug:"Tasse",dk_clock:"Réveil",dk_owl:"Chouette",dk_frame:"Tableau",
+filters:"Filtres",fShow:"Afficher les livres",fUnread:"Pas encore commencés",fReading:"En cours de lecture",fDone:"Terminés",fCols:"Collections",
+fInCol:"Masquer les livres rangés dans une collection",fHideCol:"Masquer « {t} »",fReset:"Tout afficher",hidden1:"{n} livre masqué par les filtres",hiddenN:"{n} livres masqués par les filtres",
+showAll:"Filtres",allHidden:"Tous les livres sont masqués par les filtres.",facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",camFront:"Cadrez la couverture du livre",camBack:"Cadrez le dos du livre (4e de couverture)",photoSaved:"Photo enregistrée",updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",updOld:"Une nouvelle version de l’appli Folio est disponible",updDl:"Télécharger",updCheck:"Rechercher une mise à jour",updNone:"Folio {v} est à jour",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
  library:"Bibliothèque",bookmark:"Marque-page",tocNotes:"Sommaire et notes",appearance:"Apparence",customColors:"Couleurs perso",background:"Fond",text:"Texte",font:"Police",bookFont:"Police du livre",
  size:"Taille",lineHeight:"Interligne",margins:"Marges",justify:"Texte justifié",pages:"Pages",scroll:"Défilement",typography:"Typographie",paraSpace:"Espace entre paragraphes",weight:"Graisse",
  letterSpace:"Espacement des lettres",indent:"Retrait de première ligne",indBook:"Livre",indNone:"Aucun",indNormal:"Normal",indWide:"Large",resetLook:"Réinitialiser l’apparence",syncLook:"Synchronisation entre appareils",syncLookTxt:"Décochez ce que cet appareil doit garder pour lui : il ne l’enverra plus et ne recevra plus celui des autres.",sg_colors:"Thème et couleurs",sg_font:"Police",sg_size:"Taille du texte",sg_spacing:"Interligne et typographie",sg_margin:"Marges",sg_layout:"Justification, pages ou défilement",
@@ -53,7 +61,15 @@ fr:{facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",ca
  confirmRemovePaper:"Retirer « {t} » de l’étagère ?",editSpine:"Tranche et infos",sortAuthor:"Auteur",sortTitle:"Titre",sortRecent:"Récents",kindBook:"Livre numérique",kindPaper:"Livre papier",
  decoT:"Décorations",decoT:"Decorations",rackTip:"Photographiez la tranche de vos livres, numériques ou papier : votre étagère se compose, et vous suit sur tous vos appareils.",spineTip:"Astuce : livre debout, tranche bien droite et cadrée serrée.",
  fold:"Replier",unfold:"Déplier",useAsCover:"Utiliser comme couverture",coverSet:"Couverture mise à jour",coverReset:"Couverture d’origine rétablie",customCover:"Couverture personnalisée",bookOptions:"Options du livre"},
-en:{facesT:"Cover and back (3D view)",faceFront:"Cover",faceBack:"Back",camFront:"Fit the book’s cover in the frame",camBack:"Fit the back cover in the frame",photoSaved:"Photo saved",updWeb:"New version of Folio",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",updOld:"A new version of the Folio app is available",updDl:"Download",updCheck:"Check for updates",updNone:"Folio {v} is up to date",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
+en:{decoEdit:"Arrange the bookshelf",decoAdd:"Add a decoration",decoHelp:"Drag a decoration to move it; tap it to resize or remove it.",
+decoPhoto:"Your photo",deco3d:"A 3D model (.glb)",deco3dTip:"Photo: placed in a frame. 3D model: binary glTF file (.glb), 20 MB max.; tap it on the shelf to watch it turn.",
+modelBig:"Model too large (20 MB max.)",badModel:"This 3D model can’t be displayed",noModel:"3D model unavailable offline",model3d:"3D model",m3Tip:"Drag to turn it",
+dLeft:"Move left",dRight:"Move right",dSmall:"Smaller",dBig:"Larger",dDel:"Remove",
+dk_succ:"Succulent",dk_snake:"Snake plant",dk_stack:"Book stack",dk_bear:"Teddy bear",dk_bunny:"Bunny",dk_cat:"Cat",dk_lamp:"Lamp",dk_globe:"Globe",dk_candle:"Candle",
+dk_hourglass:"Hourglass",dk_vase:"Bouquet",dk_cactus:"Cactus",dk_mug:"Mug",dk_clock:"Alarm clock",dk_owl:"Owl",dk_frame:"Painting",
+filters:"Filters",fShow:"Show books",fUnread:"Not started yet",fReading:"Currently reading",fDone:"Finished",fCols:"Collections",
+fInCol:"Hide books already in a collection",fHideCol:"Hide “{t}”",fReset:"Show everything",hidden1:"{n} book hidden by filters",hiddenN:"{n} books hidden by filters",
+showAll:"Filters",allHidden:"All books are hidden by the filters.",facesT:"Cover and back (3D view)",faceFront:"Cover",faceBack:"Back",camFront:"Fit the book’s cover in the frame",camBack:"Fit the back cover in the frame",photoSaved:"Photo saved",updWeb:"New version of Folio",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",updOld:"A new version of the Folio app is available",updDl:"Download",updCheck:"Check for updates",updNone:"Folio {v} is up to date",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
  library:"Library",bookmark:"Bookmark",tocNotes:"Contents and notes",appearance:"Appearance",customColors:"Custom colours",background:"Background",text:"Text",font:"Font",bookFont:"Book’s font",
  size:"Size",lineHeight:"Line spacing",margins:"Margins",justify:"Justified text",pages:"Pages",scroll:"Scrolling",typography:"Typography",paraSpace:"Paragraph spacing",weight:"Weight",
  letterSpace:"Letter spacing",indent:"First-line indent",indBook:"Book",indNone:"None",indNormal:"Normal",indWide:"Wide",resetLook:"Reset appearance",syncLook:"Sync across devices",syncLookTxt:"Untick what this device should keep to itself: it will no longer send it, nor receive the one from your other devices.",sg_colors:"Theme and colours",sg_font:"Font",sg_size:"Text size",sg_spacing:"Line height and typography",sg_margin:"Margins",sg_layout:"Justification, pages or scrolling",
@@ -221,15 +237,31 @@ function rackPreview(all){const items=rackList(all),w=$("rackWrap");w.innerHTML=
  const row=document.createElement("div");row.className="plank";items.slice(0,60).forEach(x=>row.append(spineEl(x)));
  const add=document.createElement("button");add.type="button";add.className="spine add";add.title=t("addPaperT");add.innerHTML=ico("plus");add.onclick=()=>spineMenu(null);row.append(add);
  w.append(row);foldHead(w.firstElementChild,"rack",row);$("rkAll").onclick=openRack}
+// filtres de la bibliothèque (propres à cet appareil) : masquer des livres selon leur avancement ou leurs collections
+let LF=jget("folioLibFilter",{hide:[],cols:[],inCol:false});
+const lfOn=()=>LF.hide.length||LF.cols.length||LF.inCol;
+function libHidden(b,col){if(col&&col.auto)return false;if(LF.hide.includes(statusOf(b)))return true;if(col)return false;
+ return live().some(c=>c.books.includes(b.hash)&&(LF.inCol||LF.cols.includes(c.id)))}
+function saveLF(){LF.cols=LF.cols.filter(id=>colById(id));localStorage.folioLibFilter=JSON.stringify(LF);fillFilt();render()}
+function fillFilt(){const L=$("fList");L.innerHTML="";
+ const item=(label,on,fn,sub)=>{const d=document.createElement("div");d.className="citem"+(on?" on":"");d.innerHTML=`<span class="ck">${ico("check")}</span><span class="tx"><b></b></span>${sub!=null?`<small>${sub}</small>`:""}`;
+  d.querySelector("b").textContent=label;d.onclick=fn;L.append(d)};
+ const head=k=>L.insertAdjacentHTML("beforeend",`<p class="kicker">${t(k)}</p>`);
+ head("fShow");[["unread","fUnread"],["reading","fReading"],["done","fDone"]].forEach(([s,k])=>item(t(k),!LF.hide.includes(s),()=>{LF.hide=LF.hide.includes(s)?LF.hide.filter(x=>x!==s):[...LF.hide,s];saveLF()}));
+ if(live().length){head("fCols");item(t("fInCol"),LF.inCol,()=>{LF.inCol=!LF.inCol;saveLF()});
+  if(!LF.inCol)live().slice().sort((a,b)=>a.name.localeCompare(b.name,LANG)).forEach(c=>item(t("fHideCol",{t:c.name}),LF.cols.includes(c.id),()=>{LF.cols=LF.cols.includes(c.id)?LF.cols.filter(x=>x!==c.id):[...LF.cols,c.id];saveLF()},c.books.length))}
+ $("fReset").disabled=!lfOn()}
+$("fReset").onclick=()=>{LF={hide:[],cols:[],inCol:false};saveLF()};
 async function render(){const all=(await allB()).sort((a,b)=>(b.lastRead||b.added)-(a.lastRead||a.added)),q=$("q").value.trim().toLowerCase(),g=$("grid"),S2=$("sect");
  let col=shelf&&(shelf[0]==="@"?autoCols(all).find(c=>c.id===shelf&&c.books.length):colById(shelf));if(shelf&&!col){shelf=null;try{sessionStorage.removeItem("folioShelf")}catch(e){}}
  const base=col?col.books.map(h=>all.find(b=>b.hash===h)).filter(Boolean):all;
- const bs=q?base.filter(b=>(b.title+" "+b.author).toLowerCase().includes(q)):base;g.innerHTML="";$("hero").innerHTML="";$("colsWrap").innerHTML="";$("rackWrap").innerHTML="";S2.innerHTML="";S2.classList.remove("folded");g.hidden=false;
+ const vis=base.filter(b=>!libHidden(b,col)),nHid=base.length-vis.length,bs=q?vis.filter(b=>(b.title+" "+b.author).toLowerCase().includes(q)):vis;
+ const fbtn=`<button class="ib fbtn${lfOn()?" on":""}" id="libF" title="${t("filters")}">${ico("filter")}${lfOn()?"<i></i>":""}</button>`;g.innerHTML="";$("hero").innerHTML="";$("colsWrap").innerHTML="";$("rackWrap").innerHTML="";S2.innerHTML="";S2.classList.remove("folded");g.hidden=false;
  $("sbox").style.display=all.length>3?"flex":"none";
  if(!all.length){if(!q&&RACK.some(x=>x.kind==="paper"&&!x.deleted))rackPreview(all);S2.style.display="none";g.style.display="block";g.innerHTML=`<div class="empty"><svg class="i"><use href="#i-book"/></svg><h2>${t("emptyLib")}</h2><p>${t("emptyLibTxt")}</p><p><label class="btn pri" for="file">${ico("plus")}${t("addBook")}</label></p></div>`;return}
  S2.style.display="flex";g.style.display="grid";
  const count=base.length?(bs.length===base.length?"":bs.length+" / ")+tn(base.length,"books1","booksN"):"";
- if(col){S2.innerHTML=`<div class="sh"><button class="ib" id="shBack" title="${t("allBooks")}">${ico("back")}</button><h3></h3></div><div class="tools"><span style="margin-right:6px">${count}</span>${col.auto?"":`<button class="btn" id="shAdd">${ico("plus")}<span>${t("addToCol")}</span></button><button class="ib" id="shMenu" title="${t("options")}">${ico("dots")}</button>`}</div>`;
+ if(col){S2.innerHTML=`<div class="sh"><button class="ib" id="shBack" title="${t("allBooks")}">${ico("back")}</button><h3></h3></div><div class="tools"><span style="margin-right:6px">${count}</span>${col.auto?"":fbtn}${col.auto?"":`<button class="btn" id="shAdd">${ico("plus")}<span>${t("addToCol")}</span></button><button class="ib" id="shMenu" title="${t("options")}">${ico("dots")}</button>`}</div>`;
   S2.querySelector("h3").textContent=col.name;$("shBack").onclick=()=>setShelf(null);if(!col.auto){$("shAdd").onclick=()=>pickBooks(col.id);$("shMenu").onclick=()=>colMenu(col.id)}
   if(!base.length){g.style.display="block";g.innerHTML=`<div class="empty"><svg class="i"><use href="#i-stack"/></svg><h2>${t("colEmpty")}</h2><p>${t("colEmptyTxt")}</p><p><button class="btn pri" id="emptyAdd">${ico("plus")}${t("addToCol")}</button></p></div>`;$("emptyAdd").onclick=()=>pickBooks(col.id);return}}
  else{const last=!q&&all.find(b=>(b.lastRead||(b.progress||0)>0)&&(b.progress||0)<.98);
@@ -242,18 +274,86 @@ async function render(){const all=(await allB()).sort((a,b)=>(b.lastRead||b.adde
    live().slice().sort((a,b)=>a.name.localeCompare(b.name,LANG)).forEach(c=>row.append(colCard(c,all)));
    const n=document.createElement("div");n.className="col new";n.innerHTML=`<div class="stack">${ico("plus")}</div><div class="t">${t("newCol")}</div><div class="a">&nbsp;</div>`;n.onclick=newCol;row.append(n);w.append(row);foldHead(w.firstElementChild,"cols",row)}
   if(!q)rackPreview(all)
-  S2.innerHTML=`<h3>${t("library")}</h3><div class="tools"><span>${count}</span>${live().length||autos.length?"":`<button class="btn ghost" id="shNew">${ico("stack")}<span>${t("newCol")}</span></button>`}</div>`;
+  S2.innerHTML=`<h3>${t("library")}</h3><div class="tools"><span>${count}</span>${fbtn}${live().length||autos.length?"":`<button class="btn ghost" id="shNew">${ico("stack")}<span>${t("newCol")}</span></button>`}</div>`;
   if($("shNew"))$("shNew").onclick=newCol;foldHead(S2,"lib",g)}
- if(!bs.length)g.innerHTML=`<div class="hint" style="grid-column:1/-1">${t("noMatch")}</div>`;
- bs.forEach(b=>g.append(card(b)))}
+ if($("libF"))$("libF").onclick=()=>{fillFilt();show("shFilt")};
+ if(!bs.length)g.innerHTML=`<div class="hint" style="grid-column:1/-1">${t(nHid&&!q?"allHidden":"noMatch")}</div>`;
+ bs.forEach(b=>g.append(card(b)));
+ if(nHid){const h=document.createElement("div");h.className="fhint";h.innerHTML=`<span>${tn(nHid,"hidden1","hiddenN")}</span><button class="btn ghost" type="button">${t("showAll")}</button>`;
+  h.querySelector("button").onclick=()=>{fillFilt();show("shFilt")};g.append(h)}}
 $("q").oninput=()=>render();
 // ---------- vue « étagère » ----------
-// décorations dessinées (plantes, peluches : decor/*.svg, partagés avec l'appli Linux) posées entre les livres et sur les étagères vides
-const DECO={succ:[70,100],snake:[60,150],stack:[92,96],bear:[80,92],bunny:[64,112],cat:[74,80]};
+// décorations : dessins (decor/*.svg, partagés avec l'appli Linux), photos ou modèles 3D (.glb). Ce sont des éléments de l'étagère
+// (kind "deco", synchronisés) : pos = place parmi les livres triés (2.5 = entre le 3e et le 4e), size = échelle
+const DECO={succ:[70,100],snake:[60,150],stack:[92,96],bear:[80,92],bunny:[64,112],cat:[74,80],lamp:[70,128],globe:[74,112],candle:[52,100],
+ hourglass:[56,104],vase:[70,134],cactus:[64,120],mug:[70,76],clock:[70,84],owl:[64,90],frame:[76,96]};
 const DECO_K=["succ","bear","snake","stack","bunny","cat"],DECO_GAP=[6,9,5,8,7,10];
-let DECO_ON=localStorage.folioRackDeco!=="0";
-function decoEl(n,big){const k=DECO_K[n%DECO_K.length],[w,h]=DECO[k],z=big?1:.86;const d=document.createElement("div");d.className="slot deco";
- d.innerHTML=`<img src="decor/${k}.svg" width="${Math.round(w*z)}" height="${Math.round(h*z)}" alt="" draggable="false">`;return d}
+let DECO_ON=localStorage.folioRackDeco!=="0",RK_EDIT=false,rkSel=null;
+const decos=()=>RACK.filter(x=>x.kind==="deco"&&!x.deleted).sort((a,b)=>a.pos-b.pos);
+// premier passage : les décorations d'avant deviennent de vrais objets ; ids fixes et date très ancienne,
+// pour que deux appareils ne les créent pas en double et que ce qui est déjà sur le serveur l'emporte
+function decoDefaults(n){if(RACK.some(x=>x.kind==="deco"))return;let g=DECO_GAP[0],k=0;
+ const add=pos=>{RACK.push({id:"decodef"+k,kind:"deco",deco:DECO_K[k%DECO_K.length],pos,size:1,title:"",spine:0,model:0,created:1,updated:1,deleted:0});k++};
+ while(g<=n&&k<12){add(g-.5);g+=DECO_GAP[k%DECO_GAP.length]}
+ for(let j=0;n<12&&j<3;j++)add(n+.5+j);saveRack()}
+function decoEl(x){const d=document.createElement("div");d.className="slot deco";d.dataset.p=x.pos;d.dataset.id=x.id;const z=.86*(x.size||1);
+ if(x.deco&&DECO[x.deco]){const[w,h]=DECO[x.deco];d.innerHTML=`<img src="decor/${x.deco}.svg" width="${Math.round(w*z)}" height="${Math.round(h*z)}" alt="" draggable="false">`}
+ else{d.classList.add(x.model?"m3":"ph");const i=new Image();i.alt="";i.draggable=false;i.style.height=Math.round((x.model?134:96)*(x.size||1))+"px";
+  if(x.spine)spineUrl(x.id).then(u=>{if(u)i.src=u});d.append(i);d.title=x.title||""}
+ if(RK_EDIT){d.classList.add("ed");if(rkSel===x.id)d.classList.add("sel");decoDrag(d,x)}else if(x.model)d.onclick=()=>modelView(x);
+ return d}
+const RKDB=$("rkDB");
+// place entre deux éléments de l'étagère (livre : son rang ; décoration : sa pos)
+const pOf=e=>+e.dataset.p;
+function between(a,b){const pa=a?pOf(a):b?pOf(b)-1:0,pb=b?pOf(b):pa+1;return(pa+pb)/2}
+const rkEls=self=>[...$("rkCase").children].filter(e=>e!==self&&e.dataset.p!=null);
+function setDeco(id,patch){const x=rackGet(id);if(!x)return;Object.assign(x,patch,{updated:now()});saveRack();renderRack()}
+function decoStep(id,dir){const all=[...$("rkCase").children].filter(e=>e.dataset.p!=null),k=all.findIndex(e=>e.dataset.id===id);if(k<0)return;
+ const rest=all.filter((_,j)=>j!==k),t=Math.max(0,Math.min(rest.length,k+dir));if(t===k&&dir)return;setDeco(id,{pos:between(rest[t-1],rest[t])})}
+// glisser une décoration (mode édition) : un trait montre où elle sera posée ; un simple appui la sélectionne
+function dropAt(cx,cy,self){const els=rkEls(self);let best=null,bd=1e9;
+ els.forEach((e,j)=>{const r=e.getBoundingClientRect(),dy=cy<r.top?r.top-cy:cy>r.bottom?cy-r.bottom:0,dx=cx<r.left?r.left-cx:cx>r.right?cx-r.right:0,dd=dy*4+dx;
+  if(dd<bd){bd=dd;best={j,r,after:cx>r.left+r.width/2}}});
+ if(!best)return null;const j=best.after?best.j+1:best.j;return{pos:between(els[j-1],els[j]),x:best.after?best.r.right+1:best.r.left-2,r:best.r}}
+function decoDrag(d,x){d.onpointerdown=e=>{if(e.button)return;e.preventDefault();const x0=e.clientX,y0=e.clientY,line=$("rkDrop");let moved=false,tg=null;d.setPointerCapture(e.pointerId);
+ d.onpointermove=ev=>{const dx=ev.clientX-x0,dy=ev.clientY-y0;if(!moved&&Math.hypot(dx,dy)<6)return;moved=true;d.classList.add("drag");$("rkDB").hidden=true;
+  d.style.transform=`translate(${dx}px,${dy}px)`;tg=dropAt(ev.clientX,ev.clientY,d);line.hidden=!tg;if(tg)Object.assign(line.style,{left:tg.x+"px",top:tg.r.top+"px",height:tg.r.height+"px"})};
+ const end=()=>{d.onpointermove=d.onpointerup=d.onpointercancel=null;line.hidden=true;
+  if(!moved){rkSel=rkSel===x.id?null:x.id;renderRack();return}d.style.transform="";tg?setDeco(x.id,{pos:tg.pos}):renderRack()};
+ d.onpointerup=end;d.onpointercancel=end}}
+// barre de la décoration sélectionnée : déplacer, taille, supprimer
+function decoBar(){const bar=RKDB;$("rkCase").append(bar);const el=rkSel&&$("rkCase").querySelector(`.deco[data-id="${rkSel}"]`);bar.hidden=!el;if(!el)return;
+ const c=$("rkCase"),r=el.getBoundingClientRect(),cr=c.getBoundingClientRect();bar.style.left=Math.max(4,Math.min(cr.width-bar.offsetWidth-4,r.left-cr.left+r.width/2-bar.offsetWidth/2))+"px";const top=r.top-cr.top-bar.offsetHeight-8;bar.style.top=(top>4?top:r.bottom-cr.top+30)+"px"}
+$("rkDB").onclick=e=>{const b=e.target.closest("button"),x=rkSel&&rackGet(rkSel);if(!b||!x)return;const a=b.dataset.a;
+ if(a==="l"||a==="r")decoStep(x.id,a==="l"?-1:1);else if(a==="s"||a==="b")setDeco(x.id,{size:Math.round(Math.max(.5,Math.min(2,(x.size||1)+(a==="b"?.15:-.15)))*100)/100});
+ else if(a==="x"){rkSel=null;setDeco(x.id,{deleted:1})}};
+function rkTools(){$("rack").classList.toggle("editing",RK_EDIT);$("rkTools").hidden=!RK_EDIT;$("rkEdit").classList.toggle("on",RK_EDIT);$("rkEdit").setAttribute("aria-pressed",String(RK_EDIT))}
+$("rkEdit").onclick=()=>{RK_EDIT=!RK_EDIT;rkSel=null;if(RK_EDIT&&!DECO_ON){DECO_ON=true;localStorage.folioRackDeco="1"}renderRack()};$("rkDone").onclick=()=>{RK_EDIT=false;rkSel=null;renderRack()};
+// ajouter : un dessin, une photo, ou un modèle 3D (aperçu calculé ici, fichier synchronisé)
+const newDecoPos=()=>Math.min(0,...decos().map(d=>d.pos))-.5;
+async function addDeco(id,base,img){if(img)await setPhoto(id,"spine",img,base);else{const x=rackItem(id,base);Object.assign(x,base,{deleted:0,updated:now()});saveRack()}
+ show(null);DECO_ON=true;localStorage.folioRackDeco="1";RK_EDIT=true;rkSel=id;await renderRack();$("rack").scrollTop=0}
+$("rkDecoAdd").onclick=()=>{const g=$("dkGrid");g.innerHTML="";Object.keys(DECO).forEach(k=>{const b=document.createElement("button");b.type="button";b.title=t("dk_"+k);
+  b.innerHTML=`<img src="decor/${k}.svg" alt="">`;b.onclick=()=>addDeco(newId(),{kind:"deco",deco:k,pos:newDecoPos(),size:1,title:"",model:0});g.append(b)});show("shDeco")};
+$("dkPhoto").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
+ try{await addDeco(newId(),{kind:"deco",deco:"",pos:newDecoPos(),size:1,model:0,title:f.name.replace(/\.[a-z0-9]+$/i,"").slice(0,120)},await fileToCover(f))}catch(x){msg(t("badImage"))}};
+$("dk3d").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;if(f.size>20*1048576)return msg(t("modelBig"));
+ try{const buf=await f.arrayBuffer(),png=await FolioGLB.snapshot(await FolioGLB.parse(buf),512),id=newId(),ts=now();
+  await putSp(id+".glb",new Blob([buf],{type:"model/gltf-binary"}));spSet("folioModelAt",id,ts);
+  await addDeco(id,{kind:"deco",deco:"",pos:newDecoPos(),size:1,model:ts,title:f.name.replace(/\.glb$/i,"").slice(0,120)},png)}catch(x){console.error(x);msg(t("badModel"))}};
+// modèle 3D en grand : il tourne seul, on le fait pivoter en glissant
+let m3v=null,m3raf=0;
+async function getModel(x){if(spMap("folioModelAt")[x.id]===x.model)return getSp(x.id+".glb");const b=dav?.model&&await dav.model(x.id).catch(()=>null);
+ if(b){await putSp(x.id+".glb",b);spSet("folioModelAt",x.id,x.model);spSet("folioModelSent",x.id,x.model)}return b}
+async function modelView(x){const b=await getModel(x);if(!b)return msg(t("noModel"));let sc;try{sc=await FolioGLB.parse(await b.arrayBuffer())}catch(e){return msg(t("badModel"))}
+ $("m3T").textContent=x.title||t("model3d");$("m3").hidden=false;const cv=$("m3c"),s=Math.min(innerWidth-40,innerHeight*.62,620),dpr=Math.min(2,devicePixelRatio||1);
+ cv.style.width=cv.style.height=s+"px";cv.width=cv.height=Math.round(s*dpr);m3v?.dispose();try{m3v=FolioGLB.view(cv,sc)}catch(e){$("m3").hidden=true;return msg(t("badModel"))}
+ const still=matchMedia("(prefers-reduced-motion:reduce)").matches;cancelAnimationFrame(m3raf);const loop=()=>{if($("m3").hidden)return;if(!m3v.drag&&!still)m3v.yaw+=.006;m3v.draw();m3raf=requestAnimationFrame(loop)};loop()}
+function m3close(){$("m3").hidden=true;cancelAnimationFrame(m3raf);m3v?.dispose();m3v=null}
+$("m3").onclick=e=>{if(e.target===$("m3")||e.target.closest("#m3X"))m3close()};
+(()=>{const cv=$("m3c");let x0=null,y0=0,a0=0,p0=0;cv.addEventListener("pointerdown",e=>{if(!m3v)return;e.preventDefault();x0=e.clientX;y0=e.clientY;a0=m3v.yaw;p0=m3v.pitch;m3v.drag=true;cv.setPointerCapture(e.pointerId)});
+ cv.addEventListener("pointermove",e=>{if(x0==null||!m3v)return;m3v.yaw=a0+(e.clientX-x0)*.01;m3v.pitch=Math.max(-1.2,Math.min(1.2,p0+(e.clientY-y0)*.01))});
+ const up=()=>{x0=null;if(m3v)m3v.drag=false};cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up)})();
 // disposition façon vraie bibliothèque : livres debout, quelques couvertures de face, des piles couchées, des décorations
 const SPH=x=>150+hn(x.id)%44;
 function faceEl(x,u){const d=document.createElement("button");d.type="button";d.className="face";d.title=x.title+(x.author?" — "+x.author:"");
@@ -262,23 +362,26 @@ function lieEl(list){const d=document.createElement("div");d.className="slot lie
  list.forEach((x,k)=>{const sp=spineEl(x),L=Math.round(SPH(x)*.78),b=document.createElement("div");b.className="lb";
   b.style.setProperty("--L",L+"px");b.style.setProperty("--o",((hn(x.id)%5)-2)*4+"px");b.append(sp);d.prepend(b)});return d}
 async function renderRack(){const all=await allB(),items=rackList(all),c=$("rkCase");c.innerHTML="";$("rkCount").textContent=tn(items.length,"books1","booksN");
+ c.append(RKDB);if(DECO_ON)decoDefaults(items.length);const ds=DECO_ON?decos():[];let dj=0;const putD=lim=>{while(dj<ds.length&&ds[dj].pos<lim)c.append(decoEl(ds[dj++]))};rkTools();
  document.querySelectorAll("#rkSort button").forEach(b=>b.classList.toggle("on",b.dataset.s===(localStorage.folioRackSort||"author")));
  $("rkDeco").classList.toggle("on",DECO_ON);$("rkDeco").setAttribute("aria-pressed",String(DECO_ON));
  const byH=new Map(all.map(b=>[b.hash,b]));
- let nd=0,next=DECO_GAP[0],sinceFace=3,sinceLie=4,i=0,n=0;
+ let sinceFace=3,sinceLie=4,i=0,n=0;
  while(i<items.length){const x=items[i],h=hn(x.id),b=x.kind==="book"&&byH.get(x.id),cu=b&&coverUrl(b);
-  if(DECO_ON&&n===next){c.append(decoEl(nd++));next+=DECO_GAP[nd%DECO_GAP.length]}
-  const s=document.createElement("div");s.className="slot";
+  putD(i);
+  const s=document.createElement("div");s.className="slot";s.dataset.p=i;
   if(cu&&sinceFace>=6&&h%3===0){s.append(faceEl(x,cu));sinceFace=0;i++}
-  else if(sinceLie>=8&&items.length-i>=3&&h%4===1){const k=2+h%2;c.append(lieEl(items.slice(i,i+k)));sinceLie=0;i+=k;n++;continue}
+  else if(sinceLie>=8&&items.length-i>=3&&h%4===1){const k=2+h%2,l=lieEl(items.slice(i,i+k));l.dataset.p=i;c.append(l);sinceLie=0;i+=k;n++;continue}
   else{s.append(spineEl(x));i++}
   sinceFace++;sinceLie++;n++;c.append(s)}
- const s=document.createElement("div");s.className="slot";const add=document.createElement("button");add.type="button";add.className="spine add";add.title=t("addPaperT");add.innerHTML=ico("plus");add.onclick=()=>spineMenu(null);s.append(add);c.append(s);
- if(DECO_ON&&items.length<4)c.append(decoEl(nd++));
+ putD(items.length-.25);
+ const s=document.createElement("div");s.className="slot";s.dataset.p=items.length-.25;const add=document.createElement("button");add.type="button";add.className="spine add";add.title=t("addPaperT");add.innerHTML=ico("plus");add.onclick=()=>spineMenu(null);s.append(add);c.append(s);
+ putD(Infinity);
  // plusieurs étages même avec peu de livres : on complète par des étagères décorées
- const tops=new Set([...c.children].map(e=>e.offsetTop)),min=innerWidth<560?4:3;
+ const tops=new Set([...c.children].filter(e=>e!==RKDB).map(e=>e.offsetTop)),min=innerWidth<560?4:3;
  for(let r=tops.size;r<min;r++){const row=document.createElement("div");row.className="slot srow";
-  if(DECO_ON){row.style.paddingLeft=(8+(r*29)%46)+"%";row.append(decoEl(nd++,true));if(r%2)row.append(decoEl(nd++,true))}c.append(row)}}
+  c.append(row)}
+ requestAnimationFrame(decoBar)}
 // ---------- un livre de l'étagère, en 3D : la tranche pivote et montre la couverture ----------
 let b3x=null,b3a=0;
 async function bookView(x){b3x=x;const b=x.kind==="book"&&await getB(x.id),su=x.spine?await spineUrl(x.id):null,
@@ -611,7 +714,7 @@ function drawHl(h){rend.annotations.highlight(h.cfi,{},e=>showSel(e.clientX,e.cl
 function addHl(cfi,color,text){const n=now();let h=cur.highlights.find(x=>x.cfi===cfi);if(h){try{rend.annotations.remove(cfi,"highlight")}catch(e){}Object.assign(h,{color,deleted:0,updated:n})}else cur.highlights.push(h={cfi,color,text,created:n,updated:n,deleted:0});drawHl(h);putB(cur);pushSoon();refreshTrack();rend.getContents().forEach(c=>c.window.getSelection().removeAllRanges())}
 function rmHl(cfi){const h=cur.highlights.find(x=>x.cfi===cfi);if(!h)return;h.deleted=1;h.updated=now();try{rend.annotations.remove(cfi,"highlight")}catch(e){}putB(cur);pushSoon();refreshTrack()}
 // panneaux
-const sheets=["shSpine","shSet","shToc","shCfg","shMfa","shAuth","shBook","shPick","shCol","shAsk","shMobile"];function show(id){hideSel?.();const opening=id&&!$(id).classList.contains("on");sheets.forEach(s=>$(s).classList.toggle("on",opening&&s===id));$("scrim").classList.toggle("on",!!opening)}
+const sheets=["shDeco","shFilt","shSpine","shSet","shToc","shCfg","shMfa","shAuth","shBook","shPick","shCol","shAsk","shMobile"];function show(id){hideSel?.();const opening=id&&!$(id).classList.contains("on");sheets.forEach(s=>$(s).classList.toggle("on",opening&&s===id));$("scrim").classList.toggle("on",!!opening)}
 if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent))document.documentElement.classList.add("phone");
 $("mobileUrl").textContent=location.host+"/app";$("mobileFab").onclick=()=>show("shMobile");$("mobileOk").onclick=()=>show(null);
 $("scrim").onclick=()=>{if(askCb){$("askNo").click();return}show(null)};
@@ -702,7 +805,12 @@ function Api(c){const base=(c.server||"").replace(/\/$/,""),h={Authorization:"Be
     if(x.deleted||!ts){if(at[id]){await delSp(id);spSet("folioSpineAt",id,0);dropUrl(id);ch=true}continue}
     if(at[id]===ts){if(sent[id]!==ts){const b=await getSp(id);if(b){const q=await f(u,{method:"PUT",headers:{"Content-Type":b.type||"image/jpeg"},body:b});if(q.ok)spSet("folioSpineSent",id,ts)}}}
     else{const q=await f(u);if(q.ok){await putSp(id,await q.blob());spSet("folioSpineAt",id,ts);spSet("folioSpineSent",id,ts);dropUrl(id);ch=true}}}
+   const mat=spMap("folioModelAt"),ms=spMap("folioModelSent");
+   for(const x of RACK){if(x.kind!=="deco")continue;const ts=x.model||0;
+    if(x.deleted||!ts){if(mat[x.id]){await delSp(x.id+".glb");spSet("folioModelAt",x.id,0);spSet("folioModelSent",x.id,0)}continue}
+    if(mat[x.id]===ts&&ms[x.id]!==ts){const b=await getSp(x.id+".glb");if(b){const q=await f("/api/models/"+x.id,{method:"PUT",headers:{"Content-Type":"model/gltf-binary"},body:b});if(q.ok)spSet("folioModelSent",x.id,ts)}}}
    return ch},
+  async model(id){const r=await f("/api/models/"+id);return r.ok?r.blob():null},
   // manuscrits : on n'envoie que ce qui a changé depuis le dernier envoi réussi, le serveur répond avec ce qui nous manque
   async pushDraft(id){const d=await getD(id);if(!d)return;const s=DS()[id]||{rev:0,at:0},st=FolioWriter.stamp(d);
    const body={...d,chapters:d.chapters.filter(c=>(c.updated||0)>s.at)};if(!((d.coverAt||0)>s.at))delete body.cover;
@@ -812,7 +920,7 @@ $("bSync").onclick=doSync;
 // ---------- mises à jour ----------
 // le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
 // l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
-const APPV="2.3.2";let updShown=false;
+const APPV="2.4.0";let updShown=false;
 function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
  $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
 const D=window.folioDesktop;

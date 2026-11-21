@@ -60,10 +60,19 @@ function mergeCollections(cur, inc) {
 // « spine » = date de la photo de tranche en vigueur (0 = pas de photo). Fusion par livre : le plus récent gagne.
 const SID = /^(?:[0-9a-f]{40}|[a-z0-9]{6,32})$/;
 const txt = (s, n) => String(s ?? "").normalize("NFKC").replace(CTRL, "").trim().slice(0, n);
+// décorations (kind "deco") : dessin intégré (deco), ou photo / aperçu d'un modèle 3D (spine) et fichier .glb (model) ;
+// pos = place parmi les livres triés (2.5 = entre le 3e et le 4e), size = échelle
+const DECO_KEY = /^[a-z]{2,16}$/;
 const cleanShelf = (a) => (Array.isArray(a) ? a : []).filter((x) => x && SID.test(String(x.id))).slice(0, 10000)
-  .map((x) => ({ id: x.id, kind: x.kind === "paper" ? "paper" : "book", title: txt(x.title, 300), author: txt(x.author, 200),
-    spine: num(x.spine), front: num(x.front), back: num(x.back), created: num(x.created), updated: num(x.updated), deleted: x.deleted ? 1 : 0 }))
-  .filter((x) => x.kind === "paper" || HASH.test(x.id));
+  .map((x) => {
+    const kind = x.kind === "paper" || x.kind === "deco" ? x.kind : "book";
+    const o = { id: x.id, kind, title: txt(x.title, 300), author: txt(x.author, 200),
+      spine: num(x.spine), front: num(x.front), back: num(x.back), created: num(x.created), updated: num(x.updated), deleted: x.deleted ? 1 : 0 };
+    if (kind === "deco") Object.assign(o, { deco: DECO_KEY.test(x.deco) ? x.deco : "", pos: Math.max(-1e5, Math.min(1e5, num(x.pos))),
+      size: Math.max(.5, Math.min(2, num(x.size) || 1)), model: num(x.model), front: 0, back: 0 });
+    return o;
+  })
+  .filter((x) => x.kind !== "book" || HASH.test(x.id));
 // Manuscrits : HTML gardé tel quel (jamais affiché par le serveur ; les clients le nettoient avant affichage et export)
 const COVER = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
 const cleanDraft = (id, d) => ({ id, title: txt(d.title, 300), author: txt(d.author, 200),
@@ -89,6 +98,7 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
 
   app.addContentTypeParser("application/epub+zip", { parseAs: "buffer", bodyLimit: 300 * 1024 * 1024 }, (_r, b, done) => done(null, b));
   app.addContentTypeParser(["image/png", "image/jpeg", "image/webp"], { parseAs: "buffer", bodyLimit: 3 * 1024 * 1024 }, (_r, b, done) => done(null, b));
+  app.addContentTypeParser("model/gltf-binary", { parseAs: "buffer", bodyLimit: 20 * 1024 * 1024 }, (_r, b, done) => done(null, b));
 
   // Le serveur n'écoute que derrière Cloudflare Tunnel : l'IP réelle est dans CF-Connecting-IP
   const ipOf = (req) => String(req.headers["cf-connecting-ip"] || req.ip || "").slice(0, 64);
@@ -531,6 +541,7 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
     const FACES = ["spine", "front", "back"];
     const faceOf = (req) => (FACES.includes((req.query || {}).face) ? req.query.face : "spine");
     const spineFile = (uid, id, face = "spine") => path.join(dataDir, "spines", uid, face === "spine" ? id : `${id}.${face}`);
+    const modelFile = (uid, id) => path.join(dataDir, "spines", uid, `${id}.glb`);
     const SP = { schema: { params: { type: "object", properties: { id: { type: "string", pattern: SID.source } } } } };
     const shelfOf = async (id) => JSON.parse((await db.user.findUnique({ where: { id } })).shelf || "[]");
     api.get("/api/shelf", async (req) => shelfOf(req.userId));
@@ -541,7 +552,10 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
       const json = JSON.stringify(merged);
       if (json.length > 3 * 1048576) return fail(reply, 413, "too_big");
       await db.user.update({ where: { id: req.userId }, data: { shelf: json } });
-      for (const x of merged) for (const f of FACES) if (x.deleted || !x[f]) fs.rmSync(spineFile(req.userId, x.id, f), { force: true });
+      for (const x of merged) {
+        for (const f of FACES) if (x.deleted || !x[f]) fs.rmSync(spineFile(req.userId, x.id, f), { force: true });
+        if (x.deleted || !x.model) fs.rmSync(modelFile(req.userId, x.id), { force: true });
+      }
       return merged;
     });
     api.get("/api/spines/:id", SP, async (req, reply) => {
@@ -559,6 +573,24 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
       if (dirSize(dir) + req.body.length > 200 * 1048576) return fail(reply, 413, "quota", {}, { n: 200 });
       fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(spineFile(req.userId, req.params.id, face), req.body);
+      return { ok: true };
+    });
+    // modèle 3D d'une décoration (glTF binaire) : envoyé après l'étagère, comme les photos
+    api.get("/api/models/:id", SP, async (req, reply) => {
+      const f = modelFile(req.userId, req.params.id);
+      if (!fs.existsSync(f)) return fail(reply, 404, "no_model");
+      return reply.type("model/gltf-binary").header("Content-Disposition", "attachment; filename=model.glb").send(fs.readFileSync(f));
+    });
+    api.put("/api/models/:id", { ...SP, bodyLimit: 20 * 1048576 }, async (req, reply) => {
+      if (RL.hit(`spine:${req.userId}`, 300, 3600)) return tooMany(reply);
+      const b = req.body;
+      if (!Buffer.isBuffer(b) || b.length < 20 || b.toString("ascii", 0, 4) !== "glTF" || b.readUInt32LE(4) !== 2) return fail(reply, 400, "bad_model");
+      const it = (await shelfOf(req.userId)).find((x) => x.id === req.params.id);
+      if (!it || it.deleted || it.kind !== "deco" || !it.model) return fail(reply, 404, "no_model");
+      const dir = path.dirname(modelFile(req.userId, req.params.id));
+      if (dirSize(dir) + b.length > 200 * 1048576) return fail(reply, 413, "quota", {}, { n: 200 });
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(modelFile(req.userId, req.params.id), b);
       return { ok: true };
     });
     // ---------- manuscrits (fusion par chapitre, cf. merge.js) ----------

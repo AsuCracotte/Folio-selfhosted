@@ -143,3 +143,7 @@ scale slider { min-width: 18px; min-height: 18px; background: @window_bg_color; 
 
 /* fiche d’un livre de l’étagère : vignettes couverture et dos */
 .face-thumb { border-radius: 4px 8px 8px 4px; border: 1.5px dashed alpha(currentColor, .2); background: alpha(currentColor, .04); }
+
+/* étagère : décorations à choisir ; bouton des filtres actif */
+.deco-pick { padding: 8px; min-height: 84px; border-radius: 14px; }
+.filter-on { color: @accent_color; }

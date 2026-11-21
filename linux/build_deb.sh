@@ -2,7 +2,7 @@
 # Construit folio-reader_<version>_all.deb  —  usage : ./build_deb.sh
 set -e
 cd "$(dirname "$0")"
-VERSION=2.3.1
+VERSION=2.4.0
 PKG=folio-reader
 ROOT=build/$PKG
 rm -rf build && mkdir -p $ROOT/DEBIAN $ROOT/usr/bin $ROOT/usr/share/folio/reader \
@@ -15,6 +15,7 @@ install -d $ROOT/usr/share/folio/icons && install -m644 src/icons/*.svg $ROOT/us
 install -d $ROOT/usr/share/folio/decor && install -m644 src/decor/*.svg $ROOT/usr/share/folio/decor/
 install -d $ROOT/usr/share/folio/fonts && install -m644 src/fonts/*.ttf $ROOT/usr/share/folio/fonts/ && install -m644 src/fonts/OFL.txt $ROOT/usr/share/doc/$PKG/Fraunces-OFL.txt
 install -m644 src/reader/reader.html src/reader/notes.js src/reader/voice.js src/reader/epub.min.js src/reader/jszip.min.js $ROOT/usr/share/folio/reader/
+install -d $ROOT/usr/share/folio/model3d && install -m644 src/model3d/model.html src/model3d/glb.js $ROOT/usr/share/folio/model3d/
 install -d $ROOT/usr/share/folio/writer && install -m644 src/writer/writer.html src/writer/write.js src/writer/jszip.min.js $ROOT/usr/share/folio/writer/
 printf '#!/bin/sh\nexec python3 /usr/share/folio/app.py "$@"\n' > $ROOT/usr/bin/folio && chmod 755 $ROOT/usr/bin/folio
 echo "$VERSION" > $ROOT/usr/share/folio/VERSION      # version installée : sert à la mise à jour depuis l'appli

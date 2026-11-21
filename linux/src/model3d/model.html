@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>html,body{margin:0;height:100%;background:transparent;overflow:hidden}canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}</style></head>
+<body><canvas id="c"></canvas><script src="glb.js"></script><script>
+// Modèle 3D d'une décoration (appli Linux) : affichage qui tourne seul, glisser pour pivoter, aperçu PNG pour l'étagère
+const post = (m) => window.webkit.messageHandlers.m3.postMessage(JSON.stringify(m));
+const cv = document.getElementById("c");
+let v = null, sc = null, drag = null;
+const bytes = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0)).buffer;
+function size() { const d = Math.min(2, devicePixelRatio || 1); cv.width = innerWidth * d; cv.height = innerHeight * d; }
+window.Folio3D = {
+  async show(data) {
+    try { sc = await FolioGLB.parse(bytes(data)); size(); if (v) v.dispose(); v = FolioGLB.view(cv, sc); post({ t: "ok" }); }
+    catch (e) { post({ t: "err", e: String(e.message || e) }); }
+  },
+  async thumb() {
+    try { const b = await FolioGLB.snapshot(sc, 512), r = new FileReader(); r.onload = () => post({ t: "thumb", png: r.result.split(",")[1] }); r.readAsDataURL(b); }
+    catch (e) { post({ t: "err", e: String(e.message || e) }); }
+  },
+};
+addEventListener("resize", size);
+cv.addEventListener("pointerdown", (e) => { if (!v) return; drag = [e.clientX, e.clientY, v.yaw, v.pitch]; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointermove", (e) => { if (!drag) return; v.yaw = drag[2] + (e.clientX - drag[0]) * .01; v.pitch = Math.max(-1.2, Math.min(1.2, drag[3] + (e.clientY - drag[1]) * .01)); });
+const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+(function loop() { if (v) { if (!drag) v.yaw += .006; v.draw(); } requestAnimationFrame(loop); })();
+post({ t: "ready" });
+</script></body></html>

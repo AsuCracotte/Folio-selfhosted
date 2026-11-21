@@ -102,8 +102,12 @@ class Sync:
     def _stem(x, face):
         return x["id"] if face == "spine" else f"{x['id']}.{face}"
 
+    @staticmethod
+    def _ext(face):
+        return "glb" if face == "model" else "jpg"
+
     def _spine_file(self, x, face="spine"):
-        return self.dir / "spines" / f"{self._stem(x, face)}-{round((x[face] or 0) * 1000)}.jpg"
+        return self.dir / "spines" / f"{self._stem(x, face)}-{round((x[face] or 0) * 1000)}.{self._ext(face)}"
 
     def _sent(self, x, face="spine"):
         return self._spine_file(x, face).exists()
@@ -121,14 +125,14 @@ class Sync:
         return True
 
     def _drop_spine(self, x, face="spine"):
-        for old in (self.dir / "spines").glob(f"{self._stem(x, face)}-*.jpg"):
+        for old in (self.dir / "spines").glob(f"{self._stem(x, face)}-*.{self._ext(face)}"):
             old.unlink(missing_ok=True)
 
     def shelf(self):
         """Échange l'étagère puis les photos (tranche, couverture, dos). Retourne True si quelque chose a changé ici."""
         changed = self._shelf_exchange()
         for x in self.lib.shelf_items(with_deleted=True):
-            for face in self.lib.FACES:
+            for face in self.lib.SYNC_FACES:
                 sid, p, ts, at = x["id"], self.lib.spine_path(x["id"], face), x[face] or 0, x[f"{face}_at"] or 0
                 if x["deleted"] or not ts:
                     if at or p.exists():
@@ -319,6 +323,8 @@ class ApiSync(Sync):
 
     @staticmethod
     def _url(x, face):
+        if face == "model":
+            return f"/api/models/{x['id']}"
         return f"/api/spines/{x['id']}" + ("" if face == "spine" else f"?face={face}")
 
     def _get_spine(self, x, face="spine"):
@@ -328,7 +334,7 @@ class ApiSync(Sync):
             return None
 
     def _put_spine(self, x, data, face="spine"):
-        ctype = "image/png" if data[:4] == b"\x89PNG" else "image/jpeg"
+        ctype = "model/gltf-binary" if face == "model" else "image/png" if data[:4] == b"\x89PNG" else "image/jpeg"
         self._req("PUT", self._url(x, face), data, ctype)
         return True
 

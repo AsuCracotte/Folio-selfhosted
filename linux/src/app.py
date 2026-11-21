@@ -22,7 +22,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("WebKit", "6.0")
 gi.require_version("PangoCairo", "1.0")
-from gi.repository import Adw, Gdk, GdkPixbuf, Gio, GLib, Graphene, Gsk, Gtk, Pango, PangoCairo, WebKit  # noqa: E402
+from gi.repository import Adw, Gdk, GdkPixbuf, Gio, GLib, GObject, Graphene, Gsk, Gtk, Pango, PangoCairo, WebKit  # noqa: E402
 import cairo  # noqa: E402
 import math  # noqa: E402
 
@@ -196,25 +196,59 @@ def face_jpeg(pb):
     return bytes(buf)
 
 
-# décorations (plantes, peluches) : mêmes dessins que le site, posées entre les livres et sur les étagères vides
-DECO = {"succ": (70, 100), "snake": (60, 150), "stack": (92, 96), "bear": (80, 92), "bunny": (64, 112), "cat": (74, 80)}
+DECO_NAMES = {"succ": "Succulente", "snake": "Sansevière", "stack": "Pile de livres", "bear": "Ourson", "bunny": "Lapin", "cat": "Chat",
+              "lamp": "Lampe", "globe": "Globe", "candle": "Bougie", "hourglass": "Sablier", "vase": "Bouquet", "cactus": "Cactus",
+              "mug": "Tasse", "clock": "Réveil", "owl": "Chouette", "frame": "Tableau"}
+# décorations : mêmes dessins que le site (decor/*.svg), photos ou modèles 3D (.glb). Ce sont des éléments de l'étagère
+# (kind « deco », synchronisés) : pos = place parmi les livres triés (2.5 = entre le 3e et le 4e), size = échelle
+DECO = {"succ": (70, 100), "snake": (60, 150), "stack": (92, 96), "bear": (80, 92), "bunny": (64, 112), "cat": (74, 80),
+        "lamp": (70, 128), "globe": (74, 112), "candle": (52, 100), "hourglass": (56, 104), "vase": (70, 134), "cactus": (64, 120),
+        "mug": (70, 76), "clock": (70, 84), "owl": (64, 90), "frame": (76, 96)}
 DECO_K, DECO_GAP = ["succ", "bear", "snake", "stack", "bunny", "cat"], [6, 9, 5, 8, 7, 10]
 
 
-def deco_widget(n, big=False):
-    k = DECO_K[n % len(DECO_K)]; w, h = DECO[k]; z = 1 if big else .86
-    W, H = round(w * z), round(h * z)
+def svg_pixbuf(key, W, H):
     try:   # dessin rendu au double de la taille puis réduit : net sur les écrans HiDPI
-        pb = GdkPixbuf.Pixbuf.new_from_file_at_scale(os.path.join(SHARE, "decor", k + ".svg"), W * 2, H * 2, True)
+        return GdkPixbuf.Pixbuf.new_from_file_at_scale(os.path.join(SHARE, "decor", key + ".svg"), W * 2, H * 2, True)
     except GLib.Error:
-        pb = None
-    area = Gtk.DrawingArea(content_width=W, content_height=H, valign=Gtk.Align.END)
+        return None
 
-    def draw(_a, cr, aw, ah):
-        if pb:
-            cr.scale(aw / pb.get_width(), ah / pb.get_height()); Gdk.cairo_set_source_pixbuf(cr, pb, 0, 0); cr.paint()
-    area.set_draw_func(draw); area.add_css_class("deco"); area.deco_w = W + 24
-    return area
+
+class Deco(Gtk.DrawingArea):
+    """Une décoration posée sur l'étagère : dessin, photo dans un cadre, ou aperçu d'un modèle 3D."""
+
+    def __init__(self, x, edit=False, selected=False):
+        super().__init__(valign=Gtk.Align.END, margin_start=12, margin_end=12)
+        self.x, self.edit, self.sel = x, edit, selected
+        size, key = float(x.get("size") or 1), x.get("deco") or ""
+        self.frame = False
+        if key in DECO:
+            w, h = DECO[key]; W, H = round(w * .86 * size), round(h * .86 * size); self.pb = svg_pixbuf(key, W, H)
+        else:
+            self.pb = cover_pixbuf(Library.spine_path(x["id"])) if x.get("spine") else None
+            H = round((134 if x.get("model") else 96) * size)
+            W = round(H * self.pb.get_width() / self.pb.get_height()) if self.pb else round(H * .7)
+            self.frame = not x.get("model")
+            if self.frame:
+                W, H = W + 16, H + 16                      # cadre en bois et passe-partout
+        self.set_content_width(W); self.set_content_height(H); self.deco_w = W + 24; self.p = float(x.get("pos") or 0)
+        self.set_draw_func(self.draw); self.add_css_class("deco")
+        self.set_tooltip_text(x.get("title") or None)
+        if edit or x.get("model"):
+            self.set_cursor(Gdk.Cursor.new_from_name("grab" if edit else "pointer"))
+
+    def draw(self, _a, cr, w, h):
+        if self.frame:
+            cr.set_source_rgb(.54, .42, .27); cr.rectangle(0, 0, w, h); cr.fill()
+            cr.set_source_rgb(.97, .95, .91); cr.rectangle(3, 3, w - 6, h - 6); cr.fill()
+            if self.pb:
+                cr.save(); cr.translate(8, 8); cr.scale((w - 16) / self.pb.get_width(), (h - 16) / self.pb.get_height())
+                Gdk.cairo_set_source_pixbuf(cr, self.pb, 0, 0); cr.paint(); cr.restore()
+        elif self.pb:
+            cr.save(); cr.scale(w / self.pb.get_width(), h / self.pb.get_height()); Gdk.cairo_set_source_pixbuf(cr, self.pb, 0, 0); cr.paint(); cr.restore()
+        if self.edit:                                      # mode « arranger » : contour pointillé, plein si sélectionnée
+            c = Gdk.RGBA(); c.parse("#6d5bd0"); cr.set_source_rgba(c.red, c.green, c.blue, 1 if self.sel else .6)
+            cr.set_line_width(2); cr.set_dash([] if self.sel else [5, 4]); cr.rectangle(1, 1, w - 2, h - 2); cr.stroke()
 
 
 def cover_pixbuf(path):
@@ -596,6 +630,13 @@ class FolioWindow(Adw.ApplicationWindow):
             sect.append(c); self.chips[key] = c
         self.count = Gtk.Label(hexpand=True, xalign=1); self.count.add_css_class("muted"); self.count.add_css_class("caption")
         sect.append(self.count)
+        # filtres (propres à cet appareil) : masquer des livres selon leur avancement ou leurs collections
+        self.filt_btn = Gtk.MenuButton(icon_name="folio-filter-symbolic", tooltip_text=T("Filtres"), valign=Gtk.Align.CENTER)
+        self.filt_btn.add_css_class("flat"); self.filt_btn.add_css_class("circular")
+        self.filt_btn.set_create_popup_func(self.fill_filters); sect.append(self.filt_btn)
+        f = self.lib_filter()
+        if f["hide"] or f["cols"] or f["in_col"]:
+            self.filt_btn.add_css_class("filter-on")
         # collections : une puce par collection (même groupe que les étagères) + « Nouvelle collection »
         self.coll_row = Gtk.Box(spacing=8, margin_bottom=4)
         self.coll_scroll = Gtk.ScrolledWindow(child=self.coll_row, vscrollbar_policy=Gtk.PolicyType.NEVER,
@@ -703,9 +744,64 @@ class FolioWindow(Adw.ApplicationWindow):
         p = b["progress"] or 0
         return "done" if p > .98 else "reading" if p > 0 or b["last_read"] else "unread"
 
+    def lib_filter(self):
+        f = self.settings.get("lib_filter") or {}
+        return {"hide": list(f.get("hide") or []), "cols": list(f.get("cols") or []), "in_col": bool(f.get("in_col"))}
+
+    def filtered_out(self, child):
+        f = self.lib_filter()
+        if self.shelf in ("reading", "unread", "done"):  # l'utilisateur a choisi cet avancement : on le montre
+            return False
+        if child.shelf in f["hide"]:
+            return True
+        if self.shelf.startswith("c:"):
+            return False
+        return any(child.hash in books and (f["in_col"] or cid in f["cols"]) for cid, books in self.coll_map.items())
+
+    def set_lib_filter(self, f):
+        f["cols"] = [c for c in f["cols"] if c in self.coll_map]
+        self.settings["lib_filter"] = f; self.lib.save_settings(self.settings)
+        on = bool(f["hide"] or f["cols"] or f["in_col"])
+        (self.filt_btn.add_css_class if on else self.filt_btn.remove_css_class)("filter-on")
+        self.apply_filter()
+
+    def fill_filters(self, mb):
+        f = self.lib_filter()
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2, margin_top=10, margin_bottom=8, margin_start=8, margin_end=8, width_request=280)
+
+        def head(t):
+            h = Gtk.Label(label=t.upper(), xalign=0, margin_start=6, margin_top=6, margin_bottom=2); h.add_css_class("sub-head"); box.append(h)
+
+        def check(label, active, cb):
+            c = Gtk.CheckButton(label=label, active=active); c.connect("toggled", lambda w: cb(w.get_active())); box.append(c); return c
+        head(T("Afficher les livres"))
+        for st, label in (("unread", T("Pas encore commencés")), ("reading", T("En cours de lecture")), ("done", T("Terminés"))):
+            def tog(on, s=st):
+                g = self.lib_filter(); g["hide"] = [x for x in g["hide"] if x != s] + ([] if on else [s]); self.set_lib_filter(g)
+            check(label, st not in f["hide"], tog)
+        if self.coll_map:
+            head(T("Collections"))
+            ins, per = [], []
+
+            def tog_in(on):
+                g = self.lib_filter(); g["in_col"] = on; self.set_lib_filter(g)
+                for c in per:
+                    c.set_sensitive(not on)
+            ins.append(check(T("Masquer les livres rangés dans une collection"), f["in_col"], tog_in))
+            for cid, name in sorted(self.coll_names.items(), key=lambda kv: kv[1].casefold()):
+                def tog_c(on, c=cid):
+                    g = self.lib_filter(); g["cols"] = [x for x in g["cols"] if x != c] + ([c] if on else []); self.set_lib_filter(g)
+                c = check(T("Masquer « {t} »", t=name), cid in f["cols"], tog_c); c.set_sensitive(not f["in_col"]); per.append(c)
+        rs = Gtk.Button(label=T("Tout afficher"), margin_top=8); rs.add_css_class("pill-small")
+        rs.connect("clicked", lambda *_: (self.set_lib_filter({"hide": [], "cols": [], "in_col": False}), mb.popdown()))
+        box.append(rs)
+        mb.set_popover(Gtk.Popover(child=box))
+
     def book_visible(self, child):
         if child.book_id is None:                       # tuile « Ajouter »
             return not self.query and self.shelf == "all"
+        if self.filtered_out(child):
+            return False
         if self.shelf.startswith("c:"):
             ok = child.hash in self.coll_map.get(self.shelf[2:], ())
         else:
@@ -1134,15 +1230,27 @@ class FolioWindow(Adw.ApplicationWindow):
         deco = Gtk.ToggleButton(icon_name="folio-leaf-symbolic", tooltip_text=T("Décorations"), valign=Gtk.Align.CENTER,
                                 active=self.settings.get("rack_deco", True))
         deco.add_css_class("flat"); deco.add_css_class("circular"); deco.add_css_class("rack-deco")
-        deco.connect("toggled", lambda w: self.set_rack_deco(w.get_active()))
-        header.pack_end(add); header.pack_end(deco); header.pack_end(seg)
+        deco.connect("toggled", lambda w: self.set_rack_deco(w.get_active())); self.deco_btn = deco
+        self.rack_edit, self.deco_sel, self.case_wids = False, None, []
+        edit = Gtk.ToggleButton(icon_name="document-edit-symbolic", tooltip_text=T("Arranger l’étagère"), valign=Gtk.Align.CENTER)
+        edit.add_css_class("flat"); edit.add_css_class("circular"); edit.add_css_class("rack-deco")
+        edit.connect("toggled", lambda w: w.get_active() != self.rack_edit and self.set_rack_edit(w.get_active())); self.edit_btn = edit
+        header.pack_end(add); header.pack_end(edit); header.pack_end(deco); header.pack_end(seg)
         view.add_top_bar(header)
+        self.edit_bar = Gtk.Box(spacing=14, margin_top=14, visible=False)
+        ad = Gtk.Button(child=Adw.ButtonContent(icon_name="list-add-symbolic", label=T("Ajouter une décoration")))
+        ad.add_css_class("suggested-action"); ad.add_css_class("pill-small"); ad.connect("clicked", lambda *_: self.add_deco_dialog())
+        hl = Gtk.Label(label=T("Glissez une décoration pour la déplacer ; cliquez dessus pour changer sa taille ou la retirer."),
+                       wrap=True, xalign=0, hexpand=True); hl.add_css_class("muted")
+        dn = Gtk.Button(label=T("Terminé")); dn.add_css_class("pill-small"); dn.connect("clicked", lambda *_: self.set_rack_edit(False))
+        for wdg in (ad, hl, dn):
+            self.edit_bar.append(wdg)
         self.case = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, margin_top=16); self.case.add_css_class("bookcase")
         tip = Gtk.Label(label=T("Importez la photo de la tranche de vos livres, numériques ou papier : votre étagère se compose et vous suit sur tous vos appareils. Depuis votre téléphone, vous pouvez la photographier directement."),
                         wrap=True, xalign=0, margin_top=18); tip.add_css_class("muted")
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, margin_start=28, margin_end=28, margin_bottom=40)
         foot = Gtk.Box(); foot.add_css_class("case-foot")
-        box.append(self.case); box.append(foot); box.append(tip)
+        box.append(self.edit_bar); box.append(self.case); box.append(foot); box.append(tip)
         self.case_w = 0
         self.case.add_tick_callback(lambda *_: (self.layout_case() if self.stack.get_visible_child_name() == "rack" else None) or True)
         view.set_content(Gtk.ScrolledWindow(vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER,
@@ -1161,24 +1269,39 @@ class FolioWindow(Adw.ApplicationWindow):
         items = self.rack_items()
         self.case_count.set_label(T("{n} livres" if len(items) > 1 else "{n} livre", n=len(items)))
         on = self.settings.get("rack_deco", True)
-        # comme une vraie bibliothèque (et comme le site) : livres debout, quelques couvertures de face, des piles couchées
-        wids, nd, nxt, i, n, since_face, since_lie = [], 0, DECO_GAP[0], 0, 0, 3, 4
+        if on:
+            self.deco_defaults(len(items))
+        ds = sorted((x for x in self.lib.shelf_items() if x["kind"] == "deco"), key=lambda x: x["pos"] or 0) if on else []
+        # comme une vraie bibliothèque (et comme le site) : livres debout, quelques couvertures de face, des piles couchées,
+        # et les décorations à leur place
+        wids, dj, i, n, since_face, since_lie = [], 0, 0, 0, 3, 4
+
+        def put(wid, p):
+            wid.p = p; wids.append(wid)
+
+        def put_d(lim):
+            nonlocal dj
+            while dj < len(ds) and (ds[dj]["pos"] or 0) < lim:
+                wids.append(self.deco_widget(ds[dj])); dj += 1
         while i < len(items):
+            put_d(i)
             x, hh = items[i], hn(items[i]["id"])
-            if on and n == nxt:
-                wids.append(deco_widget(nd)); nd += 1; nxt += DECO_GAP[nd % len(DECO_GAP)]
             pb = cover_pixbuf(x.get("cover")) if since_face >= 6 and hh % 3 == 0 and x["kind"] == "book" else None
             if pb:
-                wids.append(FaceCover(x, pb, self.book_view)); since_face = 0; i += 1
+                put(FaceCover(x, pb, self.book_view), i); since_face = 0; i += 1
             elif since_lie >= 8 and len(items) - i >= 3 and hh % 4 == 1:
-                k = 2 + hh % 2; wids.append(LyingStack(items[i:i + k], self.book_view)); since_lie = 0; i += k; n += 1
+                k = 2 + hh % 2; put(LyingStack(items[i:i + k], self.book_view), i); since_lie = 0; i += k; n += 1
                 continue
             else:
-                wids.append(Spine(x, on_click=self.book_view)); i += 1
+                put(Spine(x, on_click=self.book_view), i); i += 1
             since_face += 1; since_lie += 1; n += 1
-        wids.append(self.spine_add_tile())
-        if on and len(items) < 4:
-            wids.append(deco_widget(nd)); nd += 1
+        put_d(len(items) - .25)
+        put(self.spine_add_tile(), len(items) - .25)
+        put_d(float("inf"))
+        self.case_wids = wids
+        if self.rack_edit:
+            for wid in wids:
+                self.drop_target(wid)
         inner = w - 32                                          # rembourrage des rangées
         row, used, rows = None, 0, 0
         for wid in wids:
@@ -1187,13 +1310,206 @@ class FolioWindow(Adw.ApplicationWindow):
                 row, used = Gtk.Box(spacing=3), 0; rows += 1
                 row.add_css_class("shelf-row"); self.case.append(row)
             row.append(wid); used += ww + 3
-        # plusieurs étages même avec peu de livres : on complète par des étagères décorées
+        # plusieurs étages même avec peu de livres : des étagères vides, où poser des décorations
         for r in range(rows, 3):
-            row = Gtk.Box(spacing=round(inner * .2)); row.add_css_class("shelf-row"); self.case.append(row)
-            if on:
-                d = deco_widget(nd, True); nd += 1; d.set_margin_start(round(inner * (.08 + (r * 29) % 46 / 100))); row.append(d)
-                if r % 2:
-                    row.append(deco_widget(nd, True)); nd += 1
+            row = Gtk.Box(); row.add_css_class("shelf-row"); self.case.append(row)
+
+    # ------------------------------------------------------------------ décorations de l'étagère
+    def deco_defaults(self, n):
+        """Premier passage : les décorations d'avant deviennent de vrais objets. Ids fixes et date très ancienne :
+        deux appareils ne les créent pas en double et ce qui est déjà sur le serveur l'emporte (comme le site)."""
+        if any(x["kind"] == "deco" for x in self.lib.shelf_items(with_deleted=True)):
+            return
+        g, k, rows = DECO_GAP[0], 0, []
+        while g <= n and k < 12:
+            rows.append(g - .5); k += 1; g += DECO_GAP[k % len(DECO_GAP)]
+        for j in range(3 if n < 12 else 0):
+            rows.append(n + .5 + j)
+        for k, pos in enumerate(rows[:12]):
+            x = {"id": f"decodef{k}", "kind": "deco", "deco": DECO_K[k % len(DECO_K)], "pos": pos, "size": 1, "deleted": 0}
+            self.lib.db.execute(self.lib._UPSERT, self.lib._row(x, 1, 1))
+        self.lib.db.commit(); self.push_shelf_soon()
+
+    def deco_widget(self, x):
+        d = Deco(x, self.rack_edit, self.deco_sel == x["id"])
+        c = Gtk.GestureClick(); c.connect("released", lambda *_: self.deco_click(d)); d.add_controller(c)
+        if self.rack_edit:                             # glisser pour déplacer
+            src = Gtk.DragSource(actions=Gdk.DragAction.MOVE)
+            src.connect("prepare", lambda *_: Gdk.ContentProvider.new_for_value(x["id"]))
+            src.connect("drag-begin", lambda s, _d: s.set_icon(Gtk.WidgetPaintable.new(d), d.get_width() // 2, d.get_height() // 2))
+            d.add_controller(src)
+        return d
+
+    def drop_target(self, wid):
+        t = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.MOVE)
+        t.connect("drop", lambda _t, did, x, _y: self.deco_drop(did, wid, x > wid.get_width() / 2))
+        wid.add_controller(t)
+
+    @staticmethod
+    def pos_between(a, b):
+        pa = a.p if a is not None else (b.p - 1 if b is not None else 0)
+        return (pa + (b.p if b is not None else pa + 1)) / 2
+
+    def deco_drop(self, did, target, after):
+        rest = [w for w in self.case_wids if getattr(w, "x", {}).get("id") != did]
+        if target not in rest:
+            return False
+        j = rest.index(target) + (1 if after else 0)
+        self.set_deco(did, pos=self.pos_between(rest[j - 1] if j else None, rest[j] if j < len(rest) else None))
+        return True
+
+    def set_deco(self, did, **kw):
+        self.lib.shelf_put(did, **kw); self.layout_case(force=True); self.push_shelf_soon()
+
+    def deco_click(self, d):
+        if not self.rack_edit:
+            if d.x.get("model"):
+                self.model_view(d.x)
+            return
+        self.deco_sel = d.x["id"]; self.layout_case(force=True)
+        w = next((x for x in self.case_wids if getattr(x, "x", {}).get("id") == d.x["id"]), None)
+        if w:
+            GLib.idle_add(lambda: self.deco_popover(w) and False)
+
+    def deco_popover(self, d):
+        pop = Gtk.Popover(); pop.set_parent(d); box = Gtk.Box(spacing=2, margin_top=4, margin_bottom=4, margin_start=4, margin_end=4)
+        x, did = d.x, d.x["id"]
+
+        def step(k):
+            rest = [w for w in self.case_wids if w is not d]; t = max(0, min(len(rest), self.case_wids.index(d) + k))
+            self.set_deco(did, pos=self.pos_between(rest[t - 1] if t else None, rest[t] if t < len(rest) else None))
+        size = lambda k: self.set_deco(did, size=round(max(.5, min(2, float(x.get("size") or 1) + k)), 2))  # noqa: E731
+        for icon, tip, fn in (("go-previous-symbolic", T("Vers la gauche"), lambda: step(-1)), ("go-next-symbolic", T("Vers la droite"), lambda: step(1)),
+                              ("zoom-out-symbolic", T("Plus petite"), lambda: size(-.15)), ("zoom-in-symbolic", T("Plus grande"), lambda: size(.15)),
+                              ("user-trash-symbolic", T("Retirer"), lambda: (setattr(self, "deco_sel", None), self.set_deco(did, deleted=1)))):
+            b = Gtk.Button(icon_name=icon, tooltip_text=tip); b.add_css_class("flat")
+            if icon.startswith("user-trash"):
+                b.add_css_class("destructive-action")
+            b.connect("clicked", lambda _b, f=fn: (pop.popdown(), GLib.idle_add(lambda: f() and False)))
+            box.append(b)
+        pop.set_child(box); pop.connect("closed", lambda p: GLib.idle_add(p.unparent)); pop.popup()
+
+    def set_rack_edit(self, on):
+        self.rack_edit, self.deco_sel = on, None
+        if on and not self.settings.get("rack_deco", True):
+            self.set_rack_deco(True); self.deco_btn.set_active(True)
+        self.edit_bar.set_visible(on)
+        if self.edit_btn.get_active() != on:
+            self.edit_btn.set_active(on)
+        self.layout_case(force=True)
+
+    def new_deco_pos(self):
+        return min([0] + [x["pos"] or 0 for x in self.lib.shelf_items() if x["kind"] == "deco"]) - .5
+
+    @staticmethod
+    def new_id():
+        import secrets, string
+        return "".join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(10))
+
+    def deco_added(self, did):
+        self.deco_sel = did
+        if not self.rack_edit:
+            self.set_rack_edit(True)
+        else:
+            self.layout_case(force=True)
+        self.push_shelf_soon()
+
+    def add_deco_dialog(self):
+        dlg = Adw.Dialog(content_width=520, content_height=620, title=T("Ajouter une décoration"))
+        tv = Adw.ToolbarView(); tv.add_top_bar(Adw.HeaderBar())
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14, margin_start=20, margin_end=20, margin_bottom=20)
+        grid = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, max_children_per_line=6, min_children_per_line=3,
+                           column_spacing=8, row_spacing=8, homogeneous=True)
+        for k, (w, h) in DECO.items():
+            pb = svg_pixbuf(k, round(w * .6), round(h * .6))
+            img = Gtk.Picture.new_for_pixbuf(pb) if pb else Gtk.Label(label=k)
+            if pb:
+                img.set_can_shrink(True); img.set_size_request(60, 68)
+            b = Gtk.Button(child=img, tooltip_text=T(DECO_NAMES.get(k, k))); b.add_css_class("deco-pick")
+
+            def pick(_b, key=k):
+                did = self.new_id()
+                self.lib.shelf_put(did, kind="deco", deco=key, pos=self.new_deco_pos(), size=1, deleted=0)
+                dlg.close(); self.deco_added(did)
+            b.connect("clicked", pick); grid.append(b)
+        box.append(grid)
+        acts = Gtk.Box(spacing=10, homogeneous=True)
+        ph = Gtk.Button(child=Adw.ButtonContent(icon_name="image-x-generic-symbolic", label=T("Votre photo…"))); ph.add_css_class("pill")
+        m3 = Gtk.Button(child=Adw.ButtonContent(icon_name="insert-object-symbolic", label=T("Modèle 3D (.glb)…"))); m3.add_css_class("pill")
+
+        def photo(_b):
+            def done(pb):
+                did = self.new_id()
+                self.lib.set_spine(did, face_jpeg(pb), kind="deco", deco="", pos=self.new_deco_pos(), size=1)
+                dlg.close(); self.deco_added(did)
+            self.pick_image(T("Votre photo"), done)
+        ph.connect("clicked", photo); m3.connect("clicked", lambda *_: self.pick_model(dlg))
+        acts.append(ph); acts.append(m3); box.append(acts)
+        tip = Gtk.Label(label=T("Photo : posée dans un cadre. Modèle 3D : fichier glTF binaire (.glb), 20 Mo max. ; cliquez dessus sur l’étagère pour le voir tourner."),
+                        wrap=True, xalign=0); tip.add_css_class("muted"); tip.add_css_class("caption"); box.append(tip)
+        tv.set_content(Gtk.ScrolledWindow(child=box, vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER)); dlg.set_child(tv); dlg.present(self)
+
+    def pick_model(self, parent_dlg):
+        flt = Gtk.FileFilter(name=T("Modèles 3D (.glb)")); flt.add_pattern("*.glb"); flt.add_mime_type("model/gltf-binary")
+        fl = Gio.ListStore.new(Gtk.FileFilter); fl.append(flt)
+
+        def picked(dlg, res):
+            try:
+                f = dlg.open_finish(res)
+            except GLib.Error:
+                return
+            p = Path(f.get_path())
+            if p.stat().st_size > 20 * 1048576:
+                return self.toast(T("Modèle trop lourd (20 Mo max.)"))
+            data = p.read_bytes()
+            if data[:4] != b"glTF":
+                return self.toast(T("Ce modèle 3D ne peut pas être affiché"))
+
+            def add(png):
+                did = self.new_id()
+                self.lib.set_model(did, data, kind="deco", deco="", pos=self.new_deco_pos(), size=1, title=p.stem[:120])
+                self.lib.set_spine(did, png, kind="deco")
+                parent_dlg.close(); self.deco_added(did)
+            self.model_dialog(p.stem, data, add)
+        Gtk.FileDialog(title=T("Modèle 3D (.glb)"), filters=fl).open(self, None, picked)
+
+    def model_view(self, x):
+        p = Library.spine_path(x["id"], "model")
+        if not p.exists():
+            return self.toast(T("Modèle 3D pas encore synchronisé"))
+        self.model_dialog(x.get("title") or T("Modèle 3D"), p.read_bytes())
+
+    def model_dialog(self, title, data, on_add=None):
+        """Le modèle 3D en grand (WebGL dans une vue web) ; on_add(png) : bouton « Poser sur l'étagère » avec l'aperçu calculé."""
+        dlg = Adw.Dialog(content_width=560, content_height=640, title=title)
+        tv = Adw.ToolbarView(); hb = Adw.HeaderBar(); tv.add_top_bar(hb)
+        web = WebKit.WebView(hexpand=True, vexpand=True)
+        ws = web.get_settings(); getattr(ws, "set_allow_file_access_from_file_urls", lambda v: None)(True)
+        getattr(ws, "set_enable_webgl", lambda v: None)(True); web.set_settings(ws)
+        web.set_background_color(Gdk.RGBA(alpha=0))
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL); box.append(web)
+        hint = Gtk.Label(label=T("Glissez pour le faire tourner"), margin_top=6, margin_bottom=14); hint.add_css_class("muted"); box.append(hint)
+        if on_add:
+            ok = Gtk.Button(label=T("Poser sur l’étagère"), sensitive=False); ok.add_css_class("suggested-action"); hb.pack_end(ok)
+            ok.connect("clicked", lambda *_: web.evaluate_javascript("Folio3D.thumb()", -1))
+        ucm = web.get_user_content_manager(); ucm.register_script_message_handler("m3", None)
+
+        def msg(_u, value):
+            try:
+                m = json.loads(value.to_string())
+            except ValueError:
+                return
+            if m.get("t") == "ready":
+                web.evaluate_javascript(f"Folio3D.show({json.dumps(base64.b64encode(data).decode())})", -1)
+            elif m.get("t") == "ok" and on_add:
+                ok.set_sensitive(True)
+            elif m.get("t") == "thumb" and on_add:
+                dlg.close(); on_add(base64.b64decode(m["png"]))
+            elif m.get("t") == "err":
+                dlg.close(); self.toast(T("Ce modèle 3D ne peut pas être affiché"))
+        ucm.connect("script-message-received::m3", msg)
+        web.load_uri(GLib.filename_to_uri(os.path.join(SHARE, "model3d", "model.html")))
+        tv.set_content(box); dlg.set_child(tv); dlg.present(self)
 
     # un livre de l'étagère, en 3D : il pivote de la tranche vers la couverture
     def book_view(self, item):
@@ -1538,9 +1854,11 @@ class FolioWindow(Adw.ApplicationWindow):
         empty = {"reading": T("Aucun livre en cours."), "unread": T("Tous vos livres ont été commencés."),
                  "done": T("Aucun livre terminé pour l’instant.")}
         coll = T("Cette collection est vide : ajoutez-y des livres depuis leur menu ⋯")
+        f = self.lib_filter(); fon = bool(n and (f["hide"] or f["cols"] or f["in_col"]))
         self.nomatch.set_label(T("Aucun livre ne correspond à cette recherche.") if self.query
-                               else coll if self.shelf.startswith("c:") else empty.get(self.shelf, ""))
-        self.nomatch.set_visible(not shown and (bool(self.query) or self.shelf != "all") and not self.folded("lib"))
+                               else coll if self.shelf.startswith("c:")
+                               else empty.get(self.shelf) or (T("Tous les livres sont masqués par les filtres.") if fon else ""))
+        self.nomatch.set_visible(not shown and (bool(self.query) or self.shelf != "all" or fon) and not self.folded("lib"))
         self.count.set_label(("" if shown == n else f"{shown} / ") + T("{n} livres" if n > 1 else "{n} livre", n=n))
 
     def pick_files(self):

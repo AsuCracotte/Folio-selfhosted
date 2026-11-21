@@ -111,7 +111,10 @@ class Library:
                                    "name_updated REAL DEFAULT 0")),   # titre renommé par l'utilisateur (le plus récent gagne)
                         # étagère : photos de la couverture et du dos (vue 3D), comme la tranche
                         ("shelf", ("front REAL DEFAULT 0", "back REAL DEFAULT 0", "front_at REAL DEFAULT 0", "front_sent REAL DEFAULT 0",
-                                   "back_at REAL DEFAULT 0", "back_sent REAL DEFAULT 0"))):
+                                   "back_at REAL DEFAULT 0", "back_sent REAL DEFAULT 0",
+                                   # décorations : dessin (deco), place parmi les livres triés (pos), échelle (size), modèle 3D .glb (model)
+                                   "deco TEXT DEFAULT ''", "pos REAL DEFAULT 0", "size REAL DEFAULT 1",
+                                   "model REAL DEFAULT 0", "model_at REAL DEFAULT 0", "model_sent REAL DEFAULT 0"))):
             have = {r[1] for r in self.db.execute(f"PRAGMA table_info({t})")}
             for c in cols:
                 if c.split()[0] not in have:
@@ -322,11 +325,21 @@ class Library:
 
     # ---- étagère : livres numériques (id = empreinte) et papier, photo de tranche facultative -------------
     # spine = date de la photo en vigueur (0 = aucune) ; spine_at = celle présente ici ; spine_sent = celle envoyée
-    SHELF_KEYS = ("id", "kind", "title", "author", "spine", "front", "back", "created", "updated", "deleted")
+    SHELF_KEYS = ("id", "kind", "title", "author", "spine", "front", "back", "created", "updated", "deleted", "deco", "pos", "size", "model")
     FACES = ("spine", "front", "back")
-    _UPSERT = ("INSERT INTO shelf(id,kind,title,author,spine,front,back,created,updated,deleted) VALUES(?,?,?,?,?,?,?,?,?,?) "
+    SYNC_FACES = FACES + ("model",)           # le modèle 3D d'une décoration voyage comme une photo
+    KINDS = ("book", "paper", "deco")
+    _UPSERT = ("INSERT INTO shelf(id,kind,title,author,spine,front,back,created,updated,deleted,deco,pos,size,model) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
                "ON CONFLICT(id) DO UPDATE SET kind=excluded.kind, title=excluded.title, author=excluded.author, spine=excluded.spine, "
-               "front=excluded.front, back=excluded.back, updated=excluded.updated, deleted=excluded.deleted")
+               "front=excluded.front, back=excluded.back, updated=excluded.updated, deleted=excluded.deleted, "
+               "deco=excluded.deco, pos=excluded.pos, size=excluded.size, model=excluded.model")
+
+    @staticmethod
+    def _row(x, created, updated):
+        return (x["id"], x.get("kind") if x.get("kind") in Library.KINDS else "book", str(x.get("title") or "")[:300],
+                str(x.get("author") or "")[:200], x.get("spine") or 0, x.get("front") or 0, x.get("back") or 0, created, updated,
+                1 if x.get("deleted") else 0, str(x.get("deco") or "")[:16], float(x.get("pos") or 0),
+                min(2.0, max(.5, float(x.get("size") or 1))), x.get("model") or 0)
 
     def shelf_items(self, with_deleted=False):
         q = "SELECT * FROM shelf" + ("" if with_deleted else " WHERE COALESCE(deleted,0)=0")
@@ -342,15 +355,14 @@ class Library:
 
     @staticmethod
     def spine_path(sid, face="spine"):
-        return SPINES / (f"{sid}.jpg" if face == "spine" else f"{sid}.{face}.jpg")
+        return SPINES / (f"{sid}.glb" if face == "model" else f"{sid}.jpg" if face == "spine" else f"{sid}.{face}.jpg")
 
     def shelf_put(self, sid, **kw):
         """Crée ou modifie un livre de l'étagère (horodaté : le plus récent gagne à la synchro)."""
         now = time.time()
         cur = self.shelf_item(sid) or {"id": sid, "kind": "book", "title": "", "author": "", "spine": 0, "front": 0, "back": 0, "created": now, "deleted": 0}
         cur.update(kw); cur["updated"] = now
-        self.db.execute(self._UPSERT, (sid, cur["kind"], str(cur["title"])[:300], str(cur["author"])[:200], cur["spine"] or 0,
-                                       cur.get("front") or 0, cur.get("back") or 0, cur["created"] or now, now, 1 if cur["deleted"] else 0))
+        self.db.execute(self._UPSERT, self._row(cur, cur["created"] or now, now))
         self.db.commit()
         return cur
 
@@ -366,8 +378,14 @@ class Library:
             self.shelf_put(sid, **{face: 0}, **base)
             self.mark_spine(sid, at=0, face=face)
 
+    def set_model(self, sid, data, **base):
+        """Modèle 3D (.glb) d'une décoration, avec son aperçu (PNG) posé comme « tranche »."""
+        self.spine_path(sid, "model").write_bytes(data); t = time.time()
+        self.shelf_put(sid, model=t, deleted=0, **base)
+        self.mark_spine(sid, at=t, face="model")
+
     def mark_spine(self, sid, at=None, sent=None, face="spine"):
-        assert face in self.FACES
+        assert face in self.SYNC_FACES
         if at is not None:
             self.db.execute(f"UPDATE shelf SET {face}_at=? WHERE id=?", (at, sid))
         if sent is not None:
@@ -389,9 +407,7 @@ class Library:
             cur = self.shelf_item(x["id"])
             if cur and (cur["updated"] or 0) >= (x.get("updated") or 0):
                 continue
-            self.db.execute(self._UPSERT, (x["id"], "paper" if x.get("kind") == "paper" else "book", str(x.get("title", ""))[:300],
-                                           str(x.get("author", ""))[:200], x.get("spine") or 0, x.get("front") or 0, x.get("back") or 0,
-                                           x.get("created") or 0, x.get("updated") or 0, 1 if x.get("deleted") else 0))
+            self.db.execute(self._UPSERT, self._row(x, x.get("created") or 0, x.get("updated") or 0))
             changed = True
         self.db.commit()
         return changed
