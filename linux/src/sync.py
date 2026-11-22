@@ -43,22 +43,10 @@ class Sync:
         return self.dir / "state" / f"{h}.json"
 
     def _items(self, table, bid, cols):
-        q = ",".join(cols)
-        return [dict(r) for r in self.lib.db.execute(
-            f"SELECT {q},created,COALESCE(updated,created) AS updated,COALESCE(deleted,0) AS deleted "
-            f"FROM {table} WHERE book_id=?", (bid,))]
+        return self.lib.items(table, bid, cols)
 
     def _merge_items(self, table, bid, remote, cols):
-        local = {r["cfi"]: r for r in self._items(table, bid, ["cfi"] + cols)}
-        for it in remote:
-            cur = local.get(it["cfi"])
-            if cur and cur["updated"] >= it.get("updated", 0):
-                continue
-            vals = [it.get(c, "") for c in cols]
-            self.lib.db.execute(
-                f"INSERT INTO {table}(book_id,cfi,{','.join(cols)},created,updated,deleted) VALUES(?,?,{','.join('?' * len(cols))},?,?,?) "
-                f"ON CONFLICT(book_id,cfi) DO UPDATE SET {','.join(f'{c}=excluded.{c}' for c in cols)},updated=excluded.updated,deleted=excluded.deleted",
-                [bid, it["cfi"], *vals, it.get("created", time.time()), it.get("updated", 0), int(it.get("deleted", 0))])
+        self.lib.merge_items(table, bid, remote, cols)
 
     def pull(self):
         """Fusionne tout le dossier dans la base locale. Retourne les ids de livres modifiés."""
@@ -202,6 +190,7 @@ class Sync:
         before = self.lib.db.total_changes
         self._merge_items("bookmarks", bid, d.get("bookmarks", []), ["label"])
         self._merge_items("highlights", bid, d.get("highlights", []), ["color", "text"])
+        self._merge_items("postits", bid, d.get("postits", []), ["color", "text"])
         if self.lib.db.total_changes != before:
             changed.add(bid)
         self.lib.db.commit()
@@ -214,7 +203,8 @@ class Sync:
                 "cover": {"updated": b["cover_updated"] or 0, "custom": bool(b["custom_cover"])},
                 "name": {"title": b["title"] if b["name_updated"] else "", "updated": b["name_updated"] or 0},
                 "bookmarks": self._items("bookmarks", bid, ["cfi", "label"]),
-                "highlights": self._items("highlights", bid, ["cfi", "color", "text"])}
+                "highlights": self._items("highlights", bid, ["cfi", "color", "text"]),
+                "postits": self._items("postits", bid, ["cfi", "color", "text"])}
 
     def push(self, bid, removed=False, h=None, force=True):
         b = self.lib.book(bid)

@@ -25,7 +25,7 @@ function toState(r) {
     position: { cfi: r.cfi, progress: r.progress, updated: r.posUpdated },
     cover: { updated: r.coverUpdated || 0, custom: !!r.coverCustom },
     name: { title: r.nameTitle || "", updated: r.nameUpdated || 0 },
-    bookmarks: JSON.parse(r.bookmarks), highlights: JSON.parse(r.highlights) };
+    bookmarks: JSON.parse(r.bookmarks), highlights: JSON.parse(r.highlights), postits: JSON.parse(r.postits || "[]") };
 }
 const normEmail = (e) => String(e || "").normalize("NFKC").trim().toLowerCase();
 // Forme canonique d'une adresse : « a.b+x@gmail.com » et « ab@googlemail.com » désignent la même boîte
@@ -47,6 +47,10 @@ const num = (x) => (Number.isFinite(+x) ? +x : 0);
 const cleanItems = (a) => (Array.isArray(a) ? a : []).filter((x) => x && typeof x.cfi === "string" && x.cfi.length <= 2000)
   .map((x) => ({ cfi: x.cfi, label: String(x.label ?? "").slice(0, 300), color: COLORS.has(x.color) ? x.color : "yellow",
     text: String(x.text ?? "").slice(0, 5000), created: num(x.created), updated: num(x.updated), deleted: x.deleted ? 1 : 0 }));
+// post-it : un mot laissé à un endroit du livre (cfi), sa couleur, son texte
+const cleanPostits = (a) => (Array.isArray(a) ? a : []).filter((x) => x && typeof x.cfi === "string" && x.cfi.length <= 2000)
+  .map((x) => ({ cfi: x.cfi, color: COLORS.has(x.color) ? x.color : "yellow", text: String(x.text ?? "").slice(0, 5000),
+    created: num(x.created), updated: num(x.updated), deleted: x.deleted ? 1 : 0 }));
 // Collections : on ne garde que les champs attendus ; les suppressions sont des pierres tombales (deleted=1)
 const cleanCollections = (a) => (Array.isArray(a) ? a : []).filter((c) => c && CID.test(String(c.id))).slice(0, 500)
   .map((c) => ({ id: c.id, name: String(c.name ?? "").normalize("NFKC").replace(CTRL, "").trim().slice(0, 80),
@@ -485,7 +489,8 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
       const { hash } = req.params;
       if (!HASH.test(hash)) return fail(reply, 400, "bad_hash");
       const b = req.body || {};
-      if ((b.bookmarks && (!Array.isArray(b.bookmarks) || b.bookmarks.length > 5000)) || (b.highlights && (!Array.isArray(b.highlights) || b.highlights.length > 5000)))
+      if ((b.bookmarks && (!Array.isArray(b.bookmarks) || b.bookmarks.length > 5000)) || (b.highlights && (!Array.isArray(b.highlights) || b.highlights.length > 5000))
+          || (b.postits && (!Array.isArray(b.postits) || b.postits.length > 5000)))
         return fail(reply, 400, "bad_data");
       if (!(await db.bookState.findUnique({ where: { userId_hash: { userId: req.userId, hash } } }))
           && (await db.bookState.count({ where: { userId: req.userId } })) >= 5000) return fail(reply, 403, "max_books");
@@ -493,13 +498,13 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
       const old = await db.bookState.findUnique({ where });
       const cover = b.cover && typeof b.cover === "object" ? { updated: num(b.cover.updated), custom: !!b.cover.custom } : undefined;
       const name = b.name && typeof b.name === "object" ? { title: txt(b.name.title, 500), updated: num(b.name.updated) } : undefined;
-      const m = mergeState(old ? toState(old) : null, { ...b, hash, bookmarks: cleanItems(b.bookmarks), highlights: cleanItems(b.highlights),
+      const m = mergeState(old ? toState(old) : null, { ...b, hash, bookmarks: cleanItems(b.bookmarks), highlights: cleanItems(b.highlights), postits: cleanPostits(b.postits),
         title: String(b.title || "").slice(0, 500), author: String(b.author || "").slice(0, 300), cover, name });
       const data = m.removed
-        ? { removed: m.removed, bookmarks: "[]", highlights: "[]", coverUpdated: 0, coverCustom: false }
+        ? { removed: m.removed, bookmarks: "[]", highlights: "[]", postits: "[]", coverUpdated: 0, coverCustom: false }
         : { title: m.title, author: m.author, cfi: String(m.position.cfi || "").slice(0, 2000), progress: Number(m.position.progress) || 0,
             posUpdated: Number(m.position.updated) || 0, removed: null,
-            bookmarks: JSON.stringify(m.bookmarks), highlights: JSON.stringify(m.highlights),
+            bookmarks: JSON.stringify(m.bookmarks), highlights: JSON.stringify(m.highlights), postits: JSON.stringify(m.postits),
             coverUpdated: m.cover.updated, coverCustom: m.cover.custom, nameTitle: m.name.title, nameUpdated: m.name.updated };
       await db.bookState.upsert({ where, create: { userId: req.userId, hash, ...data }, update: data });
       if (m.removed) fs.rmSync(path.join(dataDir, "files", req.userId, `${hash}.epub`), { force: true });

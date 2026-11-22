@@ -10,7 +10,7 @@ const items = (a = [], b = []) => {
 
 function mergeState(cur, inc) {
   if (inc.removed) return { hash: inc.hash, removed: inc.removed };
-  const c = cur && !cur.removed ? cur : { position: {}, bookmarks: [], highlights: [] };
+  const c = cur && !cur.removed ? cur : { position: {}, bookmarks: [], highlights: [], postits: [] };
   const newer = (inc.position?.updated || 0) > (c.position?.updated || 0);
   // titre renommé par l'utilisateur : le plus récent gagne ; les anciens clients n'envoient que le titre du fichier
   const name = (inc.name?.updated || 0) > (c.name?.updated || 0) ? inc.name : c.name || { title: "", updated: 0 };
@@ -22,6 +22,7 @@ function mergeState(cur, inc) {
     position: newer ? inc.position : c.position || { cfi: "", progress: 0, updated: 0 },
     bookmarks: items(c.bookmarks, inc.bookmarks),
     highlights: items(c.highlights, inc.highlights),
+    postits: items(c.postits, inc.postits),      // les clients d'avant n'envoient rien : on garde ce qui existe
     // couverture choisie : la plus récente gagne ; les anciens clients n'envoient rien (on garde l'existante)
     cover: (inc.cover?.updated || 0) > (c.cover?.updated || 0) ? inc.cover : c.cover || { updated: 0, custom: false },
   };

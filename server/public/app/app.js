@@ -12,7 +12,7 @@ dk_succ:"Succulente",dk_snake:"Sansevière",dk_stack:"Pile de livres",dk_bear:"O
 dk_hourglass:"Sablier",dk_vase:"Bouquet",dk_cactus:"Cactus",dk_mug:"Tasse",dk_clock:"Réveil",dk_owl:"Chouette",dk_frame:"Tableau",dk_bookend:"Serre-livre en métal",dk_brass:"Serre-livre en laiton",dk_marble:"Serre-livre en marbre",dk_divider:"Intercalaire",
 filters:"Filtres",fShow:"Afficher les livres",fUnread:"Pas encore commencés",fReading:"En cours de lecture",fDone:"Terminés",fCols:"Collections",
 fInCol:"Masquer les livres rangés dans une collection",fHideCol:"Masquer « {t} »",fReset:"Tout afficher",hidden1:"{n} livre masqué par les filtres",hiddenN:"{n} livres masqués par les filtres",
-showAll:"Filtres",allHidden:"Tous les livres sont masqués par les filtres.",facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",camFront:"Cadrez la couverture du livre",camBack:"Cadrez le dos du livre (4e de couverture)",photoSaved:"Photo enregistrée",updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",updOld:"Une nouvelle version de l’appli Folio est disponible",updDl:"Télécharger",updCheck:"Rechercher une mise à jour",updNone:"Folio {v} est à jour",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
+postitT:"Ajouter un post-it",showAll:"Filtres",allHidden:"Tous les livres sont masqués par les filtres.",facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",camFront:"Cadrez la couverture du livre",camBack:"Cadrez le dos du livre (4e de couverture)",photoSaved:"Photo enregistrée",updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",updOld:"Une nouvelle version de l’appli Folio est disponible",updDl:"Télécharger",updCheck:"Rechercher une mise à jour",updNone:"Folio {v} est à jour",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
  library:"Bibliothèque",bookmark:"Marque-page",tocNotes:"Sommaire et notes",appearance:"Apparence",customColors:"Couleurs perso",background:"Fond",text:"Texte",font:"Police",bookFont:"Police du livre",
  size:"Taille",lineHeight:"Interligne",margins:"Marges",justify:"Texte justifié",pages:"Pages",scroll:"Défilement",typography:"Typographie",paraSpace:"Espace entre paragraphes",weight:"Graisse",
  letterSpace:"Espacement des lettres",indent:"Retrait de première ligne",indBook:"Livre",indNone:"Aucun",indNormal:"Normal",indWide:"Large",resetLook:"Réinitialiser l’apparence",syncLook:"Synchronisation entre appareils",syncLookTxt:"Décochez ce que cet appareil doit garder pour lui : il ne l’enverra plus et ne recevra plus celui des autres.",sg_colors:"Thème et couleurs",sg_font:"Police",sg_size:"Taille du texte",sg_spacing:"Interligne et typographie",sg_margin:"Marges",sg_layout:"Justification, pages ou défilement",
@@ -71,7 +71,7 @@ dk_succ:"Succulent",dk_snake:"Snake plant",dk_stack:"Book stack",dk_bear:"Teddy 
 dk_hourglass:"Hourglass",dk_vase:"Bouquet",dk_cactus:"Cactus",dk_mug:"Mug",dk_clock:"Alarm clock",dk_owl:"Owl",dk_frame:"Painting",dk_bookend:"Metal bookend",dk_brass:"Brass bookend",dk_marble:"Marble bookend",dk_divider:"Divider",
 filters:"Filters",fShow:"Show books",fUnread:"Not started yet",fReading:"Currently reading",fDone:"Finished",fCols:"Collections",
 fInCol:"Hide books already in a collection",fHideCol:"Hide “{t}”",fReset:"Show everything",hidden1:"{n} book hidden by filters",hiddenN:"{n} books hidden by filters",
-showAll:"Filters",allHidden:"All books are hidden by the filters.",facesT:"Cover and back (3D view)",faceFront:"Cover",faceBack:"Back",camFront:"Fit the book’s cover in the frame",camBack:"Fit the back cover in the frame",photoSaved:"Photo saved",updWeb:"New version of Folio",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",updOld:"A new version of the Folio app is available",updDl:"Download",updCheck:"Check for updates",updNone:"Folio {v} is up to date",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
+postitT:"Add a sticky note",showAll:"Filters",allHidden:"All books are hidden by the filters.",facesT:"Cover and back (3D view)",faceFront:"Cover",faceBack:"Back",camFront:"Fit the book’s cover in the frame",camBack:"Fit the back cover in the frame",photoSaved:"Photo saved",updWeb:"New version of Folio",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",updOld:"A new version of the Folio app is available",updDl:"Download",updCheck:"Check for updates",updNone:"Folio {v} is up to date",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
  library:"Library",bookmark:"Bookmark",tocNotes:"Contents and notes",appearance:"Appearance",customColors:"Custom colours",background:"Background",text:"Text",font:"Font",bookFont:"Book’s font",
  size:"Size",lineHeight:"Line spacing",margins:"Margins",justify:"Justified text",pages:"Pages",scroll:"Scrolling",typography:"Typography",paraSpace:"Paragraph spacing",weight:"Weight",
  letterSpace:"Letter spacing",indent:"First-line indent",indBook:"Book",indNone:"None",indNormal:"Normal",indWide:"Wide",resetLook:"Reset appearance",syncLook:"Sync across devices",syncLookTxt:"Untick what this device should keep to itself: it will no longer send it, nor receive the one from your other devices.",sg_colors:"Theme and colours",sg_font:"Font",sg_size:"Text size",sg_spacing:"Line height and typography",sg_margin:"Margins",sg_layout:"Justification, pages or scrolling",
@@ -632,7 +632,7 @@ const cur_cfi=()=>cur.cfi; // = début de la page lue, ou la position exacte re�
 async function openBook(hash){if(dav&&!VOICES)dav.ttsVoices().then(v=>VOICES=v,()=>{});  // liste des voix prête avant le premier clic
  // voix locale (Piper) choisie la dernière fois : son modèle est chargé pendant qu'on commence à lire
  if(dav?.ttsWarm){const v=jget("folioVoice",{}).voice;if(v&&!/^[ga]:/.test(v))dav.ttsWarm(v).catch(()=>{})}
-try{await dav?.pullOne?.(hash)}catch(e){}cur=await getB(hash);if(!cur)return;cur.lastRead=Date.now();await putB(cur);
+try{await dav?.pullOne?.(hash)}catch(e){}cur=await getB(hash);if(!cur)return;cur.lastRead=Date.now();cur.postits||=[];await putB(cur);
  const buf=await rq(tx("files").get(hash));$("rd").classList.add("on");$("rd").classList.remove("full");$("ttl").textContent=cur.title;$("chapTop").textContent=cur.author;outer();
  book=ePub(buf);toc=[];book.loaded.navigation.then(n=>{(function w(it,l){it.forEach(i=>{const s=book.spine.get(i.href);toc.push({label:i.label.trim(),href:i.href,l,idx:s?s.index:-1});i.subitems&&w(i.subitems,l+1)})})(n.toc,0)});
  book.spine.hooks.serialize.register((o,s)=>{s.output=String(s.output||o).replace(/<script\b[\s\S]*?<\/script\s*>/gi,"").replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*')/gi,"")});
@@ -647,10 +647,10 @@ function build(cfi){anchor=cfi||null;if(rend){try{rend.destroy()}catch(e){}$("vi
  if(sc){const disp=rend.display.bind(rend);rend.display=x=>disp(x).then(r=>{pin(x);return r})}
  rend.hooks.content.register(c=>{styleC(c);gestures(c);imgMenu(c);["wheel","touchstart","mousedown","keydown"].forEach(e=>c.document.addEventListener(e,unpin,{passive:true}))});
  rend.on("relocated",l=>{loc=l;hideSel();hideImg();report()});rend.on("selected",onSel);
- rend.on("click",e=>{if(sel.style.display==="flex"){hideSel();return}if($("imgm").style.display==="block"){hideImg();return}if(Date.now()-G.at<450)return;const w=e.view;if(String(w?.getSelection?.()||"")||e.target.closest?.("a"))return;
+ rend.on("click",e=>{if(postit.isOpen)return;if(sel.style.display==="flex"){hideSel();return}if($("imgm").style.display==="block"){hideImg();return}if(Date.now()-G.at<450)return;const w=e.view;if(String(w?.getSelection?.()||"")||e.target.closest?.("a"))return;
   if(voice.on)return;  // lecture à voix haute : un appui choisit l'endroit où lire (voice.js)
   const x=(w.frameElement.getBoundingClientRect().left+e.clientX)/innerWidth;if(S.flow!=="scrolled"&&x<.25)turn(-1);else if(S.flow!=="scrolled"&&x>.75)turn(1);else toggleBars()});
- rend.on("keydown",keys);cur.highlights.filter(h=>!h.deleted).forEach(drawHl);return rend.display(cfi||undefined)}
+ rend.on("keydown",keys);cur.highlights.filter(h=>!h.deleted).forEach(drawHl);postit.draw();return rend.display(cfi||undefined)}
 // epub.js continue ensuite d'insérer ou de redimensionner des chapitres au-dessus (images, chapitres préchargés) et la cible glisse :
 // on la maintient en place ~2,5 s, jusqu'à ce que la lectrice fasse défiler elle-même
 let pinX=null,pinF=0;
@@ -735,7 +735,8 @@ $("bBm").onclick=()=>{if(!loc)return;const ins=cur.bookmarks.filter(b=>!b.delete
 // surlignages
 const sel=$("sel");Object.entries(COLORS).forEach(([n,h])=>{const b=document.createElement("button");b.style.background=h;b.title=n;b.onclick=()=>{if(pending)addHl(pending.cfi,n,pending.text);hideSel()};sel.append(b)});
 const del=document.createElement("button");del.className="x";del.innerHTML=ico("trash");del.title=t("delHl");del.onclick=()=>{if(pending)rmHl(pending.cfi);hideSel()};sel.append(del);
-function showSel(x,y,d){pending=d;del.style.display=d.text?"none":"grid";sel.style.display="flex";sel.style.left=Math.max(8,Math.min(innerWidth-sel.offsetWidth-8,x-sel.offsetWidth/2))+"px";sel.style.top=Math.max(70,Math.min(innerHeight-sel.offsetHeight-16,y+14))+"px"}
+const selPin=document.createElement("button");selPin.className="x";selPin.innerHTML=ico("note");selPin.title=t("postitT");selPin.onclick=()=>{const p=pending;hideSel();if(p){rend.getContents().forEach(c=>c.window.getSelection().removeAllRanges());postit.add(p.cfi)}};sel.append(selPin);
+function showSel(x,y,d){pending=d;del.style.display=d.text?"none":"grid";selPin.style.display=d.text?"grid":"none";sel.style.display="flex";sel.style.left=Math.max(8,Math.min(innerWidth-sel.offsetWidth-8,x-sel.offsetWidth/2))+"px";sel.style.top=Math.max(70,Math.min(innerHeight-sel.offsetHeight-16,y+14))+"px"}
 function hideSel(){sel.style.display="none";pending=null}
 function onSel(cfi,c){const r=c.range(cfi),s=r.toString().trim();if(!s)return;const q=r.getBoundingClientRect(),f=c.document.defaultView.frameElement.getBoundingClientRect();showSel(f.left+q.left+q.width/2,f.top+q.bottom,{cfi,text:s})}
 function drawHl(h){rend.annotations.highlight(h.cfi,{},e=>showSel(e.clientX,e.clientY,{cfi:h.cfi}),"hl",{fill:COLORS[h.color]||h.color,"fill-opacity":"0.4","mix-blend-mode":"multiply"})}
@@ -752,11 +753,12 @@ function list(){const L=$("list");if(!cur||!book){L.innerHTML="";return}const sh
   bookmarks:cur.bookmarks.filter(b=>!b.deleted),highlights:cur.highlights.filter(h=>!h.deleted),cur:{cfi:loc&&loc.start.cfi,pct},
   go:x=>{rend.display(x);show(null)},
   delBm:cfi=>{const b=cur.bookmarks.find(x=>x.cfi===cfi);if(b){b.deleted=1;b.updated=now()}report();refreshTrack();list();msg(t("bmRemoved"))},
-  delHl:cfi=>{rmHl(cfi);list()},
+  delHl:cfi=>{rmHl(cfi);list()},postits:cur.postits.filter(n=>!n.deleted),
+  openPostit:cfi=>{show(null);rend.display(cfi).then(()=>setTimeout(()=>postit.open(cfi),300))},
   recolor:(cfi,c)=>{const h=cur.highlights.find(x=>x.cfi===cfi);if(h)addHl(cfi,c,h.text);list()},
   copy:(s,m)=>{(navigator.clipboard?navigator.clipboard.writeText(s):Promise.reject()).then(()=>msg(m||t("copied")),()=>msg(t("copyFail")))},
   onTab:x=>{tab=x;list();sh.scrollTop=0}});sh.scrollTop=keep}
-$("bBack").onclick=async()=>{voice.stop();show(null);hideSel();hideImg();$("track").innerHTML="";setPct=()=>{};try{rend.destroy();book.destroy()}catch(e){}rend=book=loc=null;$("rd").classList.remove("on");clearTimeout(pushT);try{await dav?.push(cur)}catch(e){}cur=null;render()};
+$("bBack").onclick=async()=>{voice.stop();postit.clear();show(null);hideSel();hideImg();$("track").innerHTML="";setPct=()=>{};try{rend.destroy();book.destroy()}catch(e){}rend=book=loc=null;$("rd").classList.remove("on");clearTimeout(pushT);try{await dav?.push(cur)}catch(e){}cur=null;render()};
 // ---------- écrire un livre (write.js) ----------
 const DS=()=>jget("folioDraftSync",{}),dsSet=(id,v)=>{const m=DS();m[id]=v;localStorage.folioDraftSync=JSON.stringify(m)};
 // envois d'un même manuscrit l'un après l'autre (2 s après la dernière frappe)
@@ -786,14 +788,17 @@ let VOICES=null;
 const voice=FolioVoice.create({root:$("rd"),lang:LANG,get:()=>({book,rend,title:cur?.title,author:cur?.author}),
  voices:async()=>dav?(VOICES||(VOICES=await dav.ttsVoices())):null,speak:(v,s)=>dav.tts(v,s),login:()=>{$("bBack").click();show("shCfg")}});
 $("bVoice").onclick=()=>voice.open();
+// ---------- post-it (postit.js) ----------
+const postit=FolioPostit.create({root:$("rd"),lang:LANG,get:()=>({rend}),list:()=>cur?cur.postits||(cur.postits=[]):[],save:()=>{if(!cur)return;putB(cur);pushSoon();refreshTrack()}});
+$("bPostit").onclick=()=>{if(loc)postit.add(loc.start.cfi)};
 // ---------- synchro via le compte Folio (mêmes données que l'app Linux) ----------
 let dav=null,pushT;
 const pushSoon=()=>{if(!dav)return;clearTimeout(pushT);const b=cur;pushT=setTimeout(()=>dav.push(b).then(()=>refreshCur(false)).catch(()=>{}),3000)};
 async function refreshCur(follow){if(!cur||!rend)return;const n=await getB(cur.hash);if(!n)return;
  const moved=follow&&n.cfi&&n.cfi!==cur.cfi&&(n.posUpdated||0)>(cur.posUpdated||0);
  cur.highlights.forEach(h=>{try{rend.annotations.remove(h.cfi,"highlight")}catch(e){}});
- Object.assign(cur,{title:n.title,nameUpdated:n.nameUpdated,bookmarks:n.bookmarks,highlights:n.highlights,customCover:n.customCover,coverCustom:n.coverCustom,coverUpdated:n.coverUpdated,coverSent:n.coverSent});if(moved)Object.assign(cur,{cfi:n.cfi,progress:n.progress,posUpdated:n.posUpdated});
- cur.highlights.filter(h=>!h.deleted).forEach(drawHl);refreshTrack();if(moved){anchor=n.cfi;rend.display(n.cfi);msg(t("resumedOther"))}}
+ Object.assign(cur,{title:n.title,nameUpdated:n.nameUpdated,bookmarks:n.bookmarks,highlights:n.highlights,postits:n.postits||[],customCover:n.customCover,coverCustom:n.coverCustom,coverUpdated:n.coverUpdated,coverSent:n.coverSent});if(moved)Object.assign(cur,{cfi:n.cfi,progress:n.progress,posUpdated:n.posUpdated});
+ cur.highlights.filter(h=>!h.deleted).forEach(drawHl);postit.draw();refreshTrack();if(moved){anchor=n.cfi;rend.display(n.cfi);msg(t("resumedOther"))}}
 async function autoSync(){if(!dav||document.hidden)return;try{if(cur&&rend){clearTimeout(pushT);await dav.push(cur);await dav.settings();await refreshCur(true)}else{await dav.syncAll();render()}}catch(e){console.error(e)}}
 document.addEventListener("visibilitychange",autoSync);setInterval(autoSync,120000);
 const merge=(l,rem)=>{const m=new Map(l.map(x=>[x.cfi,x]));let ch=false;(rem||[]).forEach(r=>{const x=m.get(r.cfi);if(!x||(x.updated||0)<(r.updated||0)){m.set(r.cfi,{...r,deleted:+!!r.deleted});ch=true}});return[[...m.values()],ch]};
@@ -810,11 +815,11 @@ function Api(c){const base=(c.server||"").replace(/\/$/,""),h={Authorization:"Be
    const cv=d.cover||{};if((cv.updated||0)>(b.coverUpdated||0)){
     if(!cv.custom){Object.assign(b,{customCover:null,coverCustom:false,coverUpdated:cv.updated,coverSent:true});ch=true}
     else{const r=await f(`/api/covers/${hash}`);if(r.ok){Object.assign(b,{customCover:await r.blob(),coverCustom:true,coverUpdated:cv.updated,coverSent:true});ch=true}}}
-   const[bm,c1]=merge(b.bookmarks,d.bookmarks),[hl,c2]=merge(b.highlights,d.highlights);b.bookmarks=bm;b.highlights=hl;if(ch||c1||c2){await putB(b);return true}return false},
+   const[bm,c1]=merge(b.bookmarks,d.bookmarks),[hl,c2]=merge(b.highlights,d.highlights),[pt,c3]=merge(b.postits||[],d.postits||[]);b.bookmarks=bm;b.highlights=hl;b.postits=pt;if(ch||c1||c2||c3){await putB(b);return true}return false},
   async push(b,removed){if(!b)return;const hash=b.hash,J={"Content-Type":"application/json"};
    if(removed){await f(`/api/books/${hash}`,{method:"PUT",headers:J,body:JSON.stringify({removed:now()})});return}
    const m=await jf(`/api/books/${hash}`,{method:"PUT",headers:J,body:JSON.stringify({title:b.title,author:b.author,name:{title:b.nameUpdated?b.title:"",updated:b.nameUpdated||0},position:{cfi:b.cfi,progress:b.progress||0,updated:b.posUpdated||0},
-    cover:{updated:b.coverUpdated||0,custom:!!b.coverCustom},bookmarks:b.bookmarks,highlights:b.highlights})});
+    cover:{updated:b.coverUpdated||0,custom:!!b.coverCustom},bookmarks:b.bookmarks,highlights:b.highlights,postits:b.postits||[]})});
    if(b.coverCustom&&b.customCover&&!b.coverSent){const r=await f(`/api/covers/${hash}`,{method:"PUT",headers:{"Content-Type":b.customCover.type||"image/jpeg"},body:b.customCover});
     if(r.ok){b.coverSent=true;const x=await getB(hash);if(x&&x.coverUpdated===b.coverUpdated){x.coverSent=true;await putB(x)}}}
    await this.apply(hash,m);if((await f(`/api/files/${hash}`,{method:"HEAD"})).status===404)await f(`/api/files/${hash}`,{method:"PUT",headers:{"Content-Type":"application/epub+zip"},body:await rq(tx("files").get(hash))})},
@@ -953,7 +958,7 @@ $("bSync").onclick=doSync;
 // ---------- mises à jour ----------
 // le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
 // l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
-const APPV="2.5.1";let updShown=false;
+const APPV="2.6.0";let updShown=false;
 function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
  $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
 const D=window.folioDesktop;

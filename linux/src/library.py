@@ -51,6 +51,9 @@ CREATE TABLE IF NOT EXISTS bookmarks(
 CREATE TABLE IF NOT EXISTS highlights(
   id INTEGER PRIMARY KEY, book_id INTEGER, cfi TEXT, color TEXT, text TEXT, created REAL,
   UNIQUE(book_id, cfi));
+CREATE TABLE IF NOT EXISTS postits(
+  id INTEGER PRIMARY KEY, book_id INTEGER, cfi TEXT, color TEXT, text TEXT, created REAL, updated REAL, deleted INTEGER DEFAULT 0,
+  UNIQUE(book_id, cfi));
 CREATE TABLE IF NOT EXISTS collections(
   id TEXT PRIMARY KEY, name TEXT, books TEXT DEFAULT '[]', created REAL, updated REAL, deleted INTEGER DEFAULT 0);
 CREATE TABLE IF NOT EXISTS shelf(
@@ -91,6 +94,9 @@ def parse_epub(path):
                 data = None
         title = meta("title") or Path(path).stem
         return title, meta("creator"), data, ext
+
+
+POSTIT_COLORS = {"yellow", "pink", "green", "blue", "orange", "purple"}
 
 
 class Library:
@@ -172,7 +178,7 @@ class Library:
         for c in self.collections():               # le livre quitte aussi ses collections
             if b["hash"] in c["books"]:
                 self.set_collection(c["id"], books=[h for h in c["books"] if h != b["hash"]])
-        for t, col in (("bookmarks", "book_id"), ("highlights", "book_id"), ("books", "id")):
+        for t, col in (("bookmarks", "book_id"), ("highlights", "book_id"), ("postits", "book_id"), ("books", "id")):
             self.db.execute(f"DELETE FROM {t} WHERE {col}=?", (bid,))
         self.db.commit()
 
@@ -217,6 +223,43 @@ class Library:
     def del_bookmark(self, bid, cfi):
         self.db.execute("UPDATE bookmarks SET deleted=1, updated=? WHERE book_id=? AND cfi=?", (time.time(), bid, cfi))
         self.db.commit()
+
+    # ---- éléments d'un livre (marque-pages, surlignages, post-it) : le plus récent gagne, suppressions conservées ----
+    def items(self, table, bid, cols):
+        q = ",".join(cols)
+        return [dict(r) for r in self.db.execute(
+            f"SELECT {q},created,COALESCE(updated,created) AS updated,COALESCE(deleted,0) AS deleted "
+            f"FROM {table} WHERE book_id=?", (bid,))]
+
+    def merge_items(self, table, bid, remote, cols):
+        local = {r["cfi"]: r for r in self.items(table, bid, ["cfi"] + cols)}
+        for it in remote:
+            cur = local.get(it["cfi"])
+            if cur and cur["updated"] >= it.get("updated", 0):
+                continue
+            vals = [it.get(c, "") for c in cols]
+            self.db.execute(
+                f"INSERT INTO {table}(book_id,cfi,{','.join(cols)},created,updated,deleted) VALUES(?,?,{','.join('?' * len(cols))},?,?,?) "
+                f"ON CONFLICT(book_id,cfi) DO UPDATE SET {','.join(f'{c}=excluded.{c}' for c in cols)},updated=excluded.updated,deleted=excluded.deleted",
+                [bid, it["cfi"], *vals, it.get("created", time.time()), it.get("updated", 0), int(it.get("deleted", 0))])
+
+    def postits(self, bid):
+        """Tous les post-it du livre, retirés compris (le lecteur réutilise la place d'un post-it retiré)."""
+        return self.items("postits", bid, ["cfi", "color", "text"])
+
+    def save_postits(self, bid, items):
+        """Post-it envoyés par le lecteur : champs vérifiés, puis fusion (le plus récent gagne)."""
+        ok = []
+        for x in items if isinstance(items, list) else []:
+            if not isinstance(x, dict) or not isinstance(x.get("cfi"), str) or not 0 < len(x["cfi"]) <= 2000:
+                continue
+            num = lambda v: float(v) if isinstance(v, (int, float)) else 0.0  # noqa: E731
+            ok.append({"cfi": x["cfi"], "color": x.get("color") if x.get("color") in POSTIT_COLORS else "yellow",
+                       "text": str(x.get("text") or "")[:5000], "created": num(x.get("created")), "updated": num(x.get("updated")),
+                       "deleted": 1 if x.get("deleted") else 0})
+        before = self.db.total_changes
+        self.merge_items("postits", bid, ok, ["color", "text"]); self.db.commit()
+        return self.db.total_changes != before
 
     def highlights(self, bid):
         return [dict(r) for r in self.db.execute(

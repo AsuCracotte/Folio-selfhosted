@@ -2568,7 +2568,9 @@ class FolioWindow(Adw.ApplicationWindow):
         aa.add_css_class("circ")
         voice = Gtk.Button(icon_name="audio-headphones-symbolic", tooltip_text=T("Lecture à voix haute"), valign=Gtk.Align.CENTER)
         voice.add_css_class("circ"); voice.connect("clicked", lambda *_: self.js("Folio.voice()"))
-        header.pack_end(aa); header.pack_end(self.side_btn); header.pack_end(self.bm_btn); header.pack_end(voice)
+        note = Gtk.Button(icon_name="folio-note-symbolic", tooltip_text=T("Ajouter un post-it"), valign=Gtk.Align.CENTER)
+        note.add_css_class("circ"); note.connect("clicked", lambda *_: self.js("Folio.postit()"))
+        header.pack_end(aa); header.pack_end(self.side_btn); header.pack_end(self.bm_btn); header.pack_end(note); header.pack_end(voice)
         view.add_top_bar(header)
 
         # WebKit : le livre, le panneau sommaire/notes et la barre de progression sont rendus en HTML
@@ -2596,6 +2598,7 @@ class FolioWindow(Adw.ApplicationWindow):
         if self.cur:
             self.js(f"Folio.setBookmarks({json.dumps(self.lib.bookmarks(self.cur['id']))})")
             self.js(f"Folio.setHighlights({json.dumps(self.lib.highlights(self.cur['id']))})")
+            self.js(f"Folio.setPostits({json.dumps(self.lib.postits(self.cur['id']))})")
 
     def remove_bookmarks(self, cfis):
         for c in cfis:
@@ -2628,7 +2631,7 @@ class FolioWindow(Adw.ApplicationWindow):
         self.pending_open = False
         b = self.cur
         payload = {"url": GLib.filename_to_uri(b["path"]), "cfi": b["cfi"] or "", "settings": self.settings,
-                   "highlights": self.lib.highlights(b["id"]), "bookmarks": self.lib.bookmarks(b["id"]),
+                   "highlights": self.lib.highlights(b["id"]), "bookmarks": self.lib.bookmarks(b["id"]), "postits": self.lib.postits(b["id"]),
                    "locs": b["locs"] or "", "title": b["title"], "lang": LANG}
         self.js(f"Folio.open({json.dumps(payload)})")
         self.web.grab_focus()
@@ -2816,6 +2819,10 @@ class FolioWindow(Adw.ApplicationWindow):
         t = m.get("t")
         if t in ("tts_voices", "tts"):
             return self.tts_ask(m)
+        if t == "postits":
+            if self.cur and self.lib.save_postits(self.cur["id"], m.get("items")):
+                self.push_soon()
+            return
         if t == "voice_pref":                           # voix choisie (par langue) et vitesse, retenues d'une ouverture à l'autre
             p = m.get("p") if isinstance(m.get("p"), dict) else {}
             by = p.get("byLang") if isinstance(p.get("byLang"), dict) else {}

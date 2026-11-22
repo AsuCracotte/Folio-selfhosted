@@ -74,7 +74,7 @@ EN = {
     "Modèle 3D": "3D model",
     "Glissez pour le faire tourner": "Drag to turn it",
     "Poser sur l’étagère": "Put on the shelf",
-    "Décorer": "Decorate", "Serre-livres": "Bookends", "Voir en 3D": "View in 3D",
+    "Ajouter un post-it": "Add a sticky note", "Décorer": "Decorate", "Serre-livres": "Bookends", "Voir en 3D": "View in 3D",
     "Masquer les décorations": "Hide decorations", "Afficher les décorations": "Show decorations",
     "Serre-livre en métal": "Metal bookend", "Serre-livre en laiton": "Brass bookend", "Serre-livre en marbre": "Marble bookend", "Intercalaire": "Divider",
     "Glissez une décoration pour la déplacer, même sur une étagère vide. Cliquez dessus pour changer sa taille ou la retirer.": "Drag a decoration to move it, even onto an empty shelf. Click it to resize or remove it.",

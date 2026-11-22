@@ -46,6 +46,8 @@
   #sel .del { display:none; background:transparent; color:#fff; border-color:transparent;
     font-size:15px; width:auto; padding:0 4px; }
   #sel.existing .del { display:block; }
+  #sel .pin { background:transparent; color:#fff; border-color:transparent; font-size:16px; width:auto; padding:0 4px; }
+  #sel.existing .pin { display:none; }
   #imgm { position:fixed; z-index:40; display:none; background:var(--bg); color:var(--fg); border:1px solid color-mix(in srgb,var(--fg) 14%,var(--bg));
     border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.28); padding:5px; }
   #imgm button { display:flex; align-items:center; gap:9px; border:0; background:transparent; color:inherit; font:600 14px system-ui,sans-serif;
@@ -66,13 +68,17 @@
   <script src="epub.min.js"></script>
   <script src="notes.js"></script>
   <script src="voice.js"></script>
+  <script src="postit.js"></script>
 <script>
 const Folio = (() => {
   const send = o => window.webkit.messageHandlers.folio.postMessage(JSON.stringify(o));
   // requêtes à l'app (voix) : réponse par Folio.reply(id, valeur)
   let rid = 0; const waits = {};
   const ask = (t, o = {}) => new Promise(ok => { const id = ++rid; waits[id] = ok; send({ t, id, ...o }); });
-  let V = null;
+  let V = null, PTS = [];
+  // post-it : enregistrés par l'appli (base locale + synchro)
+  const P = FolioPostit.create({ root: document.body, lang: document.documentElement.lang, get: () => ({ rend: rendition }),
+    list: () => PTS, save: () => { send({ t: "postits", items: PTS }); refreshNotes(); } });
   const voice = () => (V = V || FolioVoice.create({ root: document.body, lang: document.documentElement.lang,
     get: () => ({ book, rend: rendition, title }), voices: () => ask("tts_voices"), login: () => send({ t: "login" }),
     prefs: () => S.voice_pref || {}, savePrefs: p => send({ t: "voice_pref", p }),     // gardés dans les réglages de l'appli
@@ -83,8 +89,8 @@ const Folio = (() => {
   let book, rendition, S = {}, hls = [], bms = [], toc = [], loc = null, cur = "", pct = null, anchor = null,
       chapter = "", timer, pending = null, wheelLock = 0, title = "", tab = "toc", setPct = () => {};
   const $ = id => document.getElementById(id);
-  const TX = { fr: { open: "Impossible d’ouvrir ce livre : ", bm: "Marque-page", hl: "Surligner", delHl: "Retirer le surlignage", cover: "Utiliser comme couverture" },
-               en: { open: "Can’t open this book: ", bm: "Bookmark", hl: "Highlight", delHl: "Remove highlight", cover: "Use as cover" } };
+  const TX = { fr: { open: "Impossible d’ouvrir ce livre : ", bm: "Marque-page", hl: "Surligner", delHl: "Retirer le surlignage", cover: "Utiliser comme couverture", pin: "Ajouter un post-it" },
+               en: { open: "Can’t open this book: ", bm: "Bookmark", hl: "Highlight", delHl: "Remove highlight", cover: "Use as cover", pin: "Add a sticky note" } };
   const T = k => (TX[document.documentElement.lang] || TX.fr)[k];
   const pctS = p => Math.round(p * 100) + (document.documentElement.lang === "en" ? "%" : " %");
 
@@ -193,7 +199,7 @@ const Folio = (() => {
     rendition.on("selected", onSelected);
     rendition.on("keydown", onKey);
     rendition.on("click", onClick);
-    hls.forEach(drawHl);
+    hls.forEach(drawHl); P.draw();
     return rendition.display(cfi || undefined);
   }
 
@@ -220,8 +226,8 @@ const Folio = (() => {
   async function open(p) {
     close();
     document.documentElement.lang = p.lang || "fr"; $("imgCoverL").textContent = T("cover");
-    bar.querySelectorAll("button").forEach(b => { b.title = b === del ? T("delHl") : T("hl"); });
-    S = p.settings; hls = p.highlights; bms = p.bookmarks; cur = p.cfi || ""; title = p.title || ""; toc = [];
+    bar.querySelectorAll("button").forEach(b => { b.title = b === del ? T("delHl") : b === pinB ? T("pin") : T("hl"); });
+    S = p.settings; hls = p.highlights; bms = p.bookmarks; PTS = p.postits || []; cur = p.cfi || ""; title = p.title || ""; toc = [];
     applyOuter(); $("err").style.display = "none";
     try {
       book = ePub(p.url, { openAs:"epub" });
@@ -252,7 +258,7 @@ const Folio = (() => {
     }
   }
   function close() {
-    if (V) V.stop();
+    if (V) V.stop(); P.clear();
     clearTimeout(timer); hideBar(); panel(false); $("ribbon").classList.remove("on");
     if (rendition) { try { rendition.destroy(); } catch (e) {} rendition = null; }
     if (book) { try { book.destroy(); } catch (e) {} book = null; }
@@ -343,6 +349,9 @@ const Folio = (() => {
   del.title = T("delHl");
   del.onclick = () => { if (pending) { removeHl(pending.cfi); send({ t:"hl_del", cfi:pending.cfi }); } hideBar(); };
   bar.appendChild(del);
+  const pinB = document.createElement("button"); pinB.className = "pin"; pinB.textContent = "✎";
+  pinB.onclick = () => { const p = pending; hideBar(); if (p) { rendition.getContents().forEach(c => c.window.getSelection().removeAllRanges()); P.add(p.cfi); } };
+  bar.appendChild(pinB);
   bar.addEventListener("pointerdown", e => e.stopPropagation());
   document.addEventListener("pointerdown", hideBar);
 
@@ -394,7 +403,8 @@ const Folio = (() => {
     if (!$("panel").classList.contains("on")) return;
     const keep = $("panel").scrollTop;
     FolioNotes.render($("panel"), {
-      book, toc, title, tab, bookmarks: bms, highlights: hls, cur: { cfi: loc && loc.start.cfi, pct },
+      book, toc, title, tab, bookmarks: bms, highlights: hls, cur: { cfi: loc && loc.start.cfi, pct }, postits: PTS.filter(n => !n.deleted),
+      openPostit: cfi => { if (innerWidth < 900) panel(false); rendition.display(cfi).then(() => setTimeout(() => P.open(cfi), 300)); },
       go: t => { go(t); if (innerWidth < 900) panel(false); },
       delBm: cfi => send({ t:"bm_del", cfis:[cfi] }),
       delHl: cfi => { removeHl(cfi); send({ t:"hl_del", cfi }); },
@@ -417,6 +427,7 @@ const Folio = (() => {
     if ($("panel").classList.contains("on")) { panel(false); return; }
     const w = e.view, sel = w && w.getSelection && String(w.getSelection());
     if (sel || (e.target && e.target.closest && e.target.closest("a"))) return;
+    if (P.isOpen) return;           // un post-it ouvert : l'appui le referme (postit.js), sans tourner la page
     if (V && V.on) return;          // lecture à voix haute : un appui choisit l'endroit où lire (voice.js)
     const fr = w.frameElement.getBoundingClientRect(), x = (fr.left + e.clientX) / innerWidth;
     if (S.flow !== "scrolled" && x < .25) prev();
@@ -425,6 +436,7 @@ const Folio = (() => {
   }
 
   return { open, close, settings, go, voice: () => voice().open(), reply: (id, v) => { const f = waits[id]; delete waits[id]; if (f) f(v); }, resume: c => { anchor = c; go(c); }, next, prev, toggleBookmark, setBookmarks, setHighlights, panel,
+           postit: () => { if (loc) P.add(loc.start.cfi); }, setPostits: (list) => { PTS = list; P.draw(); refreshNotes(); },
            debug: () => ({ book, rendition, loc }) };
 })();
 window.addEventListener("error", e => window.webkit.messageHandlers.folio.postMessage(JSON.stringify({ t:"error", msg:e.message })));

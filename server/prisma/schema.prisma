@@ -78,6 +78,7 @@ model BookState {
   posUpdated Float    @default(0)
   removed    Float?
   bookmarks  String   @default("[]")
+  postits    String   @default("[]")
   highlights String   @default("[]")
   coverUpdated Float  @default(0)        // couverture choisie par l'utilisateur (le plus récent gagne)
   nameTitle    String @default("")        // titre choisi par l'utilisateur (renommer)
