@@ -19,6 +19,7 @@ window.FolioPostit = (() => {
   const W0 = 180, H0 = 150, WMIN = 110, HMIN = 80, WMAX = 520, HMAX = 520, FXMIN = -0.5, FXMAX = 1.5;
   const CSS = `
 .fp-layer{position:absolute;inset:0;pointer-events:none;z-index:6;overflow:hidden}.fp-layer[hidden]{display:none}
+.fp-move{position:absolute;inset:0;will-change:transform}
 .fp-note{position:absolute;pointer-events:auto;color:#2b2620;border-radius:2px 2px 12px 2px;transform:rotate(-1deg);
  box-shadow:0 6px 14px -6px rgba(0,0,0,.4),0 1px 3px rgba(0,0,0,.15);font:var(--fs,13px)/1.35 system-ui,sans-serif;display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s}
 .fp-note:focus-within{transform:none;z-index:2;box-shadow:0 14px 30px -10px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.15)}
@@ -60,7 +61,10 @@ window.FolioPostit = (() => {
   function create(host) {
     const L = host.lang === "en" ? "en" : "fr", t = (k) => TX[L][k];
     if (!document.getElementById("fp-css")) document.head.append(Object.assign(document.createElement("style"), { id: "fp-css", textContent: CSS }));
+    // la couche (fixe, qui coupe ce qui sort de l'écran) et, dedans, le plan des post-it qu'on décale d'un bloc pendant le défilement
     const layer = document.createElement("div"); layer.className = "fp-layer"; host.root.append(layer);
+    const plane = document.createElement("div"); plane.className = "fp-move"; layer.append(plane);
+    let base = null;                             // défilement du livre au dernier placement (le plan suit l'écart)
     const els = new Map();                       // identifiant → élément affiché (gardé d'un dessin à l'autre : on peut écrire pendant que la page bouge)
     let raf = 0, busy = false, saveT = 0, leftAt = 0;
     const now = () => Date.now() / 1000;
@@ -85,7 +89,7 @@ window.FolioPostit = (() => {
         const ax = f.left + q.left, ay = f.top + q.top;
         if (ax < V.left - 2 || ax >= V.right) return null;                     // en pages : le passage est sur une autre page
         const x = legacy(n) ? V.right - w - 10 : V.left + n.fx * V.width, y = ay + (n.dy || 0) * s;
-        if (y + h < R.top || y > R.bottom) return null;
+        if (y + h < R.top - R.height || y > R.bottom + R.height) return null;   // gardé un écran avant et après : il arrive avec le texte
         return { x: clamp(x, R.left + 2, R.right - w - 2), y, w, h };           // marges comprises ; sur un écran étroit, ramené à l'écran
       }
       return null;
@@ -143,14 +147,15 @@ window.FolioPostit = (() => {
     }
 
     function draw() {
-      raf = 0; if (busy) return;
+      raf = 0; if (busy) return; follow();
       layer.hidden = !!host.hidden?.(); if (layer.hidden) return;
+      const C = host.get().rend?.manager?.container; base = C ? { x: C.scrollLeft, y: C.scrollTop } : null; plane.style.transform = "";
       const R = layer.getBoundingClientRect(), seen = new Set();
       for (const n of live()) {
         const p = where(n); let d = els.get(n.cfi);
         if (!p) { if (d && !d.contains(document.activeElement)) d.remove(); continue; }
         if (!d) { d = build(n); els.set(n.cfi, d); }
-        if (!d.isConnected) layer.append(d);
+        if (!d.isConnected) plane.append(d);
         Object.assign(d.style, { left: p.x - R.left + "px", top: p.y - R.top + "px", width: p.w + "px", height: p.h + "px" });
         paint(d, n); seen.add(n.cfi);
       }
@@ -215,7 +220,17 @@ window.FolioPostit = (() => {
       const r = host.get().rend; if (!r || r === hooked) return; hooked = r;
       r.on("relocated", () => { redraw(); setTimeout(redraw, 350); }); r.on("rendered", () => setTimeout(redraw, 60));
       r.on("click", () => { if (editing()) document.activeElement.blur(); });   // un appui dans le texte du livre : on quitte le post-it
-      r.manager?.container?.addEventListener("scroll", redraw, { passive: true });
+    }
+    // défilement : le plan suit tout de suite, d'un bloc (rien à recalculer) ; placement exact quand le défilement s'arrête.
+    // La zone qui défile n'existe qu'une fois le livre affiché : on s'y branche dès qu'elle apparaît (et à chaque nouvelle)
+    let scroller = null, still = 0;
+    function follow() {
+      const C = host.get().rend?.manager?.container; if (!C || C === scroller) return; scroller = C;
+      C.addEventListener("scroll", () => {
+        if (C !== scroller) return;
+        if (base && !busy) plane.style.transform = `translate(${base.x - C.scrollLeft}px,${base.y - C.scrollTop}px)`;
+        clearTimeout(still); still = setTimeout(redraw, 120);
+      }, { passive: true });
     }
     addEventListener("resize", redraw);
 
@@ -240,7 +255,7 @@ window.FolioPostit = (() => {
       open(key) { focus(key); },
       draw() { hook(); redraw(); },
       close() { if (editing()) document.activeElement.blur(); },
-      clear() { if (editing()) document.activeElement.blur(); layer.innerHTML = ""; els.clear(); hooked = null; },
+      clear() { if (editing()) document.activeElement.blur(); plane.innerHTML = ""; els.clear(); hooked = null; base = null; },
     };
   }
   return { create, COLORS, anchorOf };

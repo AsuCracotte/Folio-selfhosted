@@ -692,23 +692,34 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
   // ---------- téléchargements des applis (dossier monté en lecture seule) ----------
   const DL = /^Folio[\w.-]*\.(exe|zip|deb|dmg|AppImage)$/;
   // empreinte SHA-256 de chaque installeur (les applis la vérifient avant de se mettre à jour) ; calculée une fois par fichier
-  const sums = new Map();
+  // empreintes SHA-256 des installeurs (vérifiées par la mise à jour des applis) : gardées sur disque, sinon chaque redémarrage
+  // du serveur relisait plus d'un gigaoctet avant de pouvoir répondre
+  const sumFile = path.join(dataDir, "sha256.json"), sums = new Map();
+  try { for (const [k, v] of Object.entries(JSON.parse(fs.readFileSync(sumFile, "utf8")))) sums.set(k, Promise.resolve(v)); } catch (e) {}
+  const keepSums = async () => {
+    const o = {}; for (const [k, p] of sums) { const v = await p; if (v) o[k] = v; }
+    try { fs.writeFileSync(sumFile + ".tmp", JSON.stringify(o)); fs.renameSync(sumFile + ".tmp", sumFile); } catch (e) {}
+  };
   const sha = (f, st) => {
     const k = `${f}:${st.mtimeMs}:${st.size}`;
     if (!sums.has(k)) sums.set(k, new Promise((ok, ko) => {         // en flux : un installeur de 120 Mo ne passe pas en mémoire
       const h = crypto.createHash("sha256");
       fs.createReadStream(path.join(downloadsDir, f)).on("data", (d) => h.update(d)).on("end", () => ok(h.digest("hex"))).on("error", ko);
-    }).catch(() => { sums.delete(k); return ""; }));
+    }).then((v) => { keepSums(); return v; }).catch(() => { sums.delete(k); return ""; }));
     return sums.get(k);
   };
   const releases = () => {
     if (!downloadsDir || !fs.existsSync(downloadsDir)) return [];
     return fs.readdirSync(downloadsDir).filter((f) => DL.test(f)).map((f) => {
       const st = fs.statSync(path.join(downloadsDir, f));
-      return { name: f, size: st.size, date: st.mtimeMs / 1000, sha256: sha(f, st) };
+      return { name: f, size: st.size, date: st.mtimeMs / 1000, sha256: () => sha(f, st) };   // calculée seulement si on la demande
     }).sort((a, b) => b.date - a.date);
   };
-  app.get("/api/releases", async () => Promise.all(releases().map(async (r) => ({ ...r, sha256: await r.sha256 }))));
+  // ?lite=1 : la page de téléchargement n'a besoin que des noms, tailles et dates (réponse immédiate)
+  app.get("/api/releases", async (req) => req.query.lite ? releases().map(({ sha256: _, ...r }) => r)
+    : Promise.all(releases().map(async (r) => ({ ...r, sha256: await r.sha256() }))));
+  // au démarrage, en arrière-plan et un fichier après l'autre : les empreintes manquantes sont prêtes avant qu'une appli les demande
+  setTimeout(async () => { for (const r of releases()) await r.sha256(); }, 2000).unref?.();
   app.get("/dl/:file", async (req, reply) => {
     const f = String(req.params.file);
     if (!DL.test(f) || !releases().some((r) => r.name === f)) return reply.code(404).send({ error: t(L(req), "bad_request") });

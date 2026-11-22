@@ -197,7 +197,7 @@
   const size = (b) => (b < 1048576 ? t("kb", { n: Math.max(1, Math.round(b / 1024)) }) : t("mb", { n: Math.round(b / 1048576) }));
   const KINDS = { win: /Setup.*\.exe$/i, arm: /mac-arm64\.zip$/i, intel: /mac-x64\.zip$/i, linux: /\.deb$/i };
   const btn = (f, label, pri) => `<a class="btn ${pri ? "pri" : "ghost"}" href="/dl/${encodeURIComponent(f.name)}" download><svg class="i"><use href="#i-dl"/></svg><span>${label}</span></a>`;
-  fetch("/api/releases").then((r) => (r.ok ? r.json() : [])).catch(() => []).then((list) => {
+  fetch("/api/releases?lite=1").then((r) => (r.ok ? r.json() : [])).catch(() => []).then((list) => {
     const pick = {}; for (const [k, re] of Object.entries(KINDS)) pick[k] = list.find((f) => re.test(f.name));
     const box = (k) => document.querySelector(`[data-files="${k}"]`);
     const meta = (f) => (f ? `<div class="meta" style="width:100%">${t("version", { v: ver(f.name), s: size(f.size) })}</div>` : "");
