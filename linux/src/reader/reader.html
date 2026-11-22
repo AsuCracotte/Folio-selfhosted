@@ -12,6 +12,8 @@
   /* colonne de lecture centrée : ~65 caractères par ligne au lieu de toute la largeur de la fenêtre */
   #viewer { position:absolute; top:10px; bottom:44px; left:0; right:0; margin:0 auto; max-width:var(--mw, 100%);
     transition:max-width .25s ease; }
+  /* post-it : zone de lecture, marges comprises, sans la barre du bas */
+  #ptzone { position:absolute; top:0; left:0; right:0; bottom:44px; pointer-events:none; }
   #foot { position:absolute; left:0; right:0; bottom:0; height:44px; display:flex; max-width:max(var(--mw, 100%), 720px);
     margin:0 auto; align-items:center; padding:0 28px; font-size:12px; color:var(--muted); user-select:none; gap:16px;
     transition:opacity .25s; }
@@ -58,6 +60,7 @@
 </style></head>
 <body>
   <div id="viewer"></div>
+  <div id="ptzone"></div>
   <div class="zone" id="zl"></div><div class="zone" id="zr"></div>
   <div id="ribbon" class="fn-ribbon"></div>
   <div id="foot"><span id="chap"></span><div id="track"></div><span id="pct"></span></div>
@@ -77,7 +80,7 @@ const Folio = (() => {
   const ask = (t, o = {}) => new Promise(ok => { const id = ++rid; waits[id] = ok; send({ t, id, ...o }); });
   let V = null, PTS = [];
   // post-it : enregistrés par l'appli (base locale + synchro)
-  const P = FolioPostit.create({ root: document.body, lang: document.documentElement.lang, get: () => ({ rend: rendition }),
+  const P = FolioPostit.create({ root: document.getElementById("ptzone"), lang: document.documentElement.lang, get: () => ({ rend: rendition }),
     list: () => PTS, save: () => { send({ t: "postits", items: PTS }); refreshNotes(); }, highlights: () => hls,
     hidden: () => !!S.postits_hidden, unhide: () => setPtHidden(false) });
   // masqués ou non : réglage de l'appli (cet appareil)

@@ -233,6 +233,7 @@ window.FolioPostit = (() => {
       }, { passive: true });
     }
     addEventListener("resize", redraw);
+    new ResizeObserver(redraw).observe(host.root);   // barres masquées ou affichées : la zone de lecture change de taille
 
     function focus(key) { draw(); const d = els.get(key); if (d?.isConnected) d.querySelector(".fp-ta").focus(); }
 

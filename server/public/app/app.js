@@ -792,7 +792,8 @@ $("bVoice").onclick=()=>voice.open();
 // ---------- post-it (postit.js) ----------
 // masqués ou non : réglage de cet appareil
 const ptHidden=()=>localStorage.folioPtHide==="1";
-const postit=FolioPostit.create({root:$("rd"),lang:LANG,get:()=>({rend}),list:()=>cur?cur.postits||(cur.postits=[]):[],save:()=>{if(!cur)return;putB(cur);pushSoon();refreshTrack()},
+// dans la zone de lecture (marges comprises) : jamais par-dessus les barres du haut et du bas
+const postit=FolioPostit.create({root:$("view"),lang:LANG,get:()=>({rend}),list:()=>cur?cur.postits||(cur.postits=[]):[],save:()=>{if(!cur)return;putB(cur);pushSoon();refreshTrack()},
  highlights:()=>cur?.highlights||[],hidden:ptHidden,unhide:()=>{localStorage.folioPtHide="0"}});
 $("bPostit").onclick=()=>{if(loc)postit.add()};
 // ---------- synchro via le compte Folio (mêmes données que l'app Linux) ----------
@@ -962,7 +963,7 @@ $("bSync").onclick=doSync;
 // ---------- mises à jour ----------
 // le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
 // l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
-const APPV="2.6.3";let updShown=false;
+const APPV="2.6.4";let updShown=false;
 function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
  $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
 const D=window.folioDesktop;
