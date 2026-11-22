@@ -166,7 +166,9 @@
   };
   let saved = "";
   try { saved = localStorage.folioLang || ""; } catch (e) {}
-  const LANG = saved === "fr" || saved === "en" ? saved : /^fr/i.test(navigator.language || "") ? "fr" : "en";
+  // langue : celle de l'adresse (?lang=, une adresse par langue pour les moteurs de recherche), sinon celle choisie, sinon celle du navigateur
+  const q = new URLSearchParams(location.search).get("lang");
+  const LANG = q === "fr" || q === "en" ? q : saved === "fr" || saved === "en" ? saved : /^fr/i.test(navigator.language || "") ? "fr" : "en";
   const t = (k, v = {}) => String(TX[LANG][k] ?? TX.fr[k] ?? k).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "");
   document.documentElement.lang = LANG;
   if (LANG === "en") document.title = document.title.replace("Télécharger Folio", "Download Folio").replace("liseuse EPUB synchronisée", "the EPUB reader that syncs");
@@ -177,7 +179,7 @@
   document.querySelectorAll("[data-shot]").forEach((e) => { e.src = `img/${LANG}-${e.dataset.shot}.webp`; });
   document.querySelectorAll(".lang button").forEach((b) => {
     b.classList.toggle("on", b.dataset.l === LANG);
-    b.onclick = () => { try { localStorage.folioLang = b.dataset.l; } catch (e) {} location.reload(); };
+    b.onclick = () => { try { localStorage.folioLang = b.dataset.l; } catch (e) {} const u = new URL(location.href); u.searchParams.set("lang", b.dataset.l); location.href = u; };
   });
   const cp = document.getElementById("shCopy");
   if (cp) cp.onclick = () => {

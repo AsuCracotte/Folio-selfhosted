@@ -731,8 +731,63 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
 
   if (publicDir && fs.existsSync(publicDir)) {
     app.register(require("@fastify/static"), { root: publicDir, redirect: true,
-      setHeaders: (res, p) => { if (/\.(js|html|json|css)$/.test(p)) res.setHeader("Cache-Control", "no-cache"); } });
-    app.get("/download", (_req, reply) => reply.sendFile("download.html"));
+      setHeaders: (res, p) => {
+        if (/\.(js|html|json|css)$/.test(p)) res.setHeader("Cache-Control", "no-cache");
+        if (/[\\/]app[\\/].*\.html$/.test(p)) res.setHeader("X-Robots-Tag", "noindex");   // le lecteur : rien à indexer, c'est la page d'accueil qui doit sortir
+      } });
+    // ---------- référencement : pages d'accueil et de téléchargement avec un en-tête par langue ----------
+    // ?lang=fr / ?lang=en donnent chacune une adresse à indexer (sinon la langue était choisie en JavaScript, d'après le navigateur :
+    // Google, qui visite en anglais, voyait la page anglaise sous une adresse déclarée française)
+    const site = (publicUrl || "").replace(/\/$/, "");
+    const SEO = {
+      "/": { file: "index.html",
+        fr: ["Folio — liseuse EPUB gratuite, synchronisée sur tous vos appareils",
+          "Folio, la liseuse EPUB gratuite et sans publicité : lisez vos livres sur Windows, macOS, Linux, Android et iPhone, avec progression, surlignages, post-it et lecture à voix haute synchronisés. Libre et auto-hébergeable."],
+        en: ["Folio — free EPUB reader that syncs across all your devices",
+          "Folio is a free, ad-free EPUB reader: read your books on Windows, macOS, Linux, Android and iPhone, with progress, highlights, sticky notes and read-aloud kept in sync. Open source and self-hostable."] },
+      "/download": { file: "download.html",
+        fr: ["Télécharger Folio — liseuse EPUB pour Windows, macOS, Linux et téléphone",
+          "Téléchargez Folio, la liseuse EPUB gratuite : installeur Windows, macOS (Apple Silicon et Intel), paquet .deb pour Linux, ou appli web sur Android et iPhone."],
+        en: ["Download Folio — EPUB reader for Windows, macOS, Linux and phones",
+          "Download Folio, the free EPUB reader: Windows installer, macOS (Apple Silicon and Intel), .deb package for Linux, or web app on Android and iPhone."] },
+    };
+    const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+    const html = {};                                         // pages lues une fois (relues si le fichier change)
+    const read = (f) => { const st = fs.statSync(path.join(publicDir, f)); if (html[f]?.t !== st.mtimeMs) html[f] = { t: st.mtimeMs, s: fs.readFileSync(path.join(publicDir, f), "utf8") }; return html[f].s; };
+    function seoPage(route) {
+      return (req, reply) => {
+        const q = (req.query || {}).lang, lang = q === "en" ? "en" : "fr", [title, desc] = SEO[route][lang];
+        const url = (l) => site + route + (l ? "?lang=" + l : "");
+        const shot = site + "/img/" + (lang === "en" ? "en" : "fr") + "-library.webp";
+        const ld = route === "/" ? [{ "@context": "https://schema.org", "@type": "WebSite", name: "Folio", alternateName: ["Folio liseuse EPUB", "Folio EPUB reader"], url: site + "/" },
+          { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Folio", alternateName: lang === "en" ? "Folio EPUB reader" : "Folio liseuse EPUB",
+            description: desc, applicationCategory: "ReferenceApplication", operatingSystem: "Windows, macOS, Linux, Android, iOS",
+            offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" }, url: url(q && lang), downloadUrl: site + "/download", screenshot: shot, inLanguage: ["fr", "en"] }] : [];
+        const head = [`<link rel="canonical" href="${esc(q ? url(lang) : url(""))}">`,
+          `<link rel="alternate" hreflang="fr" href="${esc(url("fr"))}">`, `<link rel="alternate" hreflang="en" href="${esc(url("en"))}">`,
+          `<link rel="alternate" hreflang="x-default" href="${esc(url(""))}">`,
+          `<meta property="og:type" content="website"><meta property="og:site_name" content="Folio"><meta property="og:url" content="${esc(q ? url(lang) : url(""))}">`,
+          `<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:image" content="${esc(shot)}">`,
+          `<meta property="og:locale" content="${lang === "en" ? "en_GB" : "fr_FR"}"><meta name="twitter:card" content="summary_large_image">`,
+          ...ld.map((o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, "\\u003c")}</script>`)].join("\n");
+        let page = read(SEO[route].file).replace(/<html lang="[a-z]+"/, `<html lang="${lang}"`)
+          .replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
+          .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${esc(desc)}">`)
+          .replace(/<meta property="og:[^>]*>/g, "").replace("</head>", head + "\n</head>");
+        return reply.type("text/html; charset=utf-8").header("Cache-Control", "no-cache").send(page);
+      };
+    }
+    app.get("/", seoPage("/"));
+    app.get("/index.html", (req, reply) => reply.redirect("/" + (req.query?.lang ? "?lang=" + encodeURIComponent(req.query.lang) : ""), 301));
+    app.get("/download", seoPage("/download"));
+    app.get("/sitemap.xml", (_req, reply) => {
+      const mod = (f) => new Date(fs.statSync(path.join(publicDir, f)).mtimeMs).toISOString().slice(0, 10);
+      const urls = Object.entries(SEO).flatMap(([r, o]) => ["fr", "en"].map((l) => `<url><loc>${esc(site + r + "?lang=" + l)}</loc><lastmod>${mod(o.file)}</lastmod>` +
+        ["fr", "en"].map((x) => `<xhtml:link rel="alternate" hreflang="${x}" href="${esc(site + r + "?lang=" + x)}"/>`).join("") +
+        `<xhtml:link rel="alternate" hreflang="x-default" href="${esc(site + r)}"/></url>`));
+      return reply.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${urls.join("")}</urlset>`);
+    });
+    app.get("/robots.txt", (_req, reply) => reply.type("text/plain").send(`User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /dl/\n\nSitemap: ${site}/sitemap.xml\n`));
     // QR code vers le lecteur (fiche « Folio sur mobile »), à l'adresse publique du serveur
     app.get("/app/qr.svg", async (req, reply) => {
       const url = `${base || `${req.protocol}://${req.headers.host}`}/app/`;
