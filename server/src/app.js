@@ -51,7 +51,7 @@ const cleanItems = (a) => (Array.isArray(a) ? a : []).filter((x) => x && typeof 
 const cleanPostits = (a) => (Array.isArray(a) ? a : []).filter((x) => x && typeof x.cfi === "string" && x.cfi.length <= 2000)
   .map((x) => ({ cfi: x.cfi, color: COLORS.has(x.color) ? x.color : "yellow", text: String(x.text ?? "").slice(0, 5000),
     // place sur la page : accroche dans le texte (at), position (fx de 0 à 1, dy en px), taille ; passages surlignés cités (refs)
-    at: typeof x.at === "string" ? x.at.slice(0, 2000) : "", fx: x.fx >= 0 && x.fx <= 1 ? num(x.fx) : -1,
+    at: typeof x.at === "string" ? x.at.slice(0, 2000) : "", fx: x.fx >= -0.5 && x.fx <= 1.5 ? num(x.fx) : -1,   // hors de la zone de lecture = dans la marge
     dy: Math.max(-3000, Math.min(3000, num(x.dy))), w: Math.max(0, Math.min(800, num(x.w))), h: Math.max(0, Math.min(800, num(x.h))),
     refs: (Array.isArray(x.refs) ? x.refs : []).filter((r) => typeof r === "string" && r.length <= 2000).slice(0, 20),
     created: num(x.created), updated: num(x.updated), deleted: x.deleted ? 1 : 0 }));

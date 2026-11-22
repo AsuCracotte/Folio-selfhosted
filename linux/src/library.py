@@ -269,7 +269,7 @@ class Library:
             fx = x.get("fx")
             ok.append({"cfi": x["cfi"], "color": x.get("color") if x.get("color") in POSTIT_COLORS else "yellow",
                        "text": str(x.get("text") or "")[:5000], "at": x["at"][:2000] if isinstance(x.get("at"), str) else "",
-                       "fx": float(fx) if isinstance(fx, (int, float)) and 0 <= fx <= 1 else -1.0, "dy": num(x.get("dy"), -3000, 3000),
+                       "fx": float(fx) if isinstance(fx, (int, float)) and -0.5 <= fx <= 1.5 else -1.0, "dy": num(x.get("dy"), -3000, 3000),   # fx hors de 0–1 : dans la marge
                        "w": num(x.get("w"), 0, 800), "h": num(x.get("h"), 0, 800), "refs": json.dumps(refs),
                        "created": num(x.get("created"), 0, 1e12), "updated": num(x.get("updated"), 0, 1e12), "deleted": 1 if x.get("deleted") else 0})
         before = self.db.total_changes
