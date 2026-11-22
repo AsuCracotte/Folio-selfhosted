@@ -195,6 +195,23 @@
     io.observe($("#wcard")); io.observe(card);
   })();
 
+  // ---------- post-it : on le glisse sur la page, on l'agrandit par son coin (bornés à la page) ----------
+  (() => {
+    const page = $("#pcPage"), note = $("#pcNote"); if (!page || !note) return;
+    const cl = (v, a, b) => Math.max(a, Math.min(b, v));
+    note.addEventListener("pointerdown", (e) => {
+      if (e.button) return; e.preventDefault(); note.setPointerCapture(e.pointerId); note.classList.add("drag");
+      const rz = e.target.id === "pcRz", P = page.getBoundingClientRect(), r0 = note.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY;
+      const move = (ev) => {
+        const dx = ev.clientX - x0, dy = ev.clientY - y0;
+        if (rz) { note.style.setProperty("--w", cl(r0.width + dx, 130, P.right - r0.left) + "px"); note.style.setProperty("--h", cl(r0.height + dy, 100, Math.max(100, P.bottom - r0.top + 6)) + "px"); }
+        else { note.style.setProperty("--x", cl(r0.left - P.left + dx, -6, P.width - r0.width + 6) + "px"); note.style.setProperty("--y", cl(r0.top - P.top + dy, -6, P.height - 40) + "px"); }
+      };
+      const up = () => { note.classList.remove("drag"); note.removeEventListener("pointermove", move); note.removeEventListener("pointerup", up); note.removeEventListener("pointercancel", up); };
+      note.addEventListener("pointermove", move); note.addEventListener("pointerup", up); note.addEventListener("pointercancel", up);
+    });
+  })();
+
   // ---------- plateforme qui défile (seulement quand elle est visible) ----------
   const roll = $("#roll"), track = roll.firstElementChild;
   const items = [...track.children];

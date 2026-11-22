@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#fbfaf7"><link rel="icon" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
-<link rel="stylesheet" href="site.css?v=1.9.2"><link rel="stylesheet" href="home.css?v=1.9.2">
+<link rel="stylesheet" href="site.css?v=1.9.2"><link rel="stylesheet" href="home.css?v=1.9.3">
 <script>(function(r){r.classList.add("js");try{var l=JSON.parse(localStorage.folioSiteLook||"{}");if(l.theme)r.dataset.theme=l.theme;if(l.font)r.dataset.font=l.font;if(l.size)r.style.setProperty("--ts",l.size)}catch(e){}})(document.documentElement)</script>
 <meta property="og:title" content="Folio"><meta property="og:description" content="Vos livres, partout. Liseuse EPUB synchronisée, sans publicité."><meta property="og:image" content="img/fr-library.webp">
 </head><body class="home">
@@ -99,6 +99,7 @@
    <div><dt data-t="f10t"></dt><dd data-t="f10p"></dd></div>
    <div><dt data-t="f8t"></dt><dd data-t="f8p"></dd></div>
    <div><dt data-t="f9t"></dt><dd data-t="f9p"></dd></div>
+   <div><dt data-t="f12t"></dt><dd data-t="f12p"></dd></div>
    <div><dt data-t="f11t"></dt><dd data-t="f11p"></dd></div>
    <div><dt data-t="f6t"></dt><dd data-t="f6p"></dd></div>
   </dl>
@@ -135,6 +136,25 @@
     <span class="lc-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="lc-sp">1×</span></div>
   </div>
  </div>
+  <div class="wrap two">
+   <div class="txt">
+    <p class="label" data-t="c8k">Annoter</p>
+    <h2 class="t" data-t="c8t">Un mot laissé sur la page.</h2>
+    <p class="sub2" data-t="f12p"></p>
+   </div>
+   <div class="pcard" id="pcard" data-rv>
+    <div class="pc-page" id="pcPage">
+     <p class="pc-txt"><span data-t="pcA">Margot relut la lettre deux fois.</span> <mark data-t="pcHl">Personne n’écrivait plus au gardien depuis la tempête de 1953,</mark> <span data-t="pcB">et pourtant l’écriture lui semblait familière, penchée, pressée, comme celle de quelqu’un qui craint d’oublier ce qu’il veut dire.</span></p>
+     <p class="pc-txt"><span data-t="pcC">Elle posa l’enveloppe sur la rambarde et regarda la mer.</span></p>
+     <div class="pc-note" id="pcNote" aria-hidden="true">
+      <q data-t="pcHl">Personne n’écrivait plus au gardien depuis la tempête de 1953,</q>
+      <p data-t="pcNoteT">Qui a pu écrire ? Relire le chapitre 1 !</p>
+      <i class="pc-rz" id="pcRz"></i>
+     </div>
+    </div>
+    <p class="pc-hint" data-t="pcHint">Glissez le post-it, tirez son coin pour l’agrandir.</p>
+   </div>
+  </div>
 </section>
 
 <!-- V. notes : le surligneur passe -->
@@ -194,6 +214,6 @@
 <footer><div class="wrap"><a class="logo" href="/" style="font-size:17px;margin:0"><img src="icon.svg" alt="" style="width:24px;height:24px">Folio</a><span class="sp"></span>
  <a href="/app/" data-t="navOpen">Ouvrir Folio</a><a href="/download" data-t="navDownload">Télécharger</a><a href="https://github.com/AsuCracotte/Folio-selfhosted" target="_blank" rel="noopener" data-t="selfLink">Auto-hébergement</a><span>© 2026 Folio</span></div>
  <div class="wrap"><p class="colophon" data-t="colophon">Composé en Fraunces et Literata. Imprimé nulle part, lisible partout.</p></div></footer>
-<script src="site.js?v=2.3.3"></script>
-<script src="home.js?v=2.3.3"></script>
+<script src="site.js?v=2.3.4"></script>
+<script src="home.js?v=2.3.4"></script>
 </body></html>
