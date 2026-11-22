@@ -735,7 +735,7 @@ $("bBm").onclick=()=>{if(!loc)return;const ins=cur.bookmarks.filter(b=>!b.delete
 // surlignages
 const sel=$("sel");Object.entries(COLORS).forEach(([n,h])=>{const b=document.createElement("button");b.style.background=h;b.title=n;b.onclick=()=>{if(pending)addHl(pending.cfi,n,pending.text);hideSel()};sel.append(b)});
 const del=document.createElement("button");del.className="x";del.innerHTML=ico("trash");del.title=t("delHl");del.onclick=()=>{if(pending)rmHl(pending.cfi);hideSel()};sel.append(del);
-const selPin=document.createElement("button");selPin.className="x";selPin.innerHTML=ico("note");selPin.title=t("postitT");selPin.onclick=()=>{const p=pending;hideSel();if(p){rend.getContents().forEach(c=>c.window.getSelection().removeAllRanges());postit.add(p.cfi)}};sel.append(selPin);
+const selPin=document.createElement("button");selPin.className="x";selPin.innerHTML=ico("note");selPin.title=t("postitT");selPin.onclick=()=>{const p=pending,r=sel.getBoundingClientRect();hideSel();if(p){rend.getContents().forEach(c=>c.window.getSelection().removeAllRanges());postit.add(r.left,r.bottom+6)}};sel.append(selPin);
 function showSel(x,y,d){pending=d;del.style.display=d.text?"none":"grid";selPin.style.display=d.text?"grid":"none";sel.style.display="flex";sel.style.left=Math.max(8,Math.min(innerWidth-sel.offsetWidth-8,x-sel.offsetWidth/2))+"px";sel.style.top=Math.max(70,Math.min(innerHeight-sel.offsetHeight-16,y+14))+"px"}
 function hideSel(){sel.style.display="none";pending=null}
 function onSel(cfi,c){const r=c.range(cfi),s=r.toString().trim();if(!s)return;const q=r.getBoundingClientRect(),f=c.document.defaultView.frameElement.getBoundingClientRect();showSel(f.left+q.left+q.width/2,f.top+q.bottom,{cfi,text:s})}
@@ -754,7 +754,8 @@ function list(){const L=$("list");if(!cur||!book){L.innerHTML="";return}const sh
   go:x=>{rend.display(x);show(null)},
   delBm:cfi=>{const b=cur.bookmarks.find(x=>x.cfi===cfi);if(b){b.deleted=1;b.updated=now()}report();refreshTrack();list();msg(t("bmRemoved"))},
   delHl:cfi=>{rmHl(cfi);list()},postits:cur.postits.filter(n=>!n.deleted),
-  openPostit:cfi=>{show(null);rend.display(cfi).then(()=>setTimeout(()=>postit.open(cfi),300))},
+  openPostit:(key,at)=>{show(null);rend.display(at).then(()=>setTimeout(()=>postit.open(key),300))},
+  postitsHidden:ptHidden(),togglePostits:()=>{localStorage.folioPtHide=ptHidden()?"0":"1";postit.draw();list()},
   recolor:(cfi,c)=>{const h=cur.highlights.find(x=>x.cfi===cfi);if(h)addHl(cfi,c,h.text);list()},
   copy:(s,m)=>{(navigator.clipboard?navigator.clipboard.writeText(s):Promise.reject()).then(()=>msg(m||t("copied")),()=>msg(t("copyFail")))},
   onTab:x=>{tab=x;list();sh.scrollTop=0}});sh.scrollTop=keep}
@@ -789,8 +790,11 @@ const voice=FolioVoice.create({root:$("rd"),lang:LANG,get:()=>({book,rend,title:
  voices:async()=>dav?(VOICES||(VOICES=await dav.ttsVoices())):null,speak:(v,s)=>dav.tts(v,s),login:()=>{$("bBack").click();show("shCfg")}});
 $("bVoice").onclick=()=>voice.open();
 // ---------- post-it (postit.js) ----------
-const postit=FolioPostit.create({root:$("rd"),lang:LANG,get:()=>({rend}),list:()=>cur?cur.postits||(cur.postits=[]):[],save:()=>{if(!cur)return;putB(cur);pushSoon();refreshTrack()}});
-$("bPostit").onclick=()=>{if(loc)postit.add(loc.start.cfi)};
+// masqués ou non : réglage de cet appareil
+const ptHidden=()=>localStorage.folioPtHide==="1";
+const postit=FolioPostit.create({root:$("rd"),lang:LANG,get:()=>({rend}),list:()=>cur?cur.postits||(cur.postits=[]):[],save:()=>{if(!cur)return;putB(cur);pushSoon();refreshTrack()},
+ highlights:()=>cur?.highlights||[],hidden:ptHidden,unhide:()=>{localStorage.folioPtHide="0"}});
+$("bPostit").onclick=()=>{if(loc)postit.add()};
 // ---------- synchro via le compte Folio (mêmes données que l'app Linux) ----------
 let dav=null,pushT;
 const pushSoon=()=>{if(!dav)return;clearTimeout(pushT);const b=cur;pushT=setTimeout(()=>dav.push(b).then(()=>refreshCur(false)).catch(()=>{}),3000)};
@@ -958,7 +962,7 @@ $("bSync").onclick=doSync;
 // ---------- mises à jour ----------
 // le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
 // l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
-const APPV="2.6.0";let updShown=false;
+const APPV="2.6.1";let updShown=false;
 function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
  $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
 const D=window.folioDesktop;

@@ -111,6 +111,9 @@ class Library:
         self.db.executescript(SCHEMA)
         for t, cols in (("bookmarks", ("updated REAL", "deleted INTEGER DEFAULT 0")),
                         ("highlights", ("updated REAL", "deleted INTEGER DEFAULT 0")),
+                        # post-it posés sur la page : accroche (at), position (fx, dy), taille (w, h), passages surlignés cités (refs)
+                        ("postits", ("at TEXT DEFAULT ''", "fx REAL DEFAULT -1", "dy REAL DEFAULT 0", "w REAL DEFAULT 0", "h REAL DEFAULT 0",
+                                     "refs TEXT DEFAULT '[]'")),
                         ("books", ("pos_updated REAL", "synced TEXT", "uploaded INTEGER DEFAULT 0",
                                    # couverture choisie par l'utilisateur (fichier à part ; la plus récente gagne)
                                    "custom_cover TEXT DEFAULT ''", "cover_updated REAL DEFAULT 0", "cover_sent INTEGER DEFAULT 1",
@@ -243,23 +246,39 @@ class Library:
                 f"ON CONFLICT(book_id,cfi) DO UPDATE SET {','.join(f'{c}=excluded.{c}' for c in cols)},updated=excluded.updated,deleted=excluded.deleted",
                 [bid, it["cfi"], *vals, it.get("created", time.time()), it.get("updated", 0), int(it.get("deleted", 0))])
 
-    def postits(self, bid):
-        """Tous les post-it du livre, retirés compris (le lecteur réutilise la place d'un post-it retiré)."""
-        return self.items("postits", bid, ["cfi", "color", "text"])
+    POSTIT_COLS = ["color", "text", "at", "fx", "dy", "w", "h", "refs"]
 
-    def save_postits(self, bid, items):
-        """Post-it envoyés par le lecteur : champs vérifiés, puis fusion (le plus récent gagne)."""
+    def postits(self, bid):
+        """Tous les post-it du livre, retirés compris (cfi = leur identifiant ; refs : liste)."""
+        out = self.items("postits", bid, ["cfi"] + self.POSTIT_COLS)
+        for x in out:
+            try:
+                x["refs"] = json.loads(x["refs"] or "[]")
+            except ValueError:
+                x["refs"] = []
+        return out
+
+    def merge_postits(self, bid, items):
+        """Post-it du lecteur ou de la synchro : champs vérifiés (comme le serveur), puis fusion (le plus récent gagne)."""
+        num = lambda v, lo, hi, d=0.0: min(hi, max(lo, float(v))) if isinstance(v, (int, float)) else d  # noqa: E731
         ok = []
         for x in items if isinstance(items, list) else []:
             if not isinstance(x, dict) or not isinstance(x.get("cfi"), str) or not 0 < len(x["cfi"]) <= 2000:
                 continue
-            num = lambda v: float(v) if isinstance(v, (int, float)) else 0.0  # noqa: E731
+            refs = [r for r in x.get("refs") or [] if isinstance(r, str) and len(r) <= 2000][:20] if isinstance(x.get("refs"), list) else []
+            fx = x.get("fx")
             ok.append({"cfi": x["cfi"], "color": x.get("color") if x.get("color") in POSTIT_COLORS else "yellow",
-                       "text": str(x.get("text") or "")[:5000], "created": num(x.get("created")), "updated": num(x.get("updated")),
-                       "deleted": 1 if x.get("deleted") else 0})
+                       "text": str(x.get("text") or "")[:5000], "at": x["at"][:2000] if isinstance(x.get("at"), str) else "",
+                       "fx": float(fx) if isinstance(fx, (int, float)) and 0 <= fx <= 1 else -1.0, "dy": num(x.get("dy"), -3000, 3000),
+                       "w": num(x.get("w"), 0, 800), "h": num(x.get("h"), 0, 800), "refs": json.dumps(refs),
+                       "created": num(x.get("created"), 0, 1e12), "updated": num(x.get("updated"), 0, 1e12), "deleted": 1 if x.get("deleted") else 0})
         before = self.db.total_changes
-        self.merge_items("postits", bid, ok, ["color", "text"]); self.db.commit()
+        self.merge_items("postits", bid, ok, self.POSTIT_COLS)
         return self.db.total_changes != before
+
+    def save_postits(self, bid, items):
+        changed = self.merge_postits(bid, items); self.db.commit()
+        return changed
 
     def highlights(self, bid):
         return [dict(r) for r in self.db.execute(

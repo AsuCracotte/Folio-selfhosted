@@ -190,7 +190,7 @@ class Sync:
         before = self.lib.db.total_changes
         self._merge_items("bookmarks", bid, d.get("bookmarks", []), ["label"])
         self._merge_items("highlights", bid, d.get("highlights", []), ["color", "text"])
-        self._merge_items("postits", bid, d.get("postits", []), ["color", "text"])
+        self.lib.merge_postits(bid, d.get("postits", []))
         if self.lib.db.total_changes != before:
             changed.add(bid)
         self.lib.db.commit()
@@ -204,7 +204,7 @@ class Sync:
                 "name": {"title": b["title"] if b["name_updated"] else "", "updated": b["name_updated"] or 0},
                 "bookmarks": self._items("bookmarks", bid, ["cfi", "label"]),
                 "highlights": self._items("highlights", bid, ["cfi", "color", "text"]),
-                "postits": self._items("postits", bid, ["cfi", "color", "text"])}
+                "postits": self.lib.postits(bid)}
 
     def push(self, bid, removed=False, h=None, force=True):
         b = self.lib.book(bid)

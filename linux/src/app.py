@@ -2819,6 +2819,8 @@ class FolioWindow(Adw.ApplicationWindow):
         t = m.get("t")
         if t in ("tts_voices", "tts"):
             return self.tts_ask(m)
+        if t == "postits_hidden":
+            self.settings["postits_hidden"] = bool(m.get("v")); return self.lib.save_settings(self.settings)
         if t == "postits":
             if self.cur and self.lib.save_postits(self.cur["id"], m.get("items")):
                 self.push_soon()

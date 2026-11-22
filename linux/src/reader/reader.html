@@ -78,7 +78,10 @@ const Folio = (() => {
   let V = null, PTS = [];
   // post-it : enregistrés par l'appli (base locale + synchro)
   const P = FolioPostit.create({ root: document.body, lang: document.documentElement.lang, get: () => ({ rend: rendition }),
-    list: () => PTS, save: () => { send({ t: "postits", items: PTS }); refreshNotes(); } });
+    list: () => PTS, save: () => { send({ t: "postits", items: PTS }); refreshNotes(); }, highlights: () => hls,
+    hidden: () => !!S.postits_hidden, unhide: () => setPtHidden(false) });
+  // masqués ou non : réglage de l'appli (cet appareil)
+  function setPtHidden(v) { if (!!S.postits_hidden === v) return; S.postits_hidden = v; send({ t: "postits_hidden", v }); P.draw(); refreshNotes(); }
   const voice = () => (V = V || FolioVoice.create({ root: document.body, lang: document.documentElement.lang,
     get: () => ({ book, rend: rendition, title }), voices: () => ask("tts_voices"), login: () => send({ t: "login" }),
     prefs: () => S.voice_pref || {}, savePrefs: p => send({ t: "voice_pref", p }),     // gardés dans les réglages de l'appli
@@ -350,7 +353,7 @@ const Folio = (() => {
   del.onclick = () => { if (pending) { removeHl(pending.cfi); send({ t:"hl_del", cfi:pending.cfi }); } hideBar(); };
   bar.appendChild(del);
   const pinB = document.createElement("button"); pinB.className = "pin"; pinB.textContent = "✎";
-  pinB.onclick = () => { const p = pending; hideBar(); if (p) { rendition.getContents().forEach(c => c.window.getSelection().removeAllRanges()); P.add(p.cfi); } };
+  pinB.onclick = () => { const p = pending, r = bar.getBoundingClientRect(); hideBar(); if (p) { rendition.getContents().forEach(c => c.window.getSelection().removeAllRanges()); P.add(r.left, r.bottom + 6); } };
   bar.appendChild(pinB);
   bar.addEventListener("pointerdown", e => e.stopPropagation());
   document.addEventListener("pointerdown", hideBar);
@@ -404,7 +407,8 @@ const Folio = (() => {
     const keep = $("panel").scrollTop;
     FolioNotes.render($("panel"), {
       book, toc, title, tab, bookmarks: bms, highlights: hls, cur: { cfi: loc && loc.start.cfi, pct }, postits: PTS.filter(n => !n.deleted),
-      openPostit: cfi => { if (innerWidth < 900) panel(false); rendition.display(cfi).then(() => setTimeout(() => P.open(cfi), 300)); },
+      openPostit: (key, at) => { if (innerWidth < 900) panel(false); rendition.display(at).then(() => setTimeout(() => P.open(key), 300)); },
+      postitsHidden: !!S.postits_hidden, togglePostits: () => setPtHidden(!S.postits_hidden),
       go: t => { go(t); if (innerWidth < 900) panel(false); },
       delBm: cfi => send({ t:"bm_del", cfis:[cfi] }),
       delHl: cfi => { removeHl(cfi); send({ t:"hl_del", cfi }); },
@@ -436,7 +440,7 @@ const Folio = (() => {
   }
 
   return { open, close, settings, go, voice: () => voice().open(), reply: (id, v) => { const f = waits[id]; delete waits[id]; if (f) f(v); }, resume: c => { anchor = c; go(c); }, next, prev, toggleBookmark, setBookmarks, setHighlights, panel,
-           postit: () => { if (loc) P.add(loc.start.cfi); }, setPostits: (list) => { PTS = list; P.draw(); refreshNotes(); },
+           postit: () => { if (loc) P.add(); }, setPostits: (list) => { PTS = list; P.draw(); refreshNotes(); },
            debug: () => ({ book, rendition, loc }) };
 })();
 window.addEventListener("error", e => window.webkit.messageHandlers.folio.postMessage(JSON.stringify({ t:"error", msg:e.message })));

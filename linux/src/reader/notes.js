@@ -10,14 +10,14 @@ window.FolioNotes = (() => {
       all: "Tout", bms: "Marque-pages", hls: "Surlignages", exportTip: "Copier tous les surlignages (Markdown)", export: "Exporter",
       exported: "Surlignages copiés dans le presse-papiers", bookStart: "Début du livre", copyQuote: "Copier la citation",
       copied: "Citation copiée", delHl: "Supprimer le surlignage", pageAt: "Page à {p}", delBm: "Retirer le marque-page",
-      noToc: "Ce livre n’a pas de sommaire.", q: ["« ", " »"], pts: "Post-it", ptEmpty: "Post-it vide" },
+      noToc: "Ce livre n’a pas de sommaire.", q: ["« ", " »"], pts: "Post-it", ptEmpty: "Post-it vide", ptHide: "Masquer sur les pages", ptShow: "Afficher sur les pages" },
     en: { yellow: "Yellow", green: "Green", blue: "Blue", pink: "Pink", orange: "Orange", red: "Red", purple: "Purple", teal: "Teal", toc: "Contents", notes: "Notes",
       mapTip: "Click to jump to this point in the book", bm: "Bookmark", here: "You are here", start: "Start", end: "End",
       at: "You are at {p}", empty: "No notes yet", emptyTxt: "Select a passage to highlight it, or mark the page with the ribbon.",
       all: "All", bms: "Bookmarks", hls: "Highlights", exportTip: "Copy all highlights (Markdown)", export: "Export",
       exported: "Highlights copied to the clipboard", bookStart: "Start of the book", copyQuote: "Copy quote",
       copied: "Quote copied", delHl: "Delete highlight", pageAt: "Page at {p}", delBm: "Remove bookmark",
-      noToc: "This book has no table of contents.", q: ["“", "”"], pts: "Sticky notes", ptEmpty: "Empty sticky note" },
+      noToc: "This book has no table of contents.", q: ["“", "”"], pts: "Sticky notes", ptEmpty: "Empty sticky note", ptHide: "Hide on the pages", ptShow: "Show on the pages" },
   };
   const lang = () => (/^fr/i.test(document.documentElement.lang || navigator.language || "") ? "fr" : "en");
   const T = (k, v = {}) => { const s = TX[lang()][k]; return typeof s === "string" ? s.replace(/\{(\w+)\}/g, (_, x) => v[x]) : s; };
@@ -55,6 +55,7 @@ window.FolioNotes = (() => {
 .fn-legend{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin:-2px 4px 12px}
 /* filtres */
 .fn-pt{position:relative;margin:8px 2px 10px;padding:10px 12px 8px;border-radius:3px 3px 12px 3px;color:#2b2620;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transform:rotate(-.4deg)}
+.fn-pt .fn-ptq{font-style:italic;border-left:3px solid;padding-left:7px;opacity:.85;max-height:4.4em}
 .fn-pt p{margin:0 0 4px;white-space:pre-wrap;font-size:14.5px;line-height:1.45;max-height:7.3em;overflow:hidden}.fn-pt small{font-size:12px;opacity:.65}
 .fn-filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 6px}
 .fn-chip{border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:6px 12px;font:600 13px/1.1 inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
@@ -182,7 +183,8 @@ window.FolioNotes = (() => {
     const book = o.book, toc = o.toc || [];
     const bms = (o.bookmarks || []).slice().sort((a, b) => cmp(a.cfi, b.cfi));
     const hls = (o.highlights || []).slice().sort((a, b) => cmp(a.cfi, b.cfi));
-    const pts = (o.postits || []).slice();
+    // post-it : rangés et situés par leur accroche dans le texte (at) ; key = leur identifiant
+    const pts = (o.postits || []).map((n) => ({ ...n, key: n.cfi, cfi: n.at || n.cfi }));
     const curIdx = o.cur && o.cur.cfi ? spineOf(o.cur.cfi) : -1, curCh = chapterOf(toc, curIdx);
     root.innerHTML = "";
     const tabs = el(`<div class="fn-tabs"><button data-t="toc">${T("toc")}</button><button data-t="notes">${T("notes")}<b>${bms.length + hls.length + pts.length || ""}</b></button></div>`);
@@ -232,6 +234,9 @@ window.FolioNotes = (() => {
       b.classList.toggle("on", filter === c); b.onclick = () => { setFilter(filter === c ? "all" : c); render(root, o); }; bar.append(b);
     });
     bar.append(el(`<span class="fn-sp"></span>`));
+    if (pts.length && o.togglePostits) {
+      const hb = el(`<button class="fn-act">${T(o.postitsHidden ? "ptShow" : "ptHide")}</button>`); hb.onclick = () => o.togglePostits(); bar.append(hb);
+    }
     if (hls.length && o.copy) {
       const ex = el(`<button class="fn-act" title="${T("exportTip")}">${ico("share")}${T("export")}</button>`);
       ex.onclick = () => o.copy(markdown(o, hls), T("exported")); bar.append(ex);
@@ -258,8 +263,10 @@ window.FolioNotes = (() => {
       const p = pctOf(book, it.cfi);
       if (it.k === "pt") {
         const q = el(`<div class="fn-pt" style="background:${(window.FolioPostit && FolioPostit.COLORS[it.color]) || "#fde68a"}"><p></p><small>${pctTxt(p)}${it.updated ? " · " + dateTxt(it.updated) : ""}</small></div>`);
-        q.querySelector("p").textContent = it.text || T("ptEmpty");
-        q.onclick = () => (o.openPostit ? o.openPostit(it.cfi) : o.go(it.cfi));
+        q.querySelector("p").textContent = it.text || ((it.refs || []).length ? "" : T("ptEmpty"));
+        (it.refs || []).forEach((r) => { const h = hls.find((x) => x.cfi === r); if (!h) return;
+          const m = el(`<p class="fn-ptq"></p>`); m.textContent = T("q")[0] + h.text + T("q")[1]; m.style.borderColor = COLORS[h.color] || h.color; q.prepend(m); });
+        q.onclick = () => (o.openPostit ? o.openPostit(it.key, it.cfi) : o.go(it.cfi));
         root.append(q); return;
       }
       if (it.k === "hl") {

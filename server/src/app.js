@@ -50,6 +50,10 @@ const cleanItems = (a) => (Array.isArray(a) ? a : []).filter((x) => x && typeof 
 // post-it : un mot laissé à un endroit du livre (cfi), sa couleur, son texte
 const cleanPostits = (a) => (Array.isArray(a) ? a : []).filter((x) => x && typeof x.cfi === "string" && x.cfi.length <= 2000)
   .map((x) => ({ cfi: x.cfi, color: COLORS.has(x.color) ? x.color : "yellow", text: String(x.text ?? "").slice(0, 5000),
+    // place sur la page : accroche dans le texte (at), position (fx de 0 à 1, dy en px), taille ; passages surlignés cités (refs)
+    at: typeof x.at === "string" ? x.at.slice(0, 2000) : "", fx: x.fx >= 0 && x.fx <= 1 ? num(x.fx) : -1,
+    dy: Math.max(-3000, Math.min(3000, num(x.dy))), w: Math.max(0, Math.min(800, num(x.w))), h: Math.max(0, Math.min(800, num(x.h))),
+    refs: (Array.isArray(x.refs) ? x.refs : []).filter((r) => typeof r === "string" && r.length <= 2000).slice(0, 20),
     created: num(x.created), updated: num(x.updated), deleted: x.deleted ? 1 : 0 }));
 // Collections : on ne garde que les champs attendus ; les suppressions sont des pierres tombales (deleted=1)
 const cleanCollections = (a) => (Array.isArray(a) ? a : []).filter((c) => c && CID.test(String(c.id))).slice(0, 500)
@@ -735,4 +739,4 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
   }
   return app;
 }
-module.exports = { emailKey, build };
+module.exports = { emailKey, build, cleanPostits };
