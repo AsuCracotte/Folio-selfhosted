@@ -2820,7 +2820,7 @@ class FolioWindow(Adw.ApplicationWindow):
         if t in ("tts_voices", "tts"):
             return self.tts_ask(m)
         if t == "postits_hidden":
-            self.settings["postits_hidden"] = bool(m.get("v")); return self.lib.save_settings(self.settings)
+            return self.set_postits_hidden(bool(m.get("v")), from_reader=True)
         if t == "postits":
             if self.cur and self.lib.save_postits(self.cur["id"], m.get("items")):
                 self.push_soon()
@@ -2904,6 +2904,13 @@ class FolioWindow(Adw.ApplicationWindow):
           .book-card:hover .cover {{ box-shadow: 0 2px 4px alpha(black,.1), 0 16px 34px alpha(black,{float(sh) + .08:.2f}); }}
         """)
 
+    def set_postits_hidden(self, v, from_reader=False):
+        self.settings["postits_hidden"] = v; self.lib.save_settings(self.settings)
+        if getattr(self, "pt_switch", None) and self.pt_switch.get_active() == v:
+            self.pt_switch.set_active(not v)
+        if not from_reader:
+            self.js(f"Folio.setPostitsHidden({json.dumps(v)})")
+
     def set_setting(self, **kw):
         if self.updating_ui:
             return
@@ -2986,6 +2993,10 @@ class FolioWindow(Adw.ApplicationWindow):
         sw = Gtk.Switch(active=s["justify"])
         sw.connect("notify::active", lambda w, _p: self.set_setting(justify=w.get_active()))
         row(T("Texte justifié"), sw)
+        # post-it affichés ou non sur les pages (réglage de cet appareil, comme « Masquer sur les pages » du panneau Notes)
+        self.pt_switch = Gtk.Switch(active=not s.get("postits_hidden"))
+        self.pt_switch.connect("notify::active", lambda w, _p: w.get_active() == bool(self.settings.get("postits_hidden")) and self.set_postits_hidden(not w.get_active()))
+        row(T("Afficher les post-it"), self.pt_switch)
 
         mode = Gtk.Box(spacing=2); mode.add_css_class("seg")
         pages = Gtk.ToggleButton(label=T("Pages"), active=s["flow"] == "paginated")

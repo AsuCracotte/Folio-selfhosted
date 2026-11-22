@@ -14,7 +14,7 @@ filters:"Filtres",fShow:"Afficher les livres",fUnread:"Pas encore commencés",fR
 fInCol:"Masquer les livres rangés dans une collection",fHideCol:"Masquer « {t} »",fReset:"Tout afficher",hidden1:"{n} livre masqué par les filtres",hiddenN:"{n} livres masqués par les filtres",
 postitT:"Ajouter un post-it",showAll:"Filtres",allHidden:"Tous les livres sont masqués par les filtres.",facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",camFront:"Cadrez la couverture du livre",camBack:"Cadrez le dos du livre (4e de couverture)",photoSaved:"Photo enregistrée",updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",updOld:"Une nouvelle version de l’appli Folio est disponible",updDl:"Télécharger",updCheck:"Rechercher une mise à jour",updNone:"Folio {v} est à jour",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
  library:"Bibliothèque",bookmark:"Marque-page",tocNotes:"Sommaire et notes",appearance:"Apparence",customColors:"Couleurs perso",background:"Fond",text:"Texte",font:"Police",bookFont:"Police du livre",
- size:"Taille",lineHeight:"Interligne",margins:"Marges",justify:"Texte justifié",pages:"Pages",scroll:"Défilement",typography:"Typographie",paraSpace:"Espace entre paragraphes",weight:"Graisse",
+ ptShow:"Afficher les post-it",size:"Taille",lineHeight:"Interligne",margins:"Marges",justify:"Texte justifié",pages:"Pages",scroll:"Défilement",typography:"Typographie",paraSpace:"Espace entre paragraphes",weight:"Graisse",
  letterSpace:"Espacement des lettres",indent:"Retrait de première ligne",indBook:"Livre",indNone:"Aucun",indNormal:"Normal",indWide:"Large",resetLook:"Réinitialiser l’apparence",syncLook:"Synchronisation entre appareils",syncLookTxt:"Décochez ce que cet appareil doit garder pour lui : il ne l’enverra plus et ne recevra plus celui des autres.",sg_colors:"Thème et couleurs",sg_font:"Police",sg_size:"Taille du texte",sg_spacing:"Interligne et typographie",sg_margin:"Marges",sg_layout:"Justification, pages ou défilement",
  th_clair:"Clair",th_sepia:"Sépia",th_sombre:"Sombre",th_noir:"Noir",th_gris:"Gris",th_nuit:"Nuit",th_foret:"Forêt",
  w300:"Fine",w400:"Normale",w500:"Moyenne",w600:"Demi-grasse",w700:"Grasse",bookPara:"Livre",normal:"Normal",
@@ -73,7 +73,7 @@ filters:"Filters",fShow:"Show books",fUnread:"Not started yet",fReading:"Current
 fInCol:"Hide books already in a collection",fHideCol:"Hide “{t}”",fReset:"Show everything",hidden1:"{n} book hidden by filters",hiddenN:"{n} books hidden by filters",
 postitT:"Add a sticky note",showAll:"Filters",allHidden:"All books are hidden by the filters.",facesT:"Cover and back (3D view)",faceFront:"Cover",faceBack:"Back",camFront:"Fit the book’s cover in the frame",camBack:"Fit the back cover in the frame",photoSaved:"Photo saved",updWeb:"New version of Folio",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",updOld:"A new version of the Folio app is available",updDl:"Download",updCheck:"Check for updates",updNone:"Folio {v} is up to date",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
  library:"Library",bookmark:"Bookmark",tocNotes:"Contents and notes",appearance:"Appearance",customColors:"Custom colours",background:"Background",text:"Text",font:"Font",bookFont:"Book’s font",
- size:"Size",lineHeight:"Line spacing",margins:"Margins",justify:"Justified text",pages:"Pages",scroll:"Scrolling",typography:"Typography",paraSpace:"Paragraph spacing",weight:"Weight",
+ ptShow:"Show sticky notes",size:"Size",lineHeight:"Line spacing",margins:"Margins",justify:"Justified text",pages:"Pages",scroll:"Scrolling",typography:"Typography",paraSpace:"Paragraph spacing",weight:"Weight",
  letterSpace:"Letter spacing",indent:"First-line indent",indBook:"Book",indNone:"None",indNormal:"Normal",indWide:"Wide",resetLook:"Reset appearance",syncLook:"Sync across devices",syncLookTxt:"Untick what this device should keep to itself: it will no longer send it, nor receive the one from your other devices.",sg_colors:"Theme and colours",sg_font:"Font",sg_size:"Text size",sg_spacing:"Line height and typography",sg_margin:"Margins",sg_layout:"Justification, pages or scrolling",
  th_clair:"Light",th_sepia:"Sepia",th_sombre:"Dark",th_noir:"Black",th_gris:"Grey",th_nuit:"Night",th_foret:"Forest",
  w300:"Light",w400:"Regular",w500:"Medium",w600:"Semibold",w700:"Bold",bookPara:"Book",normal:"Normal",
@@ -796,6 +796,9 @@ const ptHidden=()=>localStorage.folioPtHide==="1";
 const postit=FolioPostit.create({root:$("view"),lang:LANG,get:()=>({rend}),list:()=>cur?cur.postits||(cur.postits=[]):[],save:()=>{if(!cur)return;putB(cur);pushSoon();refreshTrack()},
  highlights:()=>cur?.highlights||[],hidden:ptHidden,unhide:()=>{localStorage.folioPtHide="0"}});
 $("bPostit").onclick=()=>{if(loc)postit.add()};
+// afficher / masquer les post-it : réglages d'apparence (Aa) ; même réglage que « Masquer sur les pages » du panneau Notes
+$("bSet").addEventListener("click",()=>{$("ptShow").checked=!ptHidden()});
+$("ptShow").onchange=e=>{localStorage.folioPtHide=e.target.checked?"0":"1";postit.draw()};
 // ---------- synchro via le compte Folio (mêmes données que l'app Linux) ----------
 let dav=null,pushT;
 const pushSoon=()=>{if(!dav)return;clearTimeout(pushT);const b=cur;pushT=setTimeout(()=>dav.push(b).then(()=>refreshCur(false)).catch(()=>{}),3000)};
@@ -963,7 +966,7 @@ $("bSync").onclick=doSync;
 // ---------- mises à jour ----------
 // le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
 // l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
-const APPV="2.6.4";let updShown=false;
+const APPV="2.6.5";let updShown=false;
 function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
  $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
 const D=window.folioDesktop;

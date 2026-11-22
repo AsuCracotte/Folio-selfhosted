@@ -443,7 +443,7 @@ const Folio = (() => {
   }
 
   return { open, close, settings, go, voice: () => voice().open(), reply: (id, v) => { const f = waits[id]; delete waits[id]; if (f) f(v); }, resume: c => { anchor = c; go(c); }, next, prev, toggleBookmark, setBookmarks, setHighlights, panel,
-           postit: () => { if (loc) P.add(); }, setPostits: (list) => { PTS = list; P.draw(); refreshNotes(); },
+           postit: () => { if (loc) P.add(); }, setPostitsHidden: (v) => { S.postits_hidden = v; P.draw(); refreshNotes(); }, setPostits: (list) => { PTS = list; P.draw(); refreshNotes(); },
            debug: () => ({ book, rendition, loc }) };
 })();
 window.addEventListener("error", e => window.webkit.messageHandlers.folio.postMessage(JSON.stringify({ t:"error", msg:e.message })));
