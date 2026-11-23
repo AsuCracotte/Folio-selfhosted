@@ -2254,7 +2254,7 @@ class FolioWindow(Adw.ApplicationWindow):
         acc = prefill or self.settings.get("account") or {}
         d = Adw.AlertDialog(heading=T("Compte Novelia"), body=T("Connectez-vous pour synchroniser vos livres, votre progression et votre apparence."))
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        server = Gtk.Entry(placeholder_text=T("https://folio.exemple.org"), text=acc.get("server", DEFAULT_SERVER))
+        server = Gtk.Entry(placeholder_text=T("https://novelia.exemple.org"), text=acc.get("server", DEFAULT_SERVER))
         email = Gtk.Entry(placeholder_text=T("Email"), text=acc.get("email", ""), input_purpose=Gtk.InputPurpose.EMAIL)
         pw = Gtk.PasswordEntry(placeholder_text=T("Mot de passe (10 caractères min. pour un nouveau compte)"), show_peek_icon=True)
         for w in (server, email, pw):

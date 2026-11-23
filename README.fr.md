@@ -41,8 +41,8 @@ des comptes ne fonctionne plus).
 ## Construire les applis
 
 ```bash
-cd desktop && npm ci && FOLIO_URL=https://folio.exemple.org node build.js all   # Windows (Wine requis) et macOS
-cd linux && FOLIO_URL=https://folio.exemple.org ./build_deb.sh                  # Linux (.deb)
+cd desktop && npm ci && FOLIO_URL=https://novelia.exemple.org node build.js all   # Windows (Wine requis) et macOS
+cd linux && FOLIO_URL=https://novelia.exemple.org ./build_deb.sh                  # Linux (.deb)
 ```
 
 Les applis ne sont pas signées : sous Windows, « Informations complémentaires → Exécuter quand même » ; sous macOS,

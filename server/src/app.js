@@ -754,8 +754,13 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
     const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
     const html = {};                                         // pages lues une fois (relues si le fichier change)
     const read = (f) => { const st = fs.statSync(path.join(publicDir, f)); if (html[f]?.t !== st.mtimeMs) html[f] = { t: st.mtimeMs, s: fs.readFileSync(path.join(publicDir, f), "utf8") }; return html[f].s; };
+    // adresse publique (PUBLIC_URL) : une autre adresse publique (l'ancienne, folio.cracotte.dev) renvoie les pages du site
+    // vers elle ; le lecteur (/app/) et l'API restent servis partout (les applis installées et leurs données locales y sont liées)
+    const siteHost = (() => { try { return new URL(site).hostname; } catch (e) { return ""; } })();
+    const otherPublicHost = (h) => !!siteHost && /[a-z]/i.test(h) && h.includes(".") && h !== siteHost && !/^(localhost|[\d.]+|\[.*\])$/.test(h);
     function seoPage(route) {
       return (req, reply) => {
+        if (otherPublicHost(req.hostname)) return reply.redirect(site + req.url.replace(/^\/index\.html/, "/"), 301);
         const q = (req.query || {}).lang, lang = q === "en" ? "en" : "fr", [title, desc] = SEO[route][lang];
         const url = (l) => site + route + (l ? "?lang=" + l : "");
         const shot = site + "/img/" + (lang === "en" ? "en" : "fr") + "-library.webp";

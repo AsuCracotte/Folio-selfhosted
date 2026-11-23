@@ -162,7 +162,7 @@ EN = {
         "Your account, synced books, progress and notes will be erased from the server. This cannot be undone. Books already on this computer are kept.",
     "Supprimer définitivement": "Delete permanently", "Compte Novelia": "Novelia account",
     "Connectez-vous pour synchroniser vos livres, votre progression et votre apparence.": "Sign in to sync your books, progress and appearance.",
-    "https://folio.exemple.org": "https://folio.example.org",
+    "https://novelia.exemple.org": "https://novelia.example.org",
     "Mot de passe (10 caractères min. pour un nouveau compte)": "Password (10 characters min. for a new account)",
     "Mot de passe oublié": "Forgot password", "Créer le compte": "Create account", "Connexion": "Sign in",
     "Connecté et synchronisé": "Signed in and synced", "Saisissez d’abord votre adresse mail": "Enter your email address first",
