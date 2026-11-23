@@ -810,6 +810,7 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
     });
     app.get("/robots.txt", (_req, reply) => reply.type("text/plain").send(`User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /dl/\n\nSitemap: ${site}/sitemap.xml\n`));
     // QR code vers le lecteur (fiche « Novelia sur mobile »), à l'adresse publique du serveur
+    app.get("/app/mobile.json", async (req) => ({ url: `${base || `${req.protocol}://${req.headers.host}`}/app/` }));
     app.get("/app/qr.svg", async (req, reply) => {
       const url = `${base || `${req.protocol}://${req.headers.host}`}/app/`;
       const svg = await QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#1d1d22", light: "#ffffff" } });

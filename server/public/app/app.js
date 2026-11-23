@@ -745,7 +745,8 @@ function rmHl(cfi){const h=cur.highlights.find(x=>x.cfi===cfi);if(!h)return;h.de
 // panneaux
 const sheets=["shDeco","shFilt","shSpine","shSet","shToc","shCfg","shMfa","shAuth","shBook","shPick","shCol","shAsk","shMobile"];function show(id){hideSel?.();const opening=id&&!$(id).classList.contains("on");sheets.forEach(s=>$(s).classList.toggle("on",opening&&s===id));$("scrim").classList.toggle("on",!!opening)}
 if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent))document.documentElement.classList.add("phone");
-$("mobileUrl").textContent=location.host+"/app";$("mobileFab").onclick=()=>show("shMobile");$("mobileOk").onclick=()=>show(null);
+// adresse sous le QR code : celle que donne le serveur (adresse publique), à défaut celle de la page
+$("mobileUrl").textContent=location.host+"/app";fetch("mobile.json").then(r=>r.ok?r.json():null).then(j=>{if(j?.url)$("mobileUrl").textContent=j.url.replace(/^https?:\/\//,"").replace(/\/$/,"")}).catch(()=>{});$("mobileFab").onclick=()=>show("shMobile");$("mobileOk").onclick=()=>show(null);
 $("scrim").onclick=()=>{if(askCb){$("askNo").click();return}show(null)};
 $("bSet").onclick=()=>{ctl();show("shSet")};$("bToc").onclick=()=>{show("shToc");list()};$("bCfg").onclick=()=>{show("shCfg");if(dav){loadProfile().catch(()=>{});loadSessions()}};
 function list(){const L=$("list");if(!cur||!book){L.innerHTML="";return}const sh=$("shToc"),keep=sh.scrollTop;
@@ -966,7 +967,7 @@ $("bSync").onclick=doSync;
 // ---------- mises à jour ----------
 // le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
 // l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
-const APPV="2.7.1";let updShown=false;
+const APPV="2.7.2";let updShown=false;
 function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
  $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
 const D=window.folioDesktop;
