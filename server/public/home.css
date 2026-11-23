@@ -307,3 +307,9 @@ mark.hl.flash{animation:flash 1.2s var(--ease)}@keyframes flash{30%{filter:satur
  .try{margin-top:-20px}
 }
 @media (prefers-reduced-motion:reduce){mark.hl.u{animation:none}.dock,.resume,.nd{transition:none}}
+
+/* questions fréquentes */
+.faq{max-width:780px;margin-top:30px;display:flex;flex-direction:column}
+.faq details{border-top:1px solid var(--line);padding:18px 0}.faq details:last-child{border-bottom:1px solid var(--line)}
+.faq summary{font:500 calc(19px * var(--ts,1))/1.35 var(--serif);display:flex;justify-content:space-between;gap:18px;width:100%}
+.faq p{margin:12px 0 2px;color:var(--muted);line-height:1.7;font-size:calc(16px * var(--ts,1));max-width:68ch}

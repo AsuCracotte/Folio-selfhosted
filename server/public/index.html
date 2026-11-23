@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#fbfaf7"><link rel="icon" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
-<link rel="stylesheet" href="site.css?v=3.0.1"><link rel="stylesheet" href="home.css?v=3.0.1">
+<link rel="stylesheet" href="site.css?v=3.1.0"><link rel="stylesheet" href="home.css?v=3.1.0">
 <script>(function(r){r.classList.add("js");try{var l=JSON.parse(localStorage.folioSiteLook||"{}");if(l.theme)r.dataset.theme=l.theme;if(l.font)r.dataset.font=l.font;if(l.size)r.style.setProperty("--ts",l.size)}catch(e){}})(document.documentElement)</script>
 <meta property="og:title" content="Novelia"><meta property="og:description" content="Vos livres, partout. Liseuse EPUB synchronisée, sans publicité."><meta property="og:image" content="img/fr-library.webp">
 </head><body class="home">
@@ -51,8 +51,8 @@
   <p class="small" data-t="free">Gratuit · rien à installer pour commencer · fonctionne hors ligne</p>
 
   <div class="book" id="book">
-   <div class="under"><div class="bar"><i></i><i></i><i></i><span id="host">folio.example.org</span></div><img data-shot="library" src="img/fr-library.webp" width="1280" height="800" alt=""></div>
-   <div class="phone"><img data-shot="phone-library" src="img/fr-phone-library.webp" width="780" height="1688" alt=""></div>
+   <div class="under"><div class="bar"><i></i><i></i><i></i><span id="host">folio.example.org</span></div><img data-shot="library" data-alt="altLibrary" src="img/fr-library.webp" width="1280" height="800" alt="Bibliothèque de Novelia : livre en cours, collections et étagère"></div>
+   <div class="phone"><img data-shot="phone-library" data-alt="altPhone" src="img/fr-phone-library.webp" width="780" height="1688" alt="Novelia sur téléphone : la bibliothèque"></div>
    <div class="cover" aria-hidden="true">
     <div class="cover-front"><img src="icon.svg" alt=""><b>Novelia</b><span data-t="coverSub">Tome I · Vos livres</span><small data-t="coverHint">Faites défiler pour ouvrir</small></div>
     <div class="cover-back"><div class="exlibris"><small>Ex libris</small><b data-t="exlibris">Ce livre appartient à… vous.</b></div></div>
@@ -163,7 +163,7 @@
   <p class="label" data-t="c4k">Notes</p>
   <p class="marks" data-rv data-th="c4p">Un bon livre se lit <mark class="hl y">deux fois</mark> : la première pour l’histoire, la seconde pour <mark class="hl g">tout ce qu’on avait souligné</mark>. Novelia garde chaque passage, <mark class="hl b">classé par chapitre</mark>, prêt à être copié ou <mark class="hl p">exporté en Markdown</mark>.</p>
   <p class="try" data-rv data-th="c4try">Essayez : <b>sélectionnez</b> n’importe quelle phrase de cette page.</p>
-  <div class="frame tilt" data-rv><img data-shot="notes" src="img/fr-notes.webp" width="1280" height="800" alt="" loading="lazy"></div>
+  <div class="frame tilt" data-rv><img data-shot="notes" data-alt="altNotes" src="img/fr-notes.webp" width="1280" height="800" alt="Novelia : surlignages et notes classés par chapitre" loading="lazy"></div>
  </div>
 </section>
 
@@ -201,6 +201,24 @@
  </div>
 </section>
 
+<!-- VIII. questions fréquentes (aussi déclarées aux moteurs de recherche, cf. FAQPage côté serveur) -->
+<section id="faq" class="chap">
+ <div class="wrap">
+  <p class="label" data-t="faqK">Questions</p>
+  <h2 class="t" data-t="faqT">Questions fréquentes</h2>
+  <div class="faq">
+   <details><summary data-t="faqQ1">Novelia est-il gratuit ?</summary><p data-t="faqA1">Oui. Novelia est gratuit, sans publicité ni pistage, et son code est libre (licence MIT).</p></details>
+   <details><summary data-t="faqQ2">Comment lire un livre EPUB sur Linux ?</summary><p data-t="faqA2">Installez le paquet .deb de Novelia (Debian, Ubuntu, Mint, Kali…) depuis la page de téléchargement, ou ouvrez Novelia dans votre navigateur, puis glissez vos fichiers EPUB dans la bibliothèque.</p></details>
+   <details><summary data-t="faqQ3">Comment lire des EPUB sur Windows ou sur Mac ?</summary><p data-t="faqA3">Téléchargez l’appli Novelia pour Windows 10 et 11 ou pour macOS (Apple Silicon et Intel). Elle se met à jour toute seule.</p></details>
+   <details><summary data-t="faqQ4">Peut-on lire des EPUB sur Android ou sur iPhone ?</summary><p data-t="faqA4">Oui, sans passer par un store : ouvrez Novelia dans le navigateur du téléphone et ajoutez-le à l’écran d’accueil. Vos livres restent lisibles hors ligne.</p></details>
+   <details><summary data-t="faqQ5">Ma lecture se synchronise-t-elle entre l’ordinateur et le téléphone ?</summary><p data-t="faqA5">Oui. Avec un compte Novelia gratuit, votre page, vos marque-pages, surlignages, post-it et collections vous suivent sur tous vos appareils.</p></details>
+   <details><summary data-t="faqQ6">Novelia peut-il lire mes livres à voix haute ?</summary><p data-t="faqA6">Oui, avec des voix naturelles en français et en anglais : la phrase lue est surlignée et la page tourne toute seule.</p></details>
+   <details><summary data-t="faqQ7">Novelia ouvre-t-il les livres protégés par DRM ?</summary><p data-t="faqA7">Non : Novelia ouvre les EPUB sans DRM, c’est-à-dire les livres du domaine public, ceux vendus sans protection et vos propres manuscrits. Les livres verrouillés (Adobe DRM, Kindle) ne peuvent pas être ouverts.</p></details>
+   <details><summary data-t="faqQ8">Puis-je héberger Novelia moi-même ?</summary><p data-t="faqA8">Oui. Le serveur s’installe en une commande avec Docker, même sur un Raspberry Pi, et vos livres et vos notes restent sur votre machine.</p></details>
+  </div>
+ </div>
+</section>
+
 <!-- fin -->
 <section class="fin" id="fin">
  <div class="wrap">
@@ -214,6 +232,6 @@
 <footer><div class="wrap"><a class="logo" href="/" style="font-size:17px;margin:0"><img src="icon.svg" alt="" style="width:24px;height:24px">Novelia</a><span class="sp"></span>
  <a href="/app/" data-t="navOpen">Ouvrir Novelia</a><a href="/download" data-t="navDownload">Télécharger</a><a href="https://github.com/AsuCracotte/Novelia-selfhosted" target="_blank" rel="noopener" data-t="selfLink">Auto-hébergement</a><span>© 2026 Novelia</span></div>
  <div class="wrap"><p class="colophon" data-t="colophon">Composé en Fraunces et Literata. Imprimé nulle part, lisible partout.</p></div></footer>
-<script src="site.js?v=3.0.1"></script>
-<script src="home.js?v=3.0.1"></script>
+<script src="site-i18n.js?v=3.1.0"></script><script src="site.js?v=3.1.0"></script>
+<script src="home.js?v=3.1.0"></script>
 </body></html>

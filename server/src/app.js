@@ -758,6 +758,18 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
     // vers elle ; le lecteur (/app/) et l'API restent servis partout (les applis installées et leurs données locales y sont liées)
     const siteHost = (() => { try { return new URL(site).hostname; } catch (e) { return ""; } })();
     const otherPublicHost = (h) => !!siteHost && /[a-z]/i.test(h) && h.includes(".") && h !== siteHost && !/^(localhost|[\d.]+|\[.*\])$/.test(h);
+    // textes du site (public/site-i18n.js, les mêmes que dans le navigateur) écrits dans la page côté serveur
+    let txAt = 0, TX = null;
+    const texts = () => { const f = path.join(publicDir, "site-i18n.js"), t = fs.statSync(f).mtimeMs;
+      if (t !== txAt) { const w = {}; require("node:vm").runInNewContext(fs.readFileSync(f, "utf8"), { window: w }); TX = w.SITE_TX; txAt = t; } return TX; };
+    function translate(page, lang) {
+      const tx = texts(), tr = (k) => tx[lang]?.[k] ?? tx.fr?.[k];
+      return page
+        .replace(/<(\w+)(\s(?:[^>]*?\s)?data-(t|th)="(\w+)"[^>]*)>([\s\S]*?)<\/\1>/g, (m, tag, attrs, kind, k, inner) =>
+          tr(k) == null ? m : `<${tag}${attrs}>${kind === "th" ? tr(k) : esc(tr(k))}</${tag}>`)
+        .replace(/(<img\s[^>]*?data-shot="([\w-]+)"[^>]*?)src="[^"]*"/g, (_, a, shot) => `${a}src="img/${lang}-${shot}.webp"`)
+        .replace(/(<img\s[^>]*?data-alt="(\w+)"[^>]*?)alt="[^"]*"/g, (m, a, k) => tr(k) == null ? m : `${a}alt="${esc(tr(k))}"`);
+    }
     function seoPage(route) {
       return (req, reply) => {
         if (otherPublicHost(req.hostname)) return reply.redirect(site + req.url.replace(/^\/index\.html/, "/"), 301);
@@ -767,7 +779,10 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
         const ld = route === "/" ? [{ "@context": "https://schema.org", "@type": "WebSite", name: "Novelia", alternateName: ["Novelia liseuse EPUB", "Novelia EPUB reader", "Folio"]   /* Folio : ancien nom */, url: site + "/" },
           { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Novelia", alternateName: lang === "en" ? "Novelia EPUB reader" : "Novelia liseuse EPUB",
             description: desc, applicationCategory: "ReferenceApplication", operatingSystem: "Windows, macOS, Linux, Android, iOS",
-            offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" }, url: url(q && lang), downloadUrl: site + "/download", screenshot: shot, inLanguage: ["fr", "en"] }] : [];
+            offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" }, url: url(q && lang), downloadUrl: site + "/download", screenshot: shot, inLanguage: ["fr", "en"] },
+          // questions fréquentes de la page (mêmes textes que la section affichée)
+          { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: Object.keys(texts()[lang]).filter((k) => /^faqQ\d+$/.test(k)).map((k) => ({
+            "@type": "Question", name: texts()[lang][k], acceptedAnswer: { "@type": "Answer", text: texts()[lang][k.replace("Q", "A")] } })) }] : [];
         const head = [`<link rel="canonical" href="${esc(q ? url(lang) : url(""))}">`,
           `<link rel="alternate" hreflang="fr" href="${esc(url("fr"))}">`, `<link rel="alternate" hreflang="en" href="${esc(url("en"))}">`,
           `<link rel="alternate" hreflang="x-default" href="${esc(url(""))}">`,
@@ -779,6 +794,7 @@ function build(db, { dataDir, publicDir, downloadsDir = "", allowSignup = true, 
           .replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
           .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${esc(desc)}">`)
           .replace(/<meta property="og:[^>]*>/g, "").replace("</head>", head + "\n</head>");
+        page = translate(page, lang);
         return reply.type("text/html; charset=utf-8").header("Cache-Control", "no-cache").send(page);
       };
     }
