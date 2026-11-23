@@ -12,7 +12,7 @@ dk_succ:"Succulente",dk_snake:"Sansevière",dk_stack:"Pile de livres",dk_bear:"O
 dk_hourglass:"Sablier",dk_vase:"Bouquet",dk_cactus:"Cactus",dk_mug:"Tasse",dk_clock:"Réveil",dk_owl:"Chouette",dk_frame:"Tableau",dk_bookend:"Serre-livre en métal",dk_brass:"Serre-livre en laiton",dk_marble:"Serre-livre en marbre",dk_divider:"Intercalaire",
 filters:"Filtres",fShow:"Afficher les livres",fUnread:"Pas encore commencés",fReading:"En cours de lecture",fDone:"Terminés",fCols:"Collections",
 fInCol:"Masquer les livres rangés dans une collection",fHideCol:"Masquer « {t} »",fReset:"Tout afficher",hidden1:"{n} livre masqué par les filtres",hiddenN:"{n} livres masqués par les filtres",
-postitT:"Ajouter un post-it",showAll:"Filtres",allHidden:"Tous les livres sont masqués par les filtres.",facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",camFront:"Cadrez la couverture du livre",camBack:"Cadrez le dos du livre (4e de couverture)",photoSaved:"Photo enregistrée",updWeb:"Nouvelle version de Folio",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",updOld:"Une nouvelle version de l’appli Folio est disponible",updDl:"Télécharger",updCheck:"Rechercher une mise à jour",updNone:"Folio {v} est à jour",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Folio",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
+postitT:"Ajouter un post-it",showAll:"Filtres",allHidden:"Tous les livres sont masqués par les filtres.",facesT:"Couverture et dos (vue 3D)",faceFront:"Couverture",faceBack:"Dos",camFront:"Cadrez la couverture du livre",camBack:"Cadrez le dos du livre (4e de couverture)",photoSaved:"Photo enregistrée",updWeb:"Nouvelle version de Novelia",updApp:"Mise à jour de l’application : {v}",updGo:"Mettre à jour",updGet:"Téléchargement… {p}",updFail:"Mise à jour impossible",dysFont:"OpenDyslexic (dyslexie)",backSite:"folio.cracotte.dev",updOld:"Une nouvelle version de l’appli Novelia est disponible",updDl:"Télécharger",updCheck:"Rechercher une mise à jour",updNone:"Novelia {v} est à jour",writeT:"Écrire un livre",listenT:"Lecture à voix haute",epubSaved:"EPUB enregistré",siteLink:"Site de Novelia",sync:"Synchroniser",myAccount:"Mon compte",addBooks:"Ajouter des livres",add:"Ajouter",searchPh:"Rechercher un titre ou un auteur",dropHere:"Déposez vos fichiers EPUB",
  library:"Bibliothèque",bookmark:"Marque-page",tocNotes:"Sommaire et notes",appearance:"Apparence",customColors:"Couleurs perso",background:"Fond",text:"Texte",font:"Police",bookFont:"Police du livre",
  ptShow:"Afficher les post-it",size:"Taille",lineHeight:"Interligne",margins:"Marges",justify:"Texte justifié",pages:"Pages",scroll:"Défilement",typography:"Typographie",paraSpace:"Espace entre paragraphes",weight:"Graisse",
  letterSpace:"Espacement des lettres",indent:"Retrait de première ligne",indBook:"Livre",indNone:"Aucun",indNormal:"Normal",indWide:"Large",resetLook:"Réinitialiser l’apparence",syncLook:"Synchronisation entre appareils",syncLookTxt:"Décochez ce que cet appareil doit garder pour lui : il ne l’enverra plus et ne recevra plus celui des autres.",sg_colors:"Thème et couleurs",sg_font:"Police",sg_size:"Taille du texte",sg_spacing:"Interligne et typographie",sg_margin:"Marges",sg_layout:"Justification, pages ou défilement",
@@ -30,9 +30,9 @@ postitT:"Ajouter un post-it",showAll:"Filtres",allHidden:"Tous les livres sont m
  confirmDelAcc:"Supprimer définitivement votre compte ? Cette action est irréversible.",accDeleted:"Compte supprimé",
  mfaOnT:"Activer la double authentification",mfaOnTxt:"Confirmez votre mot de passe pour continuer.",codesT:"Nouveaux codes de secours",codesTxt:"Les anciens codes ne fonctionneront plus.",
  mfaOffT:"Désactiver la double authentification",mfaOffTxt:"Votre compte ne sera plus protégé que par le mot de passe.",mfaDisabled:"Double authentification désactivée",
- codesCopied:"Codes copiés",codesCopyFail:"Copie impossible : sélectionnez les codes",codesFile:"Codes de secours Folio ({e})\nChaque code ne fonctionne qu'une fois.",codesName:"folio-codes-de-secours.txt",
+ codesCopied:"Codes copiés",codesCopyFail:"Copie impossible : sélectionnez les codes",codesFile:"Codes de secours Novelia ({e})\nChaque code ne fonctionne qu'une fois.",codesName:"folio-codes-de-secours.txt",
  error:"Erreur {s}",badCode:"Code incorrect",pwResetDone:"Mot de passe modifié. Connectez-vous avec votre nouveau mot de passe.",loggedOut:"Déconnecté",
- verified:"Adresse confirmée ! Vous pouvez maintenant vous connecter.",updated1:"{n} livre mis à jour",updatedN:"{n} livres mis à jour",syncError:"Échec de la synchro",accTitleIn:"Mon compte",accTitleOut:"Compte Folio",
+ verified:"Adresse confirmée ! Vous pouvez maintenant vous connecter.",updated1:"{n} livre mis à jour",updatedN:"{n} livres mis à jour",syncError:"Échec de la synchro",accTitleIn:"Mon compte",accTitleOut:"Compte Novelia",
  changePhoto:"Changer la photo",remove:"Retirer",syncedBooks:"livres synchronisés",memberSince:"membre depuis",profile:"Profil",pseudo:"Pseudo",pseudoPh:"Comment vous appeler ?",save:"Enregistrer",
  security:"Sécurité",mfa:"Double authentification",enable:"Activer",disable:"Désactiver",newCodes:"Nouveaux codes de secours",changePw:"Changer le mot de passe",curPw:"Mot de passe actuel",newPw:"Nouveau mot de passe",
  pwMin:"10 caractères minimum",confirm:"Confirmer",mfaCode:"Code de double authentification",devices:"Appareils connectés",logOthers:"Déconnecter les autres appareils",logout:"Se déconnecter",
@@ -43,7 +43,7 @@ postitT:"Ajouter un post-it",showAll:"Filtres",allHidden:"Tous les livres sont m
  mfaIntro:"Ouvrez votre application d’authentification et entrez le code à 6 chiffres. Vous pouvez aussi utiliser un de vos codes de secours.",code:"Code",validate:"Valider",cancel:"Annuler",
  forgotIntro:"Entrez votre adresse : vous recevrez un lien pour choisir un nouveau mot de passe.",sendLink:"Envoyer le lien",back:"Retour",
  resetIntro:"Choisissez un nouveau mot de passe (10 caractères minimum). Tous vos appareils seront déconnectés.",mfaOrRecovery:"Code de double authentification (ou code de secours)",backToLogin:"Retour à la connexion",
- language:"Langue",langAuto:"Automatique",onMobile:"Folio sur mobile",mobileT:"Folio sur votre téléphone",mobileTxt:"Scannez ce code avec votre téléphone pour ouvrir Folio, puis installez-le comme une appli :",
+ language:"Langue",langAuto:"Automatique",onMobile:"Novelia sur mobile",mobileT:"Novelia sur votre téléphone",mobileTxt:"Scannez ce code avec votre téléphone pour ouvrir Novelia, puis installez-le comme une appli :",
  mobileAndroid:"<b>Android (Chrome)</b> : menu ⋮ › <b>Installer l’application</b>",mobileIos:"<b>iPhone (Safari)</b> : bouton Partager › <b>Sur l’écran d’accueil</b>",
  mobileSync:"Connectez-vous avec le même compte : vos livres, vos notes et vos collections vous y attendent.",
  mfaStep1:"1. Scannez ce QR code avec une application d’authentification (Aegis, 2FAS, Google Authenticator, Bitwarden…).",orKey:"ou saisissez cette clé :",mfaStep2:"2. Entrez le code à 6 chiffres affiché par l’application.",
@@ -71,7 +71,7 @@ dk_succ:"Succulent",dk_snake:"Snake plant",dk_stack:"Book stack",dk_bear:"Teddy 
 dk_hourglass:"Hourglass",dk_vase:"Bouquet",dk_cactus:"Cactus",dk_mug:"Mug",dk_clock:"Alarm clock",dk_owl:"Owl",dk_frame:"Painting",dk_bookend:"Metal bookend",dk_brass:"Brass bookend",dk_marble:"Marble bookend",dk_divider:"Divider",
 filters:"Filters",fShow:"Show books",fUnread:"Not started yet",fReading:"Currently reading",fDone:"Finished",fCols:"Collections",
 fInCol:"Hide books already in a collection",fHideCol:"Hide “{t}”",fReset:"Show everything",hidden1:"{n} book hidden by filters",hiddenN:"{n} books hidden by filters",
-postitT:"Add a sticky note",showAll:"Filters",allHidden:"All books are hidden by the filters.",facesT:"Cover and back (3D view)",faceFront:"Cover",faceBack:"Back",camFront:"Fit the book’s cover in the frame",camBack:"Fit the back cover in the frame",photoSaved:"Photo saved",updWeb:"New version of Folio",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",updOld:"A new version of the Folio app is available",updDl:"Download",updCheck:"Check for updates",updNone:"Folio {v} is up to date",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Folio website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
+postitT:"Add a sticky note",showAll:"Filters",allHidden:"All books are hidden by the filters.",facesT:"Cover and back (3D view)",faceFront:"Cover",faceBack:"Back",camFront:"Fit the book’s cover in the frame",camBack:"Fit the back cover in the frame",photoSaved:"Photo saved",updWeb:"New version of Novelia",updApp:"App update available: {v}",updGo:"Update",updGet:"Downloading… {p}",updFail:"Update failed",dysFont:"OpenDyslexic (dyslexia)",backSite:"folio.cracotte.dev",updOld:"A new version of the Novelia app is available",updDl:"Download",updCheck:"Check for updates",updNone:"Novelia {v} is up to date",writeT:"Write a book",listenT:"Read aloud",epubSaved:"EPUB saved",siteLink:"Novelia website",sync:"Sync",myAccount:"My account",addBooks:"Add books",add:"Add",searchPh:"Search by title or author",dropHere:"Drop your EPUB files",
  library:"Library",bookmark:"Bookmark",tocNotes:"Contents and notes",appearance:"Appearance",customColors:"Custom colours",background:"Background",text:"Text",font:"Font",bookFont:"Book’s font",
  ptShow:"Show sticky notes",size:"Size",lineHeight:"Line spacing",margins:"Margins",justify:"Justified text",pages:"Pages",scroll:"Scrolling",typography:"Typography",paraSpace:"Paragraph spacing",weight:"Weight",
  letterSpace:"Letter spacing",indent:"First-line indent",indBook:"Book",indNone:"None",indNormal:"Normal",indWide:"Wide",resetLook:"Reset appearance",syncLook:"Sync across devices",syncLookTxt:"Untick what this device should keep to itself: it will no longer send it, nor receive the one from your other devices.",sg_colors:"Theme and colours",sg_font:"Font",sg_size:"Text size",sg_spacing:"Line height and typography",sg_margin:"Margins",sg_layout:"Justification, pages or scrolling",
@@ -89,9 +89,9 @@ postitT:"Add a sticky note",showAll:"Filters",allHidden:"All books are hidden by
  confirmDelAcc:"Permanently delete your account? This cannot be undone.",accDeleted:"Account deleted",
  mfaOnT:"Turn on two-factor authentication",mfaOnTxt:"Confirm your password to continue.",codesT:"New recovery codes",codesTxt:"The old codes will stop working.",
  mfaOffT:"Turn off two-factor authentication",mfaOffTxt:"Your account will only be protected by its password.",mfaDisabled:"Two-factor authentication turned off",
- codesCopied:"Codes copied",codesCopyFail:"Copying isn’t possible: select the codes",codesFile:"Folio recovery codes ({e})\nEach code works only once.",codesName:"folio-recovery-codes.txt",
+ codesCopied:"Codes copied",codesCopyFail:"Copying isn’t possible: select the codes",codesFile:"Novelia recovery codes ({e})\nEach code works only once.",codesName:"folio-recovery-codes.txt",
  error:"Error {s}",badCode:"Incorrect code",pwResetDone:"Password changed. Sign in with your new password.",loggedOut:"Signed out",
- verified:"Address confirmed! You can now sign in.",updated1:"{n} book updated",updatedN:"{n} books updated",syncError:"Sync failed",accTitleIn:"My account",accTitleOut:"Folio account",
+ verified:"Address confirmed! You can now sign in.",updated1:"{n} book updated",updatedN:"{n} books updated",syncError:"Sync failed",accTitleIn:"My account",accTitleOut:"Novelia account",
  changePhoto:"Change photo",remove:"Remove",syncedBooks:"synced books",memberSince:"member since",profile:"Profile",pseudo:"Display name",pseudoPh:"What should we call you?",save:"Save",
  security:"Security",mfa:"Two-factor authentication",enable:"Turn on",disable:"Turn off",newCodes:"New recovery codes",changePw:"Change password",curPw:"Current password",newPw:"New password",
  pwMin:"10 characters minimum",confirm:"Confirm",mfaCode:"Two-factor code",devices:"Signed-in devices",logOthers:"Sign out other devices",logout:"Sign out",
@@ -102,7 +102,7 @@ postitT:"Add a sticky note",showAll:"Filters",allHidden:"All books are hidden by
  mfaIntro:"Open your authenticator app and enter the 6-digit code. You can also use one of your recovery codes.",code:"Code",validate:"Confirm",cancel:"Cancel",
  forgotIntro:"Enter your address: you’ll receive a link to choose a new password.",sendLink:"Send the link",back:"Back",
  resetIntro:"Choose a new password (10 characters minimum). All your devices will be signed out.",mfaOrRecovery:"Two-factor code (or recovery code)",backToLogin:"Back to sign in",
- language:"Language",langAuto:"Automatic",onMobile:"Folio on mobile",mobileT:"Folio on your phone",mobileTxt:"Scan this code with your phone to open Folio, then install it like an app:",
+ language:"Language",langAuto:"Automatic",onMobile:"Novelia on mobile",mobileT:"Novelia on your phone",mobileTxt:"Scan this code with your phone to open Novelia, then install it like an app:",
  mobileAndroid:"<b>Android (Chrome)</b>: ⋮ menu › <b>Install app</b>",mobileIos:"<b>iPhone (Safari)</b>: Share button › <b>Add to Home Screen</b>",
  mobileSync:"Sign in with the same account: your books, notes and collections will be waiting.",
  mfaStep1:"1. Scan this QR code with an authenticator app (Aegis, 2FAS, Google Authenticator, Bitwarden…).",orKey:"or enter this key:",mfaStep2:"2. Enter the 6-digit code shown by the app.",
@@ -597,7 +597,7 @@ const fontLink=c=>{if(!WEBFONTS.includes(S.font)||c.document.getElementById("wf-
  l.href="https://fonts.googleapis.com/css2?family="+encodeURIComponent(S.font).replace(/%20/g,"+")+":ital,wght@0,300..700;1,300..700&display=swap";c.document.head.appendChild(l)};
 // page faite d'une seule illustration (souvent en position absolue, ce qui casse la pagination) : image centrée sur une page
 const IMGPAGE=".fn-imgpage body,.fn-imgpage body *{position:static !important;height:auto !important;min-height:0 !important;overflow:visible !important;columns:auto !important}.fn-imgpage img{display:block !important;margin:0 auto !important;max-height:calc(100vh - 2.5em) !important;width:auto !important;object-fit:contain}";
-// OpenDyslexic (licence SIL OFL) : servie par Folio, chargée dans le livre seulement si elle est choisie
+// OpenDyslexic (licence SIL OFL) : servie par Novelia, chargée dans le livre seulement si elle est choisie
 const ODF=()=>[["400","normal"],["700","normal"],["400","italic"],["700","italic"]].map(([w,st])=>`@font-face{font-family:"OpenDyslexic";font-weight:${w};font-style:${st};font-display:swap;src:url(${new URL("fonts/od-"+w+"-"+st+".woff2",location.href)}) format("woff2")}`).join("");
 const styleC=c=>{fontLink(c);const d=c.document;let s=d.getElementById("fs");if(!s){s=d.createElement("style");s.id="fs";d.head.appendChild(s)}
  if(d.body&&d.images.length===1&&!d.querySelector("svg")&&(d.body.textContent||"").trim().length<40)d.documentElement.classList.add("fn-imgpage");s.textContent=(S.font==="OpenDyslexic"?ODF():"")+css()+IMGPAGE};
@@ -799,7 +799,7 @@ $("bPostit").onclick=()=>{if(loc)postit.add()};
 // afficher / masquer les post-it : réglages d'apparence (Aa) ; même réglage que « Masquer sur les pages » du panneau Notes
 $("bSet").addEventListener("click",()=>{$("ptShow").checked=!ptHidden()});
 $("ptShow").onchange=e=>{localStorage.folioPtHide=e.target.checked?"0":"1";postit.draw()};
-// ---------- synchro via le compte Folio (mêmes données que l'app Linux) ----------
+// ---------- synchro via le compte Novelia (mêmes données que l'app Linux) ----------
 let dav=null,pushT;
 const pushSoon=()=>{if(!dav)return;clearTimeout(pushT);const b=cur;pushT=setTimeout(()=>dav.push(b).then(()=>refreshCur(false)).catch(()=>{}),3000)};
 async function refreshCur(follow){if(!cur||!rend)return;const n=await getB(cur.hash);if(!n)return;
@@ -966,7 +966,7 @@ $("bSync").onclick=doSync;
 // ---------- mises à jour ----------
 // le site / l'appli installée : version.json change → on recharge (le service worker sert déjà les fichiers à jour)
 // l'appli de bureau (Windows / macOS) se met à jour elle-même via folioDesktop (téléchargement vérifié, installation, redémarrage)
-const APPV="2.6.5";let updShown=false;
+const APPV="2.7.0";let updShown=false;
 function updBar(txt,label,go){if(updShown)return;updShown=true;$("updT").textContent=txt;$("updGo").textContent=label;$("upd").hidden=false;
  $("updGo").onclick=go;$("updX").onclick=()=>{$("upd").hidden=true}}
 const D=window.folioDesktop;

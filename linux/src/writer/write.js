@@ -1,4 +1,4 @@
-/* Folio — éditeur de livres, partagé entre le site (PWA, Windows/Mac) et l'app Linux (WebKit).
+/* Novelia — éditeur de livres, partagé entre le site (PWA, Windows/Mac) et l'app Linux (WebKit).
    L'hôte fournit stockage et synchro : FolioWriter.mount(racine, hôte), cf. « hôte » plus bas.
    Utilise les variables CSS de l'hôte : --bg --fg --ac --acfg --muted --line --soft --surface --serif. */
 window.FolioWriter = (() => {

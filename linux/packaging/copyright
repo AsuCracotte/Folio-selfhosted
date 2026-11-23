@@ -1,8 +1,8 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Folio
+Upstream-Name: Novelia
 
 Files: *
-Copyright: 2026 Folio contributors
+Copyright: 2026 Novelia contributors
 License: MIT
 
 Files: usr/share/folio/reader/epub.min.js

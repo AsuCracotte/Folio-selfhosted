@@ -14,7 +14,7 @@ from pathlib import Path
 HASH = re.compile(r"^[0-9a-f]{40}$")
 UA = "FolioReader/1.7.1"
 LANG = "fr"           # langue des messages du serveur (réglée par l'appli)
-DEVICE = "Folio Linux · " + re.sub(r"[^\w .-]", "", __import__("socket").gethostname())[:40]
+DEVICE = "Novelia Linux · " + re.sub(r"[^\w .-]", "", __import__("socket").gethostname())[:40]
 
 
 def public_post(server, path, body):
@@ -266,7 +266,7 @@ class Sync:
 
 
 class ApiSync(Sync):
-    """Synchro via le serveur Folio (compte email + mot de passe). Même interface que Sync."""
+    """Synchro via le serveur Novelia (compte email + mot de passe). Même interface que Sync."""
 
     def __init__(self, lib, server, token):
         self.lib, self.server, self.token, self.moved = lib, server.rstrip("/"), token, set()

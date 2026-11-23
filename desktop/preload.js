@@ -1,4 +1,4 @@
-// Pont minimal entre l'appli de bureau et la page Folio (aucun accès Node.js exposé à la page).
+// Pont minimal entre l'appli de bureau et la page Novelia (aucun accès Node.js exposé à la page).
 const { ipcRenderer, contextBridge } = require("electron");
 
 // Livre ouvert depuis le système (double-clic, « Ouvrir avec ») : on le remet à la page
@@ -13,7 +13,7 @@ let onProg = null;
 ipcRenderer.on("folio:progress", (_e, p) => onProg && onProg(p));
 contextBridge.exposeInMainWorld("folioDesktop", {
   retry: () => ipcRenderer.send("folio:retry"),
-  // mise à jour de l'appli : version proposée par le serveur Folio, puis installation (l'appli redémarre)
+  // mise à jour de l'appli : version proposée par le serveur Novelia, puis installation (l'appli redémarre)
   checkUpdate: () => ipcRenderer.invoke("folio:checkUpdate"),
   installUpdate: () => ipcRenderer.invoke("folio:installUpdate"),
   onProgress: (f) => { onProg = typeof f === "function" ? f : null; },

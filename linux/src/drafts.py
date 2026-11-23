@@ -1,5 +1,5 @@
 """Manuscrits écrits dans l'éditeur (writer/write.js) : un fichier JSON par livre, un historique de versions,
-et la synchro avec le serveur Folio (même protocole et même fusion que le site, cf. folio-server/src/merge.js)."""
+et la synchro avec le serveur Novelia (même protocole et même fusion que le site, cf. folio-server/src/merge.js)."""
 import json
 import os
 import re

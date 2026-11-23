@@ -1,4 +1,4 @@
-# Folio
+# Novelia
 
 **Une liseuse EPUB élégante et sans publicité, que vous hébergez vous-même.** Lisez dans le navigateur, sur votre
 téléphone (appli web installable) ou avec les applis Windows, macOS et Linux : position de lecture, marque-pages,
@@ -25,7 +25,7 @@ cp .env.example .env        # puis renseignez PUBLIC_URL et le SMTP
 docker compose up -d --build
 ```
 
-Folio répond sur <http://127.0.0.1:8787>. Ouvrez `/app/`, créez votre compte et confirmez-le avec le lien reçu par mail
+Novelia répond sur <http://127.0.0.1:8787>. Ouvrez `/app/`, créez votre compte et confirmez-le avec le lien reçu par mail
 (sans SMTP, le lien s’affiche dans `docker compose logs folio`).
 
 **Accès depuis Internet** : soit un tunnel Cloudflare (aucun port ouvert ; jeton dans `TUNNEL_TOKEN`, puis

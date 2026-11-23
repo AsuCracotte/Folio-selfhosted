@@ -1,4 +1,4 @@
-/* Folio — post-it posés sur les pages d'un livre. Partagé entre le site (PWA) et l'app Linux.
+/* Novelia — post-it posés sur les pages d'un livre. Partagé entre le site (PWA) et l'app Linux.
    Un post-it s'accroche au texte le plus proche (at : un cfi) : il reste sur la même page, et sur un autre appareil
    (autre largeur, autre police) il retombe à côté du même passage. fx = position horizontale par rapport à la zone de lecture
    (0 = bord gauche, 1 = bord droit ; en dehors = dans la marge), dy = écart vertical avec la ligne d'accroche, w × h = taille ;

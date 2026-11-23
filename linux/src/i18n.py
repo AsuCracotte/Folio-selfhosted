@@ -1,5 +1,5 @@
-"""Traductions de Folio pour Linux. Les textes de l'interface sont écrits en français ; T() renvoie la version anglaise
-quand l'interface est en anglais. Langue : réglage « lang » de Folio, sinon celle du système (LANGUAGE / LANG…)."""
+"""Traductions de Novelia pour Linux. Les textes de l'interface sont écrits en français ; T() renvoie la version anglaise
+quand l'interface est en anglais. Langue : réglage « lang » de Novelia, sinon celle du système (LANGUAGE / LANG…)."""
 import json
 import os
 from pathlib import Path
@@ -115,7 +115,7 @@ EN = {
     "Image illisible": "Unreadable image",
     # langue
     "Langue": "Language", "Automatique (langue du système)": "Automatic (system language)",
-    "Folio va redémarrer pour changer de langue.": "Folio will restart to change the language.",
+    "Novelia va redémarrer pour changer de langue.": "Novelia will restart to change the language.",
     # compte
     "Connecté": "Signed in", "Non connecté": "Not signed in", "Erreur {n}": "Error {n}", "Serveur injoignable : {e}": "Server unreachable: {e}",
     "Mon compte": "My account", "Profil": "Profile", "Changer la photo": "Change photo", "Sans pseudo": "No name",
@@ -145,7 +145,7 @@ EN = {
     "Chaque code ne sert qu’une fois et remplace le code de l’application si vous perdez votre téléphone. Gardez-les en lieu sûr : ils ne seront plus affichés.":
         "Each code works once and replaces the app’s code if you lose your phone. Keep them somewhere safe: they won’t be shown again.",
     "Copier": "Copy", "Enregistrer…": "Save…", "J’ai mis mes codes en lieu sûr": "I’ve stored my codes safely",
-    "Codes de secours Folio — chaque code ne fonctionne qu'une fois": "Folio recovery codes — each code works only once",
+    "Codes de secours Novelia — chaque code ne fonctionne qu'une fois": "Novelia recovery codes — each code works only once",
     "Codes copiés": "Codes copied", "Codes enregistrés": "Codes saved", "Enregistrer les codes de secours": "Save recovery codes",
     "folio-codes-de-secours.txt": "folio-recovery-codes.txt", "Activer la double authentification": "Turn on two-factor authentication",
     "1. Scannez ce QR code avec une application d’authentification (Aegis, 2FAS, Google Authenticator, Bitwarden…).\n2. Entrez le code à 6 chiffres qu’elle affiche.":
@@ -160,7 +160,7 @@ EN = {
     "Compte supprimé": "Account deleted", "Supprimer votre compte ?": "Delete your account?",
     "Votre compte, vos livres synchronisés, votre progression et vos notes seront effacés du serveur. Cette action est irréversible. Les livres déjà présents sur cet ordinateur sont conservés.":
         "Your account, synced books, progress and notes will be erased from the server. This cannot be undone. Books already on this computer are kept.",
-    "Supprimer définitivement": "Delete permanently", "Compte Folio": "Folio account",
+    "Supprimer définitivement": "Delete permanently", "Compte Novelia": "Novelia account",
     "Connectez-vous pour synchroniser vos livres, votre progression et votre apparence.": "Sign in to sync your books, progress and appearance.",
     "https://folio.exemple.org": "https://folio.example.org",
     "Mot de passe (10 caractères min. pour un nouveau compte)": "Password (10 characters min. for a new account)",
@@ -200,10 +200,10 @@ EN = {
     # écrire un livre, lecture à voix haute
     "Écrire un livre": "Write a book", "Mes manuscrits": "My manuscripts", "Lecture à voix haute": "Read aloud",
     "Exporter en EPUB": "Export as EPUB", "EPUB enregistré": "EPUB saved", "Enregistrement impossible : {e}": "Couldn’t save: {e}",
-    "Mises à jour…": "Updates…", "Site de Folio ↗": "Folio website ↗", "Folio est à jour": "Folio is up to date",
-    "Folio {v} est disponible": "Folio {v} is available", "Mettre à jour": "Update", "Mise à jour impossible": "Update failed",
+    "Mises à jour…": "Updates…", "Site de Novelia ↗": "Novelia website ↗", "Novelia est à jour": "Novelia is up to date",
+    "Novelia {v} est disponible": "Novelia {v} is available", "Mettre à jour": "Update", "Mise à jour impossible": "Update failed",
     "Mise à jour annulée": "Update cancelled", "Téléchargement de la mise à jour…": "Downloading the update…",
-    "Mise à jour : seulement pour Folio installé depuis le paquet .deb": "Updates: only for Folio installed from the .deb package",
+    "Mise à jour : seulement pour Novelia installé depuis le paquet .deb": "Updates: only for Novelia installed from the .deb package",
     "Tranche et infos": "Spine and details",
     "Couverture et dos (vue 3D)": "Cover and back (3D view)", "Couverture": "Cover", "Dos": "Back", "Photo enregistrée": "Photo saved",
     "Cadrez la couverture du livre": "Fit the book’s cover in the frame", "Cadrez le dos du livre (4e de couverture)": "Fit the back cover in the frame",

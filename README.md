@@ -1,4 +1,4 @@
-# Folio
+# Novelia
 
 **A calm, ad-free EPUB reader you host yourself.** Read in the browser, on your phone (installable web app),
 or with the desktop apps for Windows, macOS and Linux. Your reading position, bookmarks, highlights,
@@ -39,7 +39,7 @@ cp .env.example .env        # then edit PUBLIC_URL and the SMTP settings
 docker compose up -d --build
 ```
 
-Folio is now on <http://127.0.0.1:8787>. Open `/app/`, create your account and confirm it with the emailed link
+Novelia is now on <http://127.0.0.1:8787>. Open `/app/`, create your account and confirm it with the emailed link
 (without SMTP, the link is printed in `docker compose logs folio`).
 
 ### Putting it on the internet

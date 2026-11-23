@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
-<title>Folio</title>
+<title>Novelia</title>
 <style>
   :root { --bg:#fbfbfa; --fg:#222; --muted:#777; --ac:#6d5bd0; --acfg:#fff; }
   @media (prefers-color-scheme: dark) { :root { --bg:#1e1f24; --fg:#d6d6d6; --muted:#8b8c92; --ac:#a798ff; --acfg:#15122a; } }
@@ -15,14 +15,14 @@
 <body><main>
   <div class="logo"></div>
   <h1>Connexion impossible</h1>
-  <p>Folio a besoin d’Internet au premier lancement. Ensuite, vos livres restent lisibles hors ligne.</p>
+  <p>Novelia a besoin d’Internet au premier lancement. Ensuite, vos livres restent lisibles hors ligne.</p>
   <button id="r">Réessayer</button>
 </main>
 <script>
   if (!/^fr/i.test(navigator.language)) {
     document.documentElement.lang = "en";
     document.querySelector("h1").textContent = "Can’t connect";
-    document.querySelector("p").textContent = "Folio needs the internet the first time it opens. After that, your books stay readable offline.";
+    document.querySelector("p").textContent = "Novelia needs the internet the first time it opens. After that, your books stay readable offline.";
     document.getElementById("r").textContent = "Try again";
   }
   const retry = () => window.folioDesktop && window.folioDesktop.retry();

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Folio — liseuse EPUB pour Linux (GTK4 / libadwaita / WebKitGTK)."""
+"""Novelia — liseuse EPUB pour Linux (GTK4 / libadwaita / WebKitGTK)."""
 import base64
 import hashlib
 import json
@@ -508,7 +508,7 @@ class Spine(Gtk.DrawingArea):
 
 class FolioWindow(Adw.ApplicationWindow):
     def __init__(self, app):
-        super().__init__(application=app, title="Folio", default_width=1180, default_height=800)
+        super().__init__(application=app, title="Novelia", default_width=1180, default_height=800)
         self.lib = Library()
         self.settings = self.lib.load_settings()
         self.cur = None            # livre ouvert (sqlite Row)
@@ -566,7 +566,7 @@ class FolioWindow(Adw.ApplicationWindow):
             logo_path = os.path.join(SHARE, "..", "packaging", "org.folio.Reader.svg")
         logo = Gtk.Image.new_from_file(logo_path) if os.path.exists(logo_path) else Gtk.Image(icon_name=APP_ID)
         logo.set_pixel_size(30); logo.add_css_class("brand-logo")
-        name = Gtk.Label(label="Folio"); name.add_css_class("brand")
+        name = Gtk.Label(label="Novelia"); name.add_css_class("brand")
         brand.append(logo); brand.append(name)
         header.pack_start(brand)
 
@@ -579,7 +579,7 @@ class FolioWindow(Adw.ApplicationWindow):
         self.menu_who.add_css_class("dim-label"); self.menu_who.add_css_class("caption"); box.append(self.menu_who)
         for label, cb in ((T("Mon compte…"), self.account_dialog), (T("Dossier de synchronisation…"), self.choose_sync_dir),
                           (T("Synchroniser maintenant"), lambda: self.sync_now()), (T("Langue…"), self.language_dialog),
-                          (T("Mises à jour…"), lambda: self.check_update(manual=True)), (T("Site de Folio ↗"), self.open_site)):
+                          (T("Mises à jour…"), lambda: self.check_update(manual=True)), (T("Site de Novelia ↗"), self.open_site)):
             b = Gtk.Button(label=label, halign=Gtk.Align.FILL); b.add_css_class("flat")
             b.get_child().set_xalign(0)
             b.connect("clicked", lambda _b, cb=cb: (pop.popdown(), cb())); box.append(b)
@@ -1038,7 +1038,7 @@ class FolioWindow(Adw.ApplicationWindow):
 
     # ------------------------------------------------------------------ langue
     def language_dialog(self):
-        d = Adw.AlertDialog(heading=T("Langue"), body=T("Folio va redémarrer pour changer de langue."))
+        d = Adw.AlertDialog(heading=T("Langue"), body=T("Novelia va redémarrer pour changer de langue."))
         d.add_response("cancel", T("Annuler")); d.add_response("auto", T("Automatique (langue du système)"))
         d.add_response("fr", "Français"); d.add_response("en", "English")
         d.set_response_appearance(LANG, Adw.ResponseAppearance.SUGGESTED)
@@ -1937,7 +1937,7 @@ class FolioWindow(Adw.ApplicationWindow):
         name = acc.get("name") or acc.get("email", "")
         tex = self.avatar_texture() if acc else None
         for av in [self.head_avatar] + ([self.big_avatar] if getattr(self, "big_avatar", None) else []):
-            av.set_text(name or "Folio"); av.set_show_initials(bool(acc)); av.set_custom_image(tex)
+            av.set_text(name or "Novelia"); av.set_show_initials(bool(acc)); av.set_custom_image(tex)
             if not acc:
                 av.set_icon_name("avatar-default-symbolic")
         self.menu_who.set_label(f"{acc.get('name') or T('Connecté')} · {acc['email']}" if acc else T("Non connecté"))
@@ -2170,7 +2170,7 @@ class FolioWindow(Adw.ApplicationWindow):
         d.add_response("copy", T("Copier")); d.add_response("save", T("Enregistrer…")); d.add_response("done", T("J’ai mis mes codes en lieu sûr"))
         d.set_response_appearance("done", Adw.ResponseAppearance.SUGGESTED)
         d.set_close_response("done")
-        text = T("Codes de secours Folio — chaque code ne fonctionne qu'une fois") + "\n\n" + "\n".join(codes) + "\n"
+        text = T("Codes de secours Novelia — chaque code ne fonctionne qu'une fois") + "\n\n" + "\n".join(codes) + "\n"
         def resp(_d, r):
             if r == "copy":
                 self.get_clipboard().set(text); self.toast(T("Codes copiés")); d.present(parent)
@@ -2252,7 +2252,7 @@ class FolioWindow(Adw.ApplicationWindow):
     # ---- connexion
     def login_dialog(self, prefill=None):
         acc = prefill or self.settings.get("account") or {}
-        d = Adw.AlertDialog(heading=T("Compte Folio"), body=T("Connectez-vous pour synchroniser vos livres, votre progression et votre apparence."))
+        d = Adw.AlertDialog(heading=T("Compte Novelia"), body=T("Connectez-vous pour synchroniser vos livres, votre progression et votre apparence."))
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         server = Gtk.Entry(placeholder_text=T("https://folio.exemple.org"), text=acc.get("server", DEFAULT_SERVER))
         email = Gtk.Entry(placeholder_text=T("Email"), text=acc.get("email", ""), input_purpose=Gtk.InputPurpose.EMAIL)
@@ -2459,8 +2459,8 @@ class FolioWindow(Adw.ApplicationWindow):
         self.lib.remove_book(bid); self.refresh_library()
 
     # ------------------------------------------------------------------ mise à jour depuis l'appli
-    # Le serveur Folio liste ses paquets (/api/releases, avec SHA-256) ; le .deb plus récent est téléchargé, vérifié,
-    # puis installé par apt (mot de passe administrateur demandé par le système, via pkexec) et Folio redémarre.
+    # Le serveur Novelia liste ses paquets (/api/releases, avec SHA-256) ; le .deb plus récent est téléchargé, vérifié,
+    # puis installé par apt (mot de passe administrateur demandé par le système, via pkexec) et Novelia redémarre.
     @staticmethod
     def installed_version():
         try:
@@ -2471,7 +2471,7 @@ class FolioWindow(Adw.ApplicationWindow):
     def check_update(self, manual=False):
         cur = self.installed_version()
         if not cur:
-            return manual and self.toast(T("Mise à jour : seulement pour Folio installé depuis le paquet .deb"))
+            return manual and self.toast(T("Mise à jour : seulement pour Novelia installé depuis le paquet .deb"))
         server = ((self.settings.get("account") or {}).get("server") or DEFAULT_SERVER).rstrip("/")
         if not server:
             return manual and self.toast(T("Mise à jour impossible"))
@@ -2493,9 +2493,9 @@ class FolioWindow(Adw.ApplicationWindow):
     def update_found(self, best, server, manual):
         if not best:
             if manual:
-                self.toast(T("Mise à jour impossible") if best is False else T("Folio est à jour"))
+                self.toast(T("Mise à jour impossible") if best is False else T("Novelia est à jour"))
             return
-        t = Adw.Toast(title=T("Folio {v} est disponible", v=best[0]), button_label=T("Mettre à jour"), timeout=0)
+        t = Adw.Toast(title=T("Novelia {v} est disponible", v=best[0]), button_label=T("Mettre à jour"), timeout=0)
         t.connect("button-clicked", lambda *_: self.do_update(best[1], server))
         self.toasts.add_toast(t)
 

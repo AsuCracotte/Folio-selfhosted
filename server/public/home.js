@@ -1,5 +1,5 @@
 "use strict";
-// Folio — animations de la page d'accueil.
+// Novelia — animations de la page d'accueil.
 // Performances : une image n'est calculée que si quelque chose a bougé (défilement, pointeur, animation en cours),
 // seules les parties visibles sont mises à jour, toutes les mesures sont lues avant d'écrire quoi que ce soit,
 // et les déplacements passent par transform/opacity. Tout est désactivé si l'utilisateur préfère réduire les animations.
@@ -253,7 +253,7 @@
   }
 
   // =====================================================================================================
-  // La page se lit comme un livre dans Folio : réglages de mise en page, surlignage, reprise de la lecture
+  // La page se lit comme un livre dans Novelia : réglages de mise en page, surlignage, reprise de la lecture
   // (tout reste dans ce navigateur : localStorage, rien n'est envoyé)
   // =====================================================================================================
   const store = {
@@ -444,7 +444,7 @@
   });
   $("#ndMd").onclick = () => {
     const order = sections().map((s) => s.id), ns = mine().sort((a, b) => order.indexOf(a.sec) - order.indexOf(b.sec) || a.o - b.o);
-    let md = "# Folio\n", last = "";
+    let md = "# Novelia\n", last = "";
     for (const n of ns) { if (n.sec !== last) { last = n.sec; const s = document.getElementById(n.sec); md += `\n## ${s ? secLabel(s) : n.sec}\n`; } md += `\n> ${n.text.trim().replace(/\s+/g, " ")}\n`; }
     navigator.clipboard.writeText(md).then(() => { const b = $("#ndMd"), o = b.textContent; b.textContent = t("notesCopied"); setTimeout(() => (b.textContent = o), 1500); }, () => {});
   };

@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Folio — liseuse EPUB synchronisée</title>
-<meta name="description" content="Folio : lisez vos livres EPUB dans le navigateur, sur téléphone, Windows, macOS et Linux. Progression, notes et collections synchronisées. Sans publicité.">
+<title>Novelia — liseuse EPUB synchronisée</title>
+<meta name="description" content="Novelia : lisez vos livres EPUB dans le navigateur, sur téléphone, Windows, macOS et Linux. Progression, notes et collections synchronisées. Sans publicité.">
 <meta name="theme-color" content="#fbfaf7"><link rel="icon" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
-<link rel="stylesheet" href="site.css?v=1.9.2"><link rel="stylesheet" href="home.css?v=1.9.3">
+<link rel="stylesheet" href="site.css?v=3.0.0"><link rel="stylesheet" href="home.css?v=3.0.0">
 <script>(function(r){r.classList.add("js");try{var l=JSON.parse(localStorage.folioSiteLook||"{}");if(l.theme)r.dataset.theme=l.theme;if(l.font)r.dataset.font=l.font;if(l.size)r.style.setProperty("--ts",l.size)}catch(e){}})(document.documentElement)</script>
-<meta property="og:title" content="Folio"><meta property="og:description" content="Vos livres, partout. Liseuse EPUB synchronisée, sans publicité."><meta property="og:image" content="img/fr-library.webp">
+<meta property="og:title" content="Novelia"><meta property="og:description" content="Vos livres, partout. Liseuse EPUB synchronisée, sans publicité."><meta property="og:image" content="img/fr-library.webp">
 </head><body class="home">
 <svg width="0" height="0" style="position:absolute"><defs>
 <symbol id="i-sync" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.5 6.2M3 12A9 9 0 0 1 18.5 5.8"/><path d="M18.5 2v3.8h-3.8M5.5 22v-3.8h3.8"/></symbol>
@@ -32,11 +32,11 @@
 <div class="folio-no" aria-hidden="true">— <span id="pageNo">1</span> —</div>
 
 <header class="nav"><div class="wrap">
- <a class="logo" href="/"><img src="icon.svg" alt="">Folio</a>
+ <a class="logo" href="/"><img src="icon.svg" alt="">Novelia</a>
  <a class="lk" href="#sommaire" data-t="navToc">Fonctionnalités</a>
  <a class="lk" href="/download" data-t="navDownload">Télécharger</a>
  <div class="lang"><button data-l="fr">FR</button><button data-l="en">EN</button></div>
- <a class="btn pri sm" href="/app/"><svg class="i"><use href="#i-arrow"/></svg><span data-t="navOpen">Ouvrir Folio</span></a>
+ <a class="btn pri sm" href="/app/"><svg class="i"><use href="#i-arrow"/></svg><span data-t="navOpen">Ouvrir Novelia</span></a>
 </div></header>
 
 <main>
@@ -45,7 +45,7 @@
  <div class="wrap">
   <p class="eyebrow" data-t="eyebrow">Liseuse EPUB · sans publicité</p>
   <h1 class="ink" id="inkTitle"><span class="ln" data-t="h1a">Vos livres.</span><span class="ln" data-t="h1b">Partout.</span><em class="ln" data-t="h1c">Magnifiquement.</em></h1>
-  <p class="lead2" data-t="lead">Folio est une liseuse EPUB élégante et sans publicité. Lisez dans votre navigateur, sur votre téléphone ou avec l’appli pour Windows, macOS et Linux : votre page, vos notes et vos collections vous suivent.</p>
+  <p class="lead2" data-t="lead">Novelia est une liseuse EPUB élégante et sans publicité. Lisez dans votre navigateur, sur votre téléphone ou avec l’appli pour Windows, macOS et Linux : votre page, vos notes et vos collections vous suivent.</p>
   <div class="ctas"><a class="btn pri" href="/app/"><span data-t="ctaRead">Commencer à lire</span><svg class="i"><use href="#i-arrow"/></svg></a>
    <a class="btn ghost" href="/download"><svg class="i"><use href="#i-dl"/></svg><span data-t="ctaDl">Télécharger l’appli</span></a></div>
   <p class="small" data-t="free">Gratuit · rien à installer pour commencer · fonctionne hors ligne</p>
@@ -54,7 +54,7 @@
    <div class="under"><div class="bar"><i></i><i></i><i></i><span id="host">folio.example.org</span></div><img data-shot="library" src="img/fr-library.webp" width="1280" height="800" alt=""></div>
    <div class="phone"><img data-shot="phone-library" src="img/fr-phone-library.webp" width="780" height="1688" alt=""></div>
    <div class="cover" aria-hidden="true">
-    <div class="cover-front"><img src="icon.svg" alt=""><b>Folio</b><span data-t="coverSub">Tome I · Vos livres</span><small data-t="coverHint">Faites défiler pour ouvrir</small></div>
+    <div class="cover-front"><img src="icon.svg" alt=""><b>Novelia</b><span data-t="coverSub">Tome I · Vos livres</span><small data-t="coverHint">Faites défiler pour ouvrir</small></div>
     <div class="cover-back"><div class="exlibris"><small>Ex libris</small><b data-t="exlibris">Ce livre appartient à… vous.</b></div></div>
    </div>
   </div>
@@ -77,7 +77,7 @@
   <div class="txt">
    <p class="label" data-t="c2k">Mise en page</p>
    <h2 class="t" data-t="c2t">Cette page se règle comme un livre.</h2>
-   <p class="sub2" data-t="c2p">Changez le thème, la police ou la taille : c’est tout le site qui se recompose, comme vos livres dans Folio.</p>
+   <p class="sub2" data-t="c2p">Changez le thème, la police ou la taille : c’est tout le site qui se recompose, comme vos livres dans Novelia.</p>
    <div class="newnote"><span class="mini on"></span><p data-th="newNote"><b>Nouveau</b> · Chaque appareil choisit ce qu’il synchronise : des marges larges sur l’ordinateur, serrées sur le téléphone.</p></div>
   </div>
   <div class="tset" id="tset" data-rv></div>
@@ -161,7 +161,7 @@
 <section id="notes" class="chap">
  <div class="wrap">
   <p class="label" data-t="c4k">Notes</p>
-  <p class="marks" data-rv data-th="c4p">Un bon livre se lit <mark class="hl y">deux fois</mark> : la première pour l’histoire, la seconde pour <mark class="hl g">tout ce qu’on avait souligné</mark>. Folio garde chaque passage, <mark class="hl b">classé par chapitre</mark>, prêt à être copié ou <mark class="hl p">exporté en Markdown</mark>.</p>
+  <p class="marks" data-rv data-th="c4p">Un bon livre se lit <mark class="hl y">deux fois</mark> : la première pour l’histoire, la seconde pour <mark class="hl g">tout ce qu’on avait souligné</mark>. Novelia garde chaque passage, <mark class="hl b">classé par chapitre</mark>, prêt à être copié ou <mark class="hl p">exporté en Markdown</mark>.</p>
   <p class="try" data-rv data-th="c4try">Essayez : <b>sélectionnez</b> n’importe quelle phrase de cette page.</p>
   <div class="frame tilt" data-rv><img data-shot="notes" src="img/fr-notes.webp" width="1280" height="800" alt="" loading="lazy"></div>
  </div>
@@ -187,7 +187,7 @@
 <section id="selfhost" class="chap">
  <div class="wrap split rev">
   <div class="txt"><p class="label" data-t="shK">Open source</p>
-   <h2 class="t" data-t="shT2">Hébergez votre propre Folio.</h2>
+   <h2 class="t" data-t="shT2">Hébergez votre propre Novelia.</h2>
    <p class="sub2" data-t="shP">Le code est libre (licence MIT). Installez le serveur chez vous — un Raspberry Pi suffit — et gardez vos livres et vos notes sur votre propre machine.</p>
    <ul class="checks"><li><svg class="i"><use href="#i-check"/></svg><span data-t="sh1">Installation en une commande avec Docker</span></li>
     <li><svg class="i"><use href="#i-check"/></svg><span data-t="sh2">Site, lecteur et applis Windows, macOS et Linux inclus</span></li>
@@ -211,9 +211,9 @@
 </section>
 </main>
 
-<footer><div class="wrap"><a class="logo" href="/" style="font-size:17px;margin:0"><img src="icon.svg" alt="" style="width:24px;height:24px">Folio</a><span class="sp"></span>
- <a href="/app/" data-t="navOpen">Ouvrir Folio</a><a href="/download" data-t="navDownload">Télécharger</a><a href="https://github.com/AsuCracotte/Folio-selfhosted" target="_blank" rel="noopener" data-t="selfLink">Auto-hébergement</a><span>© 2026 Folio</span></div>
+<footer><div class="wrap"><a class="logo" href="/" style="font-size:17px;margin:0"><img src="icon.svg" alt="" style="width:24px;height:24px">Novelia</a><span class="sp"></span>
+ <a href="/app/" data-t="navOpen">Ouvrir Novelia</a><a href="/download" data-t="navDownload">Télécharger</a><a href="https://github.com/AsuCracotte/Folio-selfhosted" target="_blank" rel="noopener" data-t="selfLink">Auto-hébergement</a><span>© 2026 Novelia</span></div>
  <div class="wrap"><p class="colophon" data-t="colophon">Composé en Fraunces et Literata. Imprimé nulle part, lisible partout.</p></div></footer>
-<script src="site.js?v=2.3.5"></script>
-<script src="home.js?v=2.3.4"></script>
+<script src="site.js?v=3.0.0"></script>
+<script src="home.js?v=3.0.0"></script>
 </body></html>

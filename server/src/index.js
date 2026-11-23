@@ -30,5 +30,5 @@ const app = build(db, {
   mailer,
 });
 app.listen({ host: process.env.HOST || "0.0.0.0", port: +(process.env.PORT || 8787) })
-  .then((a) => console.log("Folio server sur", a));
+  .then((a) => console.log("Novelia server sur", a));
 if (mailer.configured) mailer.verify().then(() => console.log("[mail] SMTP OK"), (e) => console.error("[mail] SMTP KO :", e.message));

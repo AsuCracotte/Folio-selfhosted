@@ -2,8 +2,8 @@
   "name": "folio-desktop",
   "productName": "Folio",
   "version": "1.9.0",
-  "description": "Folio \u2014 desktop app (Windows, macOS) for a self-hosted Folio server",
-  "author": "Folio contributors",
+  "description": "Novelia \u2014 desktop app (Windows, macOS) for a self-hosted Novelia server",
+  "author": "Novelia contributors",
   "license": "MIT",
   "main": "main.js",
   "private": true,
@@ -20,7 +20,7 @@
   "build": {
     "appId": "org.folio.desktop",
     "productName": "Folio",
-    "copyright": "Folio",
+    "copyright": "Novelia",
     "files": [
       "main.js",
       "preload.js",
@@ -58,7 +58,7 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "Folio",
+      "shortcutName": "Novelia", "uninstallDisplayName": "Novelia",
       "multiLanguageInstaller": true,
       "installerLanguages": [
         "en_US",
@@ -78,7 +78,7 @@
         }
       ],
       "identity": null,
-      "extendInfo": { "NSCameraUsageDescription": "Folio utilise la caméra pour photographier la tranche de vos livres." },
+      "extendInfo": { "CFBundleDisplayName": "Novelia", "CFBundleName": "Novelia", "NSCameraUsageDescription": "Novelia utilise la caméra pour photographier la tranche de vos livres." },
       "artifactName": "Folio-${version}-mac-${arch}.${ext}"
     }
   }

@@ -1,4 +1,4 @@
-/* Folio — panneau « Sommaire & notes » partagé entre le site (PWA) et l'app Linux.
+/* Novelia — panneau « Sommaire & notes » partagé entre le site (PWA) et l'app Linux.
    Utilise les variables CSS de l'hôte : --bg --fg --ac --acfg --muted --line --soft --surface. */
 window.FolioNotes = (() => {
   const COLORS = { yellow: "#f6d55c", green: "#7bd88f", blue: "#6cb6ff", pink: "#ff8fb1", orange: "#ffa94d", red: "#ff6b6b", purple: "#b197fc", teal: "#4fd1c5" };

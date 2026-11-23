@@ -1,4 +1,4 @@
-"""Bibliothèque de Folio : base SQLite, import des EPUB, couvertures, réglages."""
+"""Bibliothèque de Novelia : base SQLite, import des EPUB, couvertures, réglages."""
 import hashlib
 import json
 import os

@@ -1,4 +1,4 @@
-/* Folio — page d'accueil : un site qui se lit comme un livre (couverture, défilement, colophon) */
+/* Novelia — page d'accueil : un site qui se lit comme un livre (couverture, défilement, colophon) */
 :root{--ease:cubic-bezier(.2,.7,.2,1)}
 body.home{overflow-x:clip}
 /* grain de papier, très léger, derrière le contenu */

@@ -1,4 +1,4 @@
-// Folio pour Windows et macOS : une fenêtre de bureau autour de l'appli web Folio (même interface, même synchro).
+// Novelia pour Windows et macOS : une fenêtre de bureau autour de l'appli web Novelia (même interface, même synchro).
 const { app, BrowserWindow, Menu, shell, ipcMain, nativeTheme, systemPreferences, net } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -54,7 +54,7 @@ function createWindow() {
   const st = loadState();
   win = new BrowserWindow({
     width: 1180, height: 800, minWidth: 380, minHeight: 500, ...(st.bounds || {}),
-    title: "Folio", show: false,
+    title: "Novelia", show: false,
     backgroundColor: nativeTheme.shouldUseDarkColors ? "#1e1f24" : "#fbfbfa",
     autoHideMenuBar: true,
     webPreferences: {
@@ -66,7 +66,7 @@ function createWindow() {
   win.once("ready-to-show", () => win.show());
   ["resize", "move", "close"].forEach((ev) => win.on(ev, saveState));
 
-  // liens externes (aide, mails…) : navigateur par défaut ; la fenêtre reste sur Folio
+  // liens externes (aide, mails…) : navigateur par défaut ; la fenêtre reste sur Novelia
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^(https?|mailto):/.test(url)) shell.openExternal(url);
     return { action: "deny" };
@@ -77,7 +77,7 @@ function createWindow() {
     e.preventDefault();
     if (/^(https?|mailto):/.test(url)) shell.openExternal(url);
   });
-  // seule la caméra est accordée, à Folio lui-même (photo de la tranche d'un livre) ; jamais le micro, la position, les notifications…
+  // seule la caméra est accordée, à Novelia lui-même (photo de la tranche d'un livre) ; jamais le micro, la position, les notifications…
   win.webContents.session.setPermissionRequestHandler(async (_wc, perm, cb, details) => {
     if (perm === "clipboard-sanitized-write") return cb(true);
     const types = (details && details.mediaTypes) || [];
@@ -100,7 +100,7 @@ function createWindow() {
 ipcMain.on("folio:retry", () => win && win.loadURL(SITE));
 
 // ---------- mise à jour de l'appli elle-même ----------
-// Le serveur Folio liste ses installeurs (/api/releases, avec leur SHA-256). Si une version plus récente existe pour ce système,
+// Le serveur Novelia liste ses installeurs (/api/releases, avec leur SHA-256). Si une version plus récente existe pour ce système,
 // la page propose « Mettre à jour » : téléchargement, vérification de l'empreinte, installation, redémarrage.
 const newer = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
 const PAT = process.platform === "win32" ? /^Folio-Setup-(\d+\.\d+\.\d+)\.exe$/
@@ -133,7 +133,7 @@ async function installUpdate(e) {
   await new Promise((ok) => out.end(ok));
   if (h.digest("hex") !== u.sha256) { fs.rmSync(dir, { recursive: true, force: true }); throw new Error("empreinte invalide"); }
   if (process.platform === "win32") {
-    // installeur NSIS en silencieux (même dossier que l'installation actuelle), puis relance de Folio
+    // installeur NSIS en silencieux (même dossier que l'installation actuelle), puis relance de Novelia
     spawn(file, ["/S", "--force-run"], { detached: true, stdio: "ignore" }).unref();
   } else {
     // macOS : on remplace Folio.app par la nouvelle version une fois l'appli fermée, puis on la rouvre
@@ -152,11 +152,11 @@ ipcMain.handle("folio:installUpdate", (e) => installUpdate(e));
 const M = {
   fr: { edit: "Édition", undo: "Annuler", redo: "Rétablir", cut: "Couper", copy: "Copier", paste: "Coller", all: "Tout sélectionner",
     view: "Affichage", reload: "Recharger", reset: "Taille réelle", zin: "Zoom avant", zout: "Zoom arrière", full: "Plein écran",
-    about: "À propos de Folio", hide: "Masquer Folio", others: "Masquer les autres", show: "Tout afficher", quitApp: "Quitter Folio",
+    about: "À propos de Novelia", hide: "Masquer Novelia", others: "Masquer les autres", show: "Tout afficher", quitApp: "Quitter Novelia",
     win: "Fenêtre", min: "Réduire", zoom: "Agrandir", close: "Fermer", file: "Fichier", quit: "Quitter" },
   en: { edit: "Edit", undo: "Undo", redo: "Redo", cut: "Cut", copy: "Copy", paste: "Paste", all: "Select All",
     view: "View", reload: "Reload", reset: "Actual Size", zin: "Zoom In", zout: "Zoom Out", full: "Toggle Full Screen",
-    about: "About Folio", hide: "Hide Folio", others: "Hide Others", show: "Show All", quitApp: "Quit Folio",
+    about: "About Novelia", hide: "Hide Novelia", others: "Hide Others", show: "Show All", quitApp: "Quit Novelia",
     win: "Window", min: "Minimize", zoom: "Zoom", close: "Close", file: "File", quit: "Quit" },
 };
 function buildMenu() {
@@ -170,7 +170,7 @@ function buildMenu() {
     { role: "resetZoom", label: t.reset }, { role: "zoomIn", label: t.zin }, { role: "zoomOut", label: t.zout },
     { type: "separator" }, { role: "togglefullscreen", label: t.full }] };
   const tpl = isMac
-    ? [{ label: "Folio", submenu: [{ role: "about", label: t.about }, { type: "separator" },
+    ? [{ label: "Novelia", submenu: [{ role: "about", label: t.about }, { type: "separator" },
         { role: "hide", label: t.hide }, { role: "hideOthers", label: t.others }, { role: "unhide", label: t.show },
         { type: "separator" }, { role: "quit", label: t.quitApp }] },
        edit, view, { label: t.win, submenu: [{ role: "minimize", label: t.min }, { role: "zoom", label: t.zoom }, { role: "close", label: t.close }] }]

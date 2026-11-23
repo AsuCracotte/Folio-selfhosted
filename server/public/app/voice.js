@@ -1,17 +1,17 @@
-/* Folio — lecture à voix haute, partagée entre le site (PWA, Windows/Mac) et l'app Linux.
-   Les voix (Piper) sont calculées par le serveur Folio du compte ; la phrase lue est surlignée et la page suit.
+/* Novelia — lecture à voix haute, partagée entre le site (PWA, Windows/Mac) et l'app Linux.
+   Les voix (Piper) sont calculées par le serveur Novelia du compte ; la phrase lue est surlignée et la page suit.
    FolioVoice.create(hôte) : voir « hôte » plus bas. Utilise les variables CSS --bg --fg --ac --acfg --muted --line --soft. */
 window.FolioVoice = (() => {
   const TX = {
     fr: { listen: "Lecture à voix haute", play: "Lire", pause: "Pause", prev: "Phrase précédente", next: "Phrase suivante", close: "Arrêter la lecture",
-      voice: "Voix", speed: "Vitesse", loading: "Préparation de la voix…", needAccount: "La lecture à voix haute utilise les voix de votre serveur Folio : connectez-vous à votre compte.",
-      login: "Se connecter", noVoices: "Aucune voix installée sur votre serveur Folio.", fail: "Voix indisponible pour le moment", end: "Fin du livre", tap: "Touchez un paragraphe pour lire à partir de là",
+      voice: "Voix", speed: "Vitesse", loading: "Préparation de la voix…", needAccount: "La lecture à voix haute utilise les voix de votre serveur Novelia : connectez-vous à votre compte.",
+      login: "Se connecter", noVoices: "Aucune voix installée sur votre serveur Novelia.", fail: "Voix indisponible pour le moment", end: "Fin du livre", tap: "Touchez un paragraphe pour lire à partir de là",
       fr: "Français", en: "English", f: "femme", m: "homme", natural: "voix naturelles", local: "voix de secours (Piper)",
       siwis: "Élise", jessica: "Jessica", pierre: "Pierre", tom: "Tom", gilles: "Gilles", lessac: "Linda", kristin: "Kristin", ryan: "Ryan", northern: "Oliver",
       d_siwis: "claire", d_jessica: "douce", d_pierre: "posé", d_tom: "chaleureux", d_gilles: "grave", d_lessac: "expressive", d_kristin: "douce", d_ryan: "neutre", d_northern: "chaleureux, accent anglais" },
     en: { listen: "Read aloud", play: "Play", pause: "Pause", prev: "Previous sentence", next: "Next sentence", close: "Stop reading",
-      voice: "Voice", speed: "Speed", loading: "Preparing the voice…", needAccount: "Read aloud uses the voices of your Folio server: sign in to your account.",
-      login: "Sign in", noVoices: "No voice installed on your Folio server.", fail: "Voice unavailable right now", end: "End of the book", tap: "Tap a paragraph to read from there",
+      voice: "Voice", speed: "Speed", loading: "Preparing the voice…", needAccount: "Read aloud uses the voices of your Novelia server: sign in to your account.",
+      login: "Sign in", noVoices: "No voice installed on your Novelia server.", fail: "Voice unavailable right now", end: "End of the book", tap: "Tap a paragraph to read from there",
       fr: "Français", en: "English", f: "woman", m: "man", natural: "natural voices", local: "backup voices (Piper)",
       siwis: "Élise", jessica: "Jessica", pierre: "Pierre", tom: "Tom", gilles: "Gilles", lessac: "Linda", kristin: "Kristin", ryan: "Ryan", northern: "Oliver",
       d_siwis: "clear", d_jessica: "soft", d_pierre: "calm", d_tom: "warm", d_gilles: "deep", d_lessac: "expressive", d_kristin: "soft", d_ryan: "neutral", d_northern: "warm, British accent" },
